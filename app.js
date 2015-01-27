@@ -58,7 +58,7 @@ app.get('/api/channels/:channelId/messages', function (req, res) {
   var limit = req.query.limit || beforeId - sinceId;
 
   Message.findAndCountAll({
-    where: {channelId: req.params.channelId, id : { gt : sinceId, lt : beforeId }}, order: 'id DESC', limit: limit
+    where: {ChannelId: req.params.channelId, id : { gt : sinceId, lt : beforeId }}, order: 'id DESC', limit: limit
   }).then(function (messages) {
     res.json(messages.rows.reverse());
   });
