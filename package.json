@@ -16,6 +16,8 @@
     "restify": "^2.8.4",
     "sequelize": "^2.0.0-rc7",
     "socket.io": ">= 0.9.6",
-    "sqlite3": "^3.0.4"
+    "sqlite3": "^3.0.4",
+    "pg": "~4.2.0",
+    "pg-hstore": "~2.3.1"
   }
 }
