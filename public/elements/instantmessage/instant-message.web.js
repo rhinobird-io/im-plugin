@@ -1,5 +1,5 @@
 var hostname = window.location.hostname;
-var serverUrl = 'http://' + hostname + ':3000';
+var serverUrl = 'http://' + hostname + '/im';
 var defaultChannel = 'default';
 
 
