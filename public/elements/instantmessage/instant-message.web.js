@@ -1,5 +1,5 @@
-var hostname = window.location.hostname;
-var serverUrl = 'http://' + hostname + '/im';
+var hostname = window.location.hostname +':'+ window.location.port;
+var serverUrl = 'http://' + hostname  + '/im';
 var defaultChannel = 'default';
 
 
@@ -193,7 +193,7 @@ Polymer({
 
   initSocket: function () {
     var self = this;
-    self.socket = io(serverUrl).connect();
+    self.socket = io('http://' + hostname, {path:'/im/socket.io'}).connect();
     self.socket.on('connect', function () {
       self.$.connectingDialog.close();
       self.socket.emit('init', {
