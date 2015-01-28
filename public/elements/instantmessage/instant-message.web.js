@@ -301,6 +301,7 @@ Polymer({
     self.socket.on('disconnect', function () {
       self.$.connectingDialog.open();
       self.connectinStatus = "disconnected.";
+      self.$.connectingDialog.close();
     });
 
     self.socket.on('reconnecting', function (number) {
@@ -338,8 +339,9 @@ Polymer({
     target.style.left = '' + (rect.left - 250 ) + 'px';
   },
 
-  talkDirect: function (event, detail, target) {
-    target.parentElement && target.parentElement.close();
+  talkDirect : function(event, detail, target) {
+    target.parentElement&&target.parentElement.close();
+    this.socket.disconnect();
     document.querySelector('app-router').go('/' + this.pluginName + '/channels/@' + target.templateInstance.model.u.realname);
   },
 
@@ -458,6 +460,7 @@ Polymer({
     }
 
     var hash = target.attributes['hash'].value;
+    this.socket.disconnect();
     document.querySelector('app-router').go('/' + this.pluginName + '/channels/' + hash);
 
   },
