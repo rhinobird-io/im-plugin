@@ -243,6 +243,20 @@ Polymer({
       if (message.channelId !== self.channel.id){
         self.unread[message.channelId] = self.unread[message.channelId] || [];
         self.unread[message.channelId].push(message.text);
+        $.ajax({
+            url:'http://' + hostname + '/platform/users/' + self.currentUser.id + '/notifications',
+            type:"POST",
+            data:JSON.stringify({content: 'New Message: \n' + message.text, from_user_id: message.userId}) ,
+            contentType:"application/json",
+            dataType:"json",
+            success: function(){
+            }
+          });
+          self.comingMessage = {
+          userId:message.userId, 
+          text: message.text
+          }
+          self.$.comingMessageToast.show();
         return;
       }
       if (self.messages.length > 0){
