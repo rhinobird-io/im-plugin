@@ -58,6 +58,9 @@
 		disableReadyEvent: false,
 		hideMemberElement: false,
 		domReady: function(){
+			if (!this.text){
+				return;
+			}
 			var afterprocessing = this.processCodeSnippet(this.text);
 			
 			var processingText = afterprocessing;
