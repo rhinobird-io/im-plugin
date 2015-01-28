@@ -48,3 +48,6 @@ h3 {
     right: 55px;
     left: auto;
 }
+#directMessage {
+    overflow: auto;
+}

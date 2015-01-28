@@ -68,9 +68,10 @@
                 </div>
 
                 <div vertical layout flex>
-                    <div id="groupChannel">
+                    <div> 
                         <h3 class="secondColor">Group Channel</h3>
-
+                    </div>
+                    <div id="groupChannel">
                         <div vertical layout>
                             <template repeat="{{ g in myTeam }}">
                                 <div horizontal layout center>
@@ -91,8 +92,10 @@
                             </template>
                         </div>
                     </div>
-                    <div id="directMessage" flex>
+                    <div >
                         <h3 class="secondColor">Direct Message</h3>
+                    </div>
+                    <div id="directMessage" flex>
                         <template repeat="{{ g in allMyTeamMember }}">
                             <div horizontal layout center>
                                 <paper-item on-click="{{ handleChannelSelect }}" hash="{{'@'+g.realname}}" class="{{ {highlight : '@' + g.realname  === channelName} | tokenList }}">{{
