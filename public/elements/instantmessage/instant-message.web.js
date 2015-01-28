@@ -252,11 +252,6 @@ Polymer({
           success: function () {
           }
         });
-        self.comingMessage = {
-          userId: message.userId,
-          text: message.text
-        };
-        self.$.comingMessageToast.show();
         return;
       }
       if (self.messages.length > 0) {
