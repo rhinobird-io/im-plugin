@@ -12,6 +12,7 @@ Polymer({
   myTeam: [],
   teamMemberMap: {},
   allMyTeamMember:[],
+  privateGroup: [],
   pluginName :'instantmessage',
   unread : {},
   users : [], // the users in this room
@@ -130,6 +131,21 @@ Polymer({
         },
 
         /**
+         * get all team member channel
+         * @param callback
+         */
+        function (callback){
+          $.post(serverUrl + '/api/userId/'+ self.currentUser.id +'/allChannels', 
+                 {'teamMembers': self.allMyTeamMember, 'myTeam': self.myTeam}, 
+                function(data){
+                  self.allMyTeamMember = data.teamMembers;
+                  self.myTeam = data.myTeam;
+                  //self.privateGroup = data.privateGroup;
+                  callback();
+                });
+        },
+
+        /**
          * get current channel
          * @param callback
          */
@@ -147,6 +163,8 @@ Polymer({
                 callback(null, channel);
               });
         },
+
+
 
         /**
          * extra operation if the channel is private
@@ -215,10 +233,8 @@ Polymer({
 
     self.socket.on('send:message', function (message) {
       if (message.channelId !== self.channel.id){
-        // TODO: wait for userId mapp with channel id
-        //self.unread[message.channelId] = self.unread[message.channelId] || [];
-        //self.unread[channel.id].push(message.text);
-        // other channel message
+        self.unread[message.channelId] = self.unread[message.channelId] || [];
+        self.unread[message.channelId].push(message.text);
         return;
       }
       if (self.messages.length > 0){
