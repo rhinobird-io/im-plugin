@@ -123,7 +123,7 @@ Polymer({
                });
             }, function (err){
               if (!err){
-                self.allMyTeamMember = $.unique(teamMembers);
+                self.allMyTeamMember = self.getUniqueMember(teamMembers);
                 callback();
               }
             });
@@ -189,6 +189,17 @@ Polymer({
         }
       });
     });
+  },
+  getUniqueMember: function(array){
+    var u = {}, uArray =[];
+    for (var i = array.length - 1; i >= 0; i--) {
+      if (u.hasOwnProperty(array[i].id)){
+        continue;
+      }
+      uArray.push(array[i]);
+      u[array[i].id] = 1;
+    };
+    return uArray;
   },
 
   initSocket: function () {
