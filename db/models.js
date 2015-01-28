@@ -2,7 +2,7 @@ var pg = require('pg'),
     Sequelize = require('sequelize'),
     async = require('async');
 
-var url = process.env.DATABASE_URL || 'postgres://postgres:123456@localhost:5432/im'
+var url = process.env.DATABASE_URL || 'postgres://postgres:123456@localhost:5432/im';
 var sequelize = new Sequelize(url);
 
 var Channel = sequelize.define('Channel', {
