@@ -150,18 +150,26 @@ Polymer({
          * @param callback
          */
         function (callback) {
-          self.getChannel(self.channelName, 
-                          self.currentUser.id, 
-                          self.channelName.indexOf('@') === 0)
-              .done(function (channel) {
-                if (!channel) {
-                  // the channel not exists
-                  callback('the channel not exists');
-                  return;
-                }
-                self.channel = channel;
-                callback(null, channel);
-              });
+
+
+          var channelNameMappedId = -1;
+          if (self.channelName.indexOf('@') === 0){
+            var name = self.channelName.substr(1);
+            self.allMyTeamMember.forEach(function (teamMember){
+              if (name === teamMember.realname){
+                self.channel = {id: teamMember.channelId};
+                callback(null, self.channel);
+              }
+            });
+          }else{
+            self.myTeam.forEach(function (team){
+              if (team.name === self.channelName){
+                self.channel = {id: team.channelId, teamId:team.id};
+                callback(null, self.channel);
+              }
+            });
+          }
+
         },
 
 
@@ -406,25 +414,6 @@ Polymer({
         self.$.infiniteScroll.startObserve();
       }, 1000);
     });
-  },
-
-  getChannel: function (channelName, fromUserId, isPrivate, teamId) {
-    var channelNameMappedId = -1;
-    if (isPrivate){
-      var name = channelName.substr(1);
-      this.allMyTeamMember.forEach(function (teamMember){
-        if (name === teamMember.realname){
-          channelNameMappedId = teamMember.id;
-        }
-      });
-    }else{
-      this.myTeam.forEach(function (team){
-        if (team.name === channelName){
-          channelNameMappedId = team.id;
-        }
-      });
-    }
-    return $.get(serverUrl + '/api/channels?URLChannelId=' + channelNameMappedId + '&from=' + fromUserId + '&isPrivate=' + isPrivate);
   },
 
   goToDefaultChannel: function () {

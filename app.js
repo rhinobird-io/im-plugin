@@ -66,8 +66,15 @@ app.get('/api/channels/:channelId/messages', function (req, res) {
 });
 
 app.post('/api/userId/:userId/allChannels', function (req, res){
+
   var body = req.body;
   var userId = req.params.userId;
+
+  if (userId === -1){
+    res.sendStatus(404);
+    return;
+  }
+  
   async.waterfall([
     function(callback){
       async.each(body.teamMembers, 
@@ -124,42 +131,6 @@ app.post('/api/userId/:userId/allChannels', function (req, res){
     );
 });
 
-app.get('/api/channels', function (req, res) {
-  var isPrivate = req.query.isPrivate === 'true';
-  var userId = req.query.from;
-  var URLChannelId = req.query.URLChannelId;
-  if (URLChannelId === -1){
-    res.sendStatus(404);
-    return;
-  }
-
-  if (isPrivate) {
-    var minId = userId > URLChannelId ? URLChannelId : userId;
-    var maxId = userId > URLChannelId ? userId : URLChannelId;
-    Channel.findOrCreate({where: {name: '' + minId + ':' + maxId, isPrivate: true}})
-           .then(function (channels) {
-              var channel = channels[0];
-              User.findOrCreate({where:{id:minId, ChannelId: channel.dataValues.id}})
-                  .then(function(){
-                     User.findOrCreate({where:{id:maxId, ChannelId: channel.dataValues.id}})
-                         .then(function(){
-                          res.json(channel.dataValues);
-                         });
-                  });
-             
-              
-            });
-  } else {
-    Channel.findOrCreate({where: {name: URLChannelId, isPrivate: false}})
-           .then(function (channels) {
-              var  channel= channels[0];
-              User.findOrCreate({where:{id:userId, ChannelId: channel.dataValues.id}})
-                  .then(function(){
-                    res.json(channel.dataValues);
-                  });
-            });
-  }
-});
 
 
 
