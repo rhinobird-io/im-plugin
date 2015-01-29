@@ -12,6 +12,7 @@ Polymer({
   myTeam: [],
   teamMemberMap: {},
   allMyTeamMember: [],
+  userIdTeamMemberMap: {},
   privateGroup: [],
   pluginName: 'instantmessage',
   unread: {},
@@ -20,7 +21,14 @@ Polymer({
   ready: function () {
     this.scrollToBottom(100);
     var self = this;
+    if (!Notification) {
+      alert('Please use a modern version of Chrome');
+      return;
+    }
 
+    if (Notification.permission !== "granted"){
+      Notification.requestPermission();
+    }
     window.onkeypress = function (event) {
       if (event.keyCode === 13 && self.message === '') {
         event.preventDefault();
@@ -125,6 +133,9 @@ Polymer({
             }, function (err) {
               if (!err) {
                 self.allMyTeamMember = self.getUniqueMember(teamMembers);
+                self.allMyTeamMember.forEach(function(member){
+                  self.userIdTeamMemberMap[member.id] = member;
+                });
                 callback();
               }
             });
@@ -243,15 +254,8 @@ Polymer({
       if (message.channelId !== self.channel.id) {
         self.unread[message.channelId] = self.unread[message.channelId] || [];
         self.unread[message.channelId].push(message.text);
-        $.ajax({
-          url: 'http://' + hostname + '/platform/users/' + self.currentUser.id + '/notifications',
-          type: "POST",
-          data: JSON.stringify({content: 'New Message: \n' + message.text, from_user_id: message.userId}),
-          contentType: "application/json",
-          dataType: "json",
-          success: function () {
-          }
-        });
+        self.showNotification(self.userIdTeamMemberMap[message.userId].realname, 
+                              message.text);
         return;
       }
       if (self.messages.length > 0) {
@@ -524,6 +528,18 @@ Polymer({
   },
   onClickInfomation: function () {
     this.$.informationDialog.open();
+  },
+  showNotification: function (userName, content) {
+    if (!Notification){
+      return;
+    }
+    var notification = new Notification("New Message from "+ userName, {
+        body: content
+    });
+    setTimeout(function(){
+      notification.close();
+    }, 3000);
+
   },
 
   roomId: '',
