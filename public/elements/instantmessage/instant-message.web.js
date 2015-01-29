@@ -9,9 +9,28 @@ Polymer({
   },
   messages: [],
   connectinStatus: "connecting",
+
+  /**
+   * from platform, get all teams the current user belongs to
+   */
   myTeam: [],
+
+  /**
+   * @key : teamId
+   * @value: array, all the users in this team
+   */
   teamMemberMap: {},
+
+  /**
+   * unique
+   * all the team members without duplication
+   */
   allMyTeamMember: [],
+
+  /**
+   * key : userId
+   * value : user
+   */
   userIdTeamMemberMap: {},
   privateGroup: [],
   pluginName: 'instantmessage',
@@ -143,6 +162,7 @@ Polymer({
 
         /**
          * get all team member channel
+         * assign the channel id of instant message db
          * @param callback
          */
           function (callback) {
@@ -548,6 +568,6 @@ Polymer({
   },
 
   roomId: '',
-  codeSnippetExample: "```c++\nint main(){\n    printf(\"helloworld\");\n    return 0;\n}\n```",
+  codeSnippetExample: "```c++\nint main(){\n    printf(\"helloworld\");\n    return 0;\n}\n```"
 });
 
