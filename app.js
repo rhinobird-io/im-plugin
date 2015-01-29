@@ -4,17 +4,17 @@
 
 var express = require('express'),
   socket = require('./routes/socket.js')
-  , User = require('./db/models.js').User
+  , PrivateChannelUsers = require('./db/models.js').PrivateChannelUsers
   , Message = require('./db/models.js').Message
-  , Channel = require('./db/models.js').Channel
+  , PrivateChannel = require('./db/models.js').PrivateChannel
+  , UsersChannelsMessages = require('./db/models.js').UsersChannelsMessages
   , ogp = require("open-graph")
-  , _ = require('lodash');
-
-var async = require('async'),
-  http = require('http'),
-  bodyParser = require('body-parser'),
-  methodOverride = require('method-override'),
-  errorhandler = require('errorhandler');
+  , _ = require('lodash')
+  , async = require('async')
+  , http = require('http')
+  , bodyParser = require('body-parser')
+  , methodOverride = require('method-override')
+  , errorhandler = require('errorhandler');
 
 var app = module.exports = express();
 var server = http.Server(app);

@@ -1,37 +1,62 @@
 var pg = require('pg'),
-    Sequelize = require('sequelize'),
-    async = require('async');
+  Sequelize = require('sequelize'),
+  async = require('async');
 
 var url = process.env.DATABASE_URL || 'postgres://postgres:123456@localhost:5432/im';
 var sequelize = new Sequelize(url);
 
-var Channel = sequelize.define('Channel', {
+/**
+ * use to store private channels, ** ONLY ** private channels
+ * @type {*|Model}
+ */
+var PrivateChannel = sequelize.define('PrivateChannel', {
   name: {
     type: Sequelize.STRING,
     unique: true
+  }
+});
+
+var PrivateChannelsUsers = sequelize.define('PrivateChannelsUsers', {
+  userId: {
+    type: Sequelize.INTEGER,
+    primaryKey: true
   },
-  isPrivate: Sequelize.BOOLEAN
+  PrivateChannelId: {
+    type: Sequelize.INTEGER,
+    primaryKey: true,
+    references: "PrivateChannels",
+    referencesKey: "id",
+    onDelete: "cascade"
+  }
 });
 
 var Message = sequelize.define('Message', {
-  message: Sequelize.TEXT, 
+  channelId: Sequelize.STRING,
+  userId: Sequelize.INTEGER,
+  message: Sequelize.TEXT,
   guid: Sequelize.UUID
 });
 
-var User = sequelize.define('User', {
-  id : Sequelize.INTEGER
+var UsersChannelsMessages = sequelize.define('UsersChannelsMessages', {
+  userId: {
+    type: Sequelize.INTEGER,
+    primaryKey: true
+  },
+  channelId: {
+    type: Sequelize.STRING,
+    primaryKey: true
+  }
 });
 
 
-Channel.hasMany(User);
-Message.belongsTo(Channel);
-Message.belongsTo(User);
-
+PrivateChannelsUsers.belongsTo(PrivateChannel);
+UsersChannelsMessages.belongsTo(Message);
 
 module.exports = {
   Message: Message,
-  Channel: Channel,
-  User: User,
+  PrivateChannel: PrivateChannel,
+  PrivateChannelsUsers: PrivateChannelsUsers,
+  UsersChannelsMessages: UsersChannelsMessages,
 
   sync: function () {
     return sequelize.sync({force: true}).then(function () {
