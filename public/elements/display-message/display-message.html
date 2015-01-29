@@ -2,6 +2,7 @@
 <link rel="import" href="display-default-message.html">
 <link rel="import" href="display-code-snippet-message.html">
 <link rel="import" href="display-url-message.html">
+<link rel="import" href="/platform/elements/member-select/avatar-image.html">
 <link rel="import" href="/platform/elements/member-select/member-element.html">
 <link rel="import" href="/platform/bower_components/polymer-filters/polymer-filters.html">
 <polymer-element name="display-message" attributes="hideMemberElement user text messageStatus updatedAt disableLoadedEvent disableReadyEvent">
@@ -12,41 +13,62 @@
 			color: gray;
 		}
 	.msg {
-		margin-left: 18px;
+		padding-top: 4px;
 	}
 	.box {
-		margin-top: 1em;
+		margin-left: 1em;
 	}
 	.time {
 		font-size: smaller;
 		color: grey;
 		margin-left: 5px;
+		margin-top: 0.8em;
+	}
+	.avatar {
+		margin-top: 0.5em;
+		width: 36px;
+	}
+	.boarder {
+		margin-top: 0.5em;
+	}
+	.username {
+		margin-top: 0.5em;
+		font-weight: bold;
 	}
 	</style>
-
-<div vertical layout class="box">
-	<div horizontal layout center>
+<app-globals id="globals"></app-globals>
+<div horizontal layout class='boarder'>
+	<div class='avatar'>
 		<template if="{{!hideMemberElement}}">
 			<template if="{{user}}">
-				<member-element userid="{{user}}"></member-element>
-			</template>
-			<template if="{{updatedAt}}">
-				<span class="time">{{updatedAt | date('hh:mm')}}</span>
+				<avatar-image userid="{{user}}" size="36"></avatar-image>
 			</template>
 		</template>
 	</div>
-	<div class="{{messageStatus}} msg">
-		<template repeat="{{t in processedText}}">
-			<template if="{{!t.process}}">
-				<display-default-message text="{{t.text}}"></display-default-message>
+	<div vertical layout class="box">
+		<div horizontal layout >
+			<template if="{{!hideMemberElement}}">
+				<template if="{{user}}">
+				<div class='username'>{{$.globals.values.memberCache[user].username}}</div>
+				</template>
+				<template if="{{updatedAt}}">
+					<span class="time">{{updatedAt | date('hh:mm')}}</span>
+				</template>
 			</template>
-			<template if="{{t.process === 'code'}}">
-				<display-code-snippet-message text="{{t.text}}"></display-code-snippet-message>
+		</div>
+		<div class="{{messageStatus}} msg">
+			<template repeat="{{t in processedText}}">
+				<template if="{{!t.process}}">
+					<display-default-message text="{{t.text}}"></display-default-message>
+				</template>
+				<template if="{{t.process === 'code'}}">
+					<display-code-snippet-message text="{{t.text}}"></display-code-snippet-message>
+				</template>
+				<template if="{{t.process === 'url'}}">
+					<display-url-message text="{{t.text}}" disableLoadedEvent="{{disableLoadedEvent}}" on-loaded="{{messageLoaded}}" url="{{t.url}}"></display-url-message>
+				</template>
 			</template>
-			<template if="{{t.process === 'url'}}">
-				<display-url-message text="{{t.text}}" disableLoadedEvent="{{disableLoadedEvent}}" on-loaded="{{messageLoaded}}" url="{{t.url}}"></display-url-message>
-			</template>
-		</template>
+		</div>
 	</div>
 </div>
 </template>
