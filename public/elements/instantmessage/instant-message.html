@@ -85,7 +85,7 @@
                                         </paper-dialog>
                                     </paper-icon-button>
                                     <div flex horizontal layout center>
-                                        <paper-item on-click="{{ handleChannelSelect }}" hash="{{g.name}}" class="{{ {highlight : g.id === channel.id} | tokenList }}"> {{ g.name }}
+                                        <paper-item on-click="{{ handleChannelSelect }}" hash="{{g.name}}" class="{{ {highlight : g.channelId === channel.id} | tokenList }}"> {{ g.name }}
                                         </paper-item>
                                         <core-icon icon="markunread" style="color :red;" hidden?="{{ !(unread[g.channelId] && unread[g.channelId].length > 0)}}"></core-icon>
                                     </div>
