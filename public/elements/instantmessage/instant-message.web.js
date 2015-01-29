@@ -214,7 +214,6 @@ Polymer({
          * @param callback
          */
           function (callback) {
-          self.$.connectingDialog.open();
           self.initSocket();
           callback();
         }
@@ -241,7 +240,12 @@ Polymer({
 
   initSocket: function () {
     var self = this;
-    self.socket = io('http://' + hostname, {path: '/im/socket.io'}).connect();
+    if ( !this.$.globals.values.socket ){
+      self.$.connectingDialog.open();
+      this.$.globals.values.socket = io('http://' + hostname, {path: '/im/socket.io'}).connect();
+    }
+    self.socket = this.$.globals.values.socket;
+    self.socket.removeAllListeners(); 
     self.socket.on('connect', function () {
       self.$.connectingDialog.close();
       self.socket.emit('init', {
@@ -304,7 +308,6 @@ Polymer({
     self.socket.on('disconnect', function () {
       self.$.connectingDialog.open();
       self.connectinStatus = "disconnected.";
-      self.$.connectingDialog.close();
     });
 
     self.socket.on('reconnecting', function (number) {
@@ -344,7 +347,6 @@ Polymer({
 
   talkDirect : function(event, detail, target) {
     target.parentElement&&target.parentElement.close();
-    this.socket.disconnect();
     document.querySelector('app-router').go('/' + this.pluginName + '/channels/@' + target.templateInstance.model.u.realname);
   },
 
@@ -463,7 +465,6 @@ Polymer({
     }
 
     var hash = target.attributes['hash'].value;
-    this.socket.disconnect();
     document.querySelector('app-router').go('/' + this.pluginName + '/channels/' + hash);
 
   },

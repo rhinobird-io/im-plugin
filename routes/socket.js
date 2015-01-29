@@ -12,9 +12,6 @@ module.exports = function (socket) {
 
   socket.on('init', function (data, callback) {
     userId = data.userId;
-    if (socketsMap[userId]){
-      socketsMap[userId].disconnect();
-    }
     socketsMap[userId] = socket;
 
     User.findAll({where : {id:userId}}).then(function(users){

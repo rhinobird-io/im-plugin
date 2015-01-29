@@ -18,12 +18,14 @@
 
 <link rel="import" href="/platform/home-container.html">
 <link rel="import" href="/platform/elements/member-select/member-element.html">
+<link rel="import" href="/platform/elements/app-globals/app-globals.html">
 
 <link rel="import" href="../display-message/display-message.html">
 <link rel="import" href="../event-infinite-scroll/event-infinite-scroll.html">
 
 <polymer-element name="instant-message" attributes="channelName">
     <template>
+        <app-globals id="globals"></app-globals>
         <link rel="stylesheet" type="text/css" href="instant-message.css">
         <core-style ref="theme"></core-style>
         <home-container>
