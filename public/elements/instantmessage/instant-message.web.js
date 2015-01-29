@@ -594,16 +594,16 @@ Polymer({
     });
     var self = this;
     var directToChannel = "";
-    for (var i = this.myTeam.length - 1; i >= 0; i--) {
-      if (this.myTeam[i].channelId === channelId) {
-        directToChannel =  this.myTeam[i].name;
+    for (var i = this.myPublicChannels.length - 1; i >= 0; i--) {
+      if (this.myPublicChannels[i].id === channelId) {
+        directToChannel =  this.myPublicChannels[i].name;
       }
-    };
-    for (var i = this.allMyTeamMember.length - 1; i >= 0; i--) {
-      if (this.allMyTeamMember[i].channelId === channelId) {
-        directToChannel = '@' + this.allMyTeamMember[i].realname;
+    }
+    for (var i = this.myTeamMemberChannels.length - 1; i >= 0; i--) {
+      if (this.myTeamMemberChannels[i].id === channelId) {
+        directToChannel = '@' + this.myTeamMemberChannels[i].realname;
       }
-    };
+    }
 
     notification.onclick = function () {
       window.focus();
