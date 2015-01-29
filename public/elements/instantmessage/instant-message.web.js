@@ -278,13 +278,11 @@ Polymer({
       if (message.channelId !== self.channel.id) {
         self.unread[message.channelId] = self.unread[message.channelId] || [];
         self.unread[message.channelId].push(message.text);
-        self.showNotification(self.userIdTeamMemberMap[message.userId].realname, 
-                              message.text);
+        self.showNotification(message.userId, message.text, message.channelId);
         return;
       }
       if (!document.hasFocus()) {
-        self.showNotification(self.userIdTeamMemberMap[message.userId].realname, 
-                              message.text);
+        self.showNotification(message.userId, message.text, message.channelId);
       } 
       if (self.messages.length > 0) {
         message.hideMemberElement =
@@ -554,13 +552,34 @@ Polymer({
   onClickInfomation: function () {
     this.$.informationDialog.open();
   },
-  showNotification: function (userName, content) {
+  showNotification: function (userId, content, channelId) {
     if (!Notification){
       return;
     }
-    var notification = new Notification("New Message from "+ userName, {
-        body: content
+    var notification = new Notification("New Message from "+ 
+        this.$.globals.values.memberCache[userId].username, {
+        body: content, 
+        icon: this.$.globals.values.memberCache[userId].url + "?d=identicon"
     });
+    var self = this;
+    var directToChannel = "";
+    for (var i = this.myTeam.length - 1; i >= 0; i--) {
+      if (this.myTeam[i].channelId === channelId) {
+        directToChannel =  this.myTeam[i].name;
+      }
+    };
+    for (var i = this.allMyTeamMember.length - 1; i >= 0; i--) {
+      if (this.allMyTeamMember[i].channelId === channelId) {
+        directToChannel = '@' + this.allMyTeamMember[i].realname;
+      }
+    };
+
+    notification.onclick = function () {
+      window.focus();
+      if (channelId != self.channel.id){
+         document.querySelector('app-router').go('/' + self.pluginName + '/channels/' + directToChannel);
+      }
+    }
     setTimeout(function(){
       notification.close();
     }, 3000);
