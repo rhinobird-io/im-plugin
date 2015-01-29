@@ -30,7 +30,7 @@ Polymer({
       Notification.requestPermission();
     }
     window.onkeypress = function (event) {
-      if (event.keyCode === 13 && self.message === '') {
+      if (event.keyCode === 13 && (!self.message || self.message === '')) {
         event.preventDefault();
         return;
       }
