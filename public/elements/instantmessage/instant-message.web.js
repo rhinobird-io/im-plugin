@@ -258,6 +258,10 @@ Polymer({
                               message.text);
         return;
       }
+      if (!document.hasFocus()) {
+        self.showNotification(self.userIdTeamMemberMap[message.userId].realname, 
+                              message.text);
+      } 
       if (self.messages.length > 0) {
         message.hideMemberElement =
           self.isHideMemberElement(self.messages[self.messages.length - 1], message);
