@@ -75,21 +75,21 @@
                     </div>
                     <div id="groupChannel">
                         <div vertical layout>
-                            <template repeat="{{ g in myTeam }}">
+                            <template repeat="{{ g in myPublicChannels }}">
                                 <div horizontal layout center>
                                     <paper-icon-button icon="account-child" on-click="{{showTeamMemberDialog}}">
                                         <paper-dialog id="teamMemberDialog" heading="Members" on-core-overlay-position="{{positionTeamMemberDialog}}">
-                                            <template repeat="{{u in teamMemberMap[g.id]}}">
-                                                <paper-item hidden?="{{u.id === currentUser.id}}"  on-click="{{talkDirect}}">
-                                                    <member-element userid="{{u.id}}" ></member-element>
+                                            <template repeat="{{directMessageChannel in teamMemberChannelMap[g.id]}}">
+                                                <paper-item hidden?="{{directMessageChannel.userId === currentUser.id}}"  on-click="{{talkDirect}}">
+                                                    <member-element userid="{{directMessageChannel.userId}}" ></member-element>
                                                 </paper-item>
                                             </template>
                                         </paper-dialog>
                                     </paper-icon-button>
                                     <div flex horizontal layout center>
-                                        <paper-item on-click="{{ handleChannelSelect }}" hash="{{g.name}}" class="{{ {highlight : g.channelId === channel.id} | tokenList }}"> {{ g.name }}
+                                        <paper-item on-click="{{ handleChannelSelect }}" hash="{{g.name}}" class="{{ {highlight : g.id === channel.id} | tokenList }}"> {{ g.name }}
                                         </paper-item>
-                                        <core-icon icon="markunread" style="color :red;" hidden?="{{ !(unread[g.channelId] && unread[g.channelId].length > 0)}}"></core-icon>
+                                        <core-icon icon="markunread" style="color :red;" hidden?="{{ !(unread[g.id] && unread[g.id].length > 0)}}"></core-icon>
                                     </div>
                                 </div>
                             </template>
@@ -99,12 +99,12 @@
                         <h3 class="secondColor">Direct Message</h3>
                     </div>
                     <div id="directMessage" flex>
-                        <template repeat="{{ g in allMyTeamMember }}">
+                        <template repeat="{{ g in myTeamMemberChannels }}">
                             <div horizontal layout center>
                                 <paper-item on-click="{{ handleChannelSelect }}" hash="{{'@'+g.realname}}" class="{{ {highlight : '@' + g.realname  === channelName} | tokenList }}">{{
                                     g.realname }}
                                 </paper-item>
-                                <core-icon icon="markunread" style="color :red;" hidden?="{{ !(unread[g.channelId] && unread[g.channelId].length > 0)}}"></core-icon>
+                                <core-icon icon="markunread" style="color :red;" hidden?="{{ !(unread[g.id] && unread[g.id].length > 0)}}"></core-icon>
                             </div>
                         </template>
                     </div>

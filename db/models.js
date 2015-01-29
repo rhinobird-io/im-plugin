@@ -12,7 +12,8 @@ var sequelize = new Sequelize(url);
 var PrivateChannel = sequelize.define('PrivateChannel', {
   name: {
     type: Sequelize.STRING,
-    unique: true
+    unique: true,
+    allowNull: false
   }
 });
 
@@ -31,11 +32,23 @@ var PrivateChannelsUsers = sequelize.define('PrivateChannelsUsers', {
 });
 
 var Message = sequelize.define('Message', {
-  channelId: Sequelize.STRING,
-  userId: Sequelize.INTEGER,
-  message: Sequelize.TEXT,
-  guid: Sequelize.UUID
-});
+    channelId: {
+      type: Sequelize.STRING,
+      allowNull: false
+    },
+    userId: {
+      type: Sequelize.INTEGER,
+      allowNull: false
+    },
+    text: {
+      type: Sequelize.TEXT,
+      allowNull: false
+    },
+    guid: {
+      type: Sequelize.UUID,
+      allowNull: false
+    }
+  });
 
 var UsersChannelsMessages = sequelize.define('UsersChannelsMessages', {
   userId: {

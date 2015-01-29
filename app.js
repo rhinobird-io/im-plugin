@@ -59,77 +59,77 @@ app.get('/api/channels/:channelId/messages', function (req, res) {
   var limit = req.query.limit || beforeId - sinceId;
 
   Message.findAndCountAll({
-    where: {ChannelId: req.params.channelId, id : { gt : sinceId, lt : beforeId }}, order: 'id DESC', limit: limit
+    where: {channelId: req.params.channelId, id : { gt : sinceId, lt : beforeId }}, order: 'id DESC', limit: limit
   }).then(function (messages) {
     res.json(messages.rows.reverse());
   });
 });
 
-app.post('/api/userId/:userId/allChannels', function (req, res){
-
-  var body = req.body;
-  var userId = req.params.userId;
-
-  if (userId === -1){
-    res.sendStatus(404);
-    return;
-  }
-  
-  async.waterfall([
-    function(callback){
-      async.each(body.teamMembers, 
-        function(teamMember, cb){
-          var minId = userId > teamMember.id ? teamMember.id : userId;
-          var maxId = userId > teamMember.id ? userId : teamMember.id;
-          Channel.findOrCreate({where: {name: '' + minId + ':' + maxId, isPrivate: true}})
-                 .then(function (channels) {
-                    var channel = channels[0];
-                    User.findOrCreate({where:{id:minId, ChannelId: channel.dataValues.id}})
-                        .then(function(){
-                           User.findOrCreate({where:{id:maxId, ChannelId: channel.dataValues.id}})
-                               .then(function(){
-                                teamMember.channelId = channel.id;
-                                cb();
-                               });
-                        });
-                  });
-        }, 
-        function (err){
-          if (!err){
-            callback();
-          }
-        }
-      );
-    },
-    function (callback){
-      async.each(body.myTeam, 
-        function(group, cb){
-          Channel.findOrCreate({where: {name: group.id, isPrivate: false}})
-           .then(function (channels) {
-              var  channel= channels[0];
-              User.findOrCreate({where:{id:userId, ChannelId: channel.dataValues.id}})
-                  .then(function(){
-                    group.channelId = channel.id;
-                    cb();
-                  });
-          });
-        },
-        function (err){
-          if (!err){
-            callback();
-          }
-        }
-      );
-    }
-    ], 
-    function (err, result) {
-      if (err) {
-        console.log('Error : ' + err);
-      }
-      res.json(body);
-    }
-    );
-});
+//app.post('/api/userId/:userId/allChannels', function (req, res){
+//
+//  var body = req.body;
+//  var userId = req.params.userId;
+//
+//  if (userId === -1){
+//    res.sendStatus(404);
+//    return;
+//  }
+//
+//  async.waterfall([
+//    function(callback){
+//      async.each(body.teamMembers,
+//        function(teamMember, cb){
+//          var minId = userId > teamMember.id ? teamMember.id : userId;
+//          var maxId = userId > teamMember.id ? userId : teamMember.id;
+//          Channel.findOrCreate({where: {name: '' + minId + ':' + maxId, isPrivate: true}})
+//                 .then(function (channels) {
+//                    var channel = channels[0];
+//                    User.findOrCreate({where:{id:minId, ChannelId: channel.dataValues.id}})
+//                        .then(function(){
+//                           User.findOrCreate({where:{id:maxId, ChannelId: channel.dataValues.id}})
+//                               .then(function(){
+//                                teamMember.channelId = channel.id;
+//                                cb();
+//                               });
+//                        });
+//                  });
+//        },
+//        function (err){
+//          if (!err){
+//            callback();
+//          }
+//        }
+//      );
+//    },
+//    function (callback){
+//      async.each(body.myPublicChannels,
+//        function(group, cb){
+//          Channel.findOrCreate({where: {name: group.id, isPrivate: false}})
+//           .then(function (channels) {
+//              var  channel= channels[0];
+//              User.findOrCreate({where:{id:userId, ChannelId: channel.dataValues.id}})
+//                  .then(function(){
+//                    group.channelId = channel.id;
+//                    cb();
+//                  });
+//          });
+//        },
+//        function (err){
+//          if (!err){
+//            callback();
+//          }
+//        }
+//      );
+//    }
+//    ],
+//    function (err, result) {
+//      if (err) {
+//        console.log('Error : ' + err);
+//      }
+//      res.json(body);
+//    }
+//    );
+//});
 
 
 
