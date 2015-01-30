@@ -90,8 +90,11 @@ module.exports = function (socket) {
       userId: userId,
       channelId: defaultChannel
     });
-    socket.broadcast.to(socketsMap[user.id].id).emit('user:dead', {});
+    try{
+      socket.broadcast.to(socketsMap[user.id].id).emit('user:dead', {});
+    }catch(err){
 
+    }
     // need to leave rooms
     // ans: don't need, but if you want to have something on leave, 
     // you can do like this
