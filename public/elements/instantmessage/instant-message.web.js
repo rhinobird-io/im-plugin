@@ -261,7 +261,6 @@ Polymer({
   },
 
   getUniqueMember: function (array) {
-    debugger;
     var u = {}, uArray = [];
     for (var i = array.length - 1; i >= 0; i--) {
       if (u.hasOwnProperty(array[i].id)) {
