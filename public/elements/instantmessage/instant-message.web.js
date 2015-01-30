@@ -45,6 +45,10 @@ Polymer({
    */
   latestChannelMessage: {},
 
+  memberDialogStyle : {
+    width : '300px'
+  },
+
 
   pluginName: 'instantmessage',
   unread: {},
@@ -458,7 +462,7 @@ Polymer({
 
     var rect = target.parentElement.getBoundingClientRect();
     target.style.top = '' + rect.top + 'px';
-    target.style.left = '' + (rect.left - 250 ) + 'px';
+    target.style.left = '' + (rect.left - parseInt(this.memberDialogStyle.width) - 20 ) + 'px';
   }
   ,
 

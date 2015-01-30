@@ -78,7 +78,7 @@
                             <template repeat="{{ g in myPublicChannels }}">
                                 <div horizontal layout center>
                                     <paper-icon-button icon="account-child" on-click="{{showTeamMemberDialog}}" >
-                                        <paper-dialog id="teamMemberDialog" heading="Members" on-core-overlay-position="{{positionTeamMemberDialog}}" on-blur="{{hideTeamMemberDialog}}">
+                                        <paper-dialog id="teamMemberDialog" heading="Members" on-core-overlay-position="{{positionTeamMemberDialog}}" on-blur="{{hideTeamMemberDialog}}" style="{{ memberDialogStyle | styleObject}}">
                                             <template repeat="{{directMessageChannel in teamMemberChannelMap[g.id]}}">
                                                 <paper-item hidden?="{{!directMessageChannel.userId}}"  on-click="{{talkDirect}}">
                                                     <member-element userid="{{directMessageChannel.userId}}" ></member-element>
