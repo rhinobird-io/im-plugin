@@ -170,6 +170,7 @@ Polymer({
               self.myTeamMemberChannels = self.getUniqueMember(teamMembers);
               self.myTeamMemberChannels.forEach(function (member) {
                 self.userIdTeamMemberMap[member.id] = member;
+                member.name = member.realname;
               });
               callback();
             }
@@ -295,7 +296,7 @@ Polymer({
         if (latestChannelMessage) {
           return -1 * self.latestChannelMessage['' + channel.id];
         } else {
-          return 1 << 15;
+          return channel.name.charCodeAt(0);
         }
       });
     }
@@ -432,6 +433,13 @@ Polymer({
 
   showTeamMemberDialog: function (event, detail, target) {
     target.querySelector('paper-dialog') && target.querySelector('paper-dialog').open();
+  }
+  ,
+
+  hideTeamMemberDialog: function (event, detail, target) {
+    if (event.relatedTarget && event.relatedTarget.parentElement !== target) {
+      target.close();
+    }
   }
   ,
 
