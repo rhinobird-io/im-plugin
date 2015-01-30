@@ -99,7 +99,7 @@
                         <h3 class="secondColor">Direct Message</h3>
                     </div>
                     <div id="directMessage" flex>
-                        <template repeat="{{ g in sortByTime(myTeamMemberChannels, 'updatedAt') }}">
+                        <template repeat="{{ g in myTeamMemberChannels }}">
                             <div horizontal layout center>
                                 <paper-item on-click="{{ handleChannelSelect }}" hash="{{'@'+g.realname}}" class="{{ {highlight : '@' + g.realname  === channelName} | tokenList }}">{{
                                     g.realname }}

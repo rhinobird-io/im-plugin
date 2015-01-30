@@ -70,7 +70,7 @@ module.exports = {
   PrivateChannel: PrivateChannel,
   PrivateChannelsUsers: PrivateChannelsUsers,
   UsersChannelsMessages: UsersChannelsMessages,
-
+  Sequelize : sequelize,
   sync: function () {
     return sequelize.sync({force: true}).then(function () {
       console.log('finish sync');

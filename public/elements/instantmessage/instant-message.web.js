@@ -39,6 +39,12 @@ Polymer({
    */
   userIdTeamMemberMap: {},
 
+  /**
+   * key : channelId
+   * value : (latest)MessageId
+   */
+  latestChannelMessage: {},
+
 
   pluginName: 'instantmessage',
   unread: {},
@@ -245,6 +251,23 @@ Polymer({
       },
 
       /**
+       * load latest message
+       */
+        function (callback) {
+        var channelIds = _.pluck(self.myPublicChannels, 'id').concat(_.pluck(self.myPrivateChannels, 'id')).concat(_.pluck(self.myTeamMemberChannels, 'id'));
+        $.post(serverUrl + '/api/messages/latest', {
+          channelIds: channelIds
+        }).done(function (res) {
+          var temp = {};
+          res.forEach(function (res, idx) {
+            temp[res.channelId] = res.messageId;
+          });
+          self.latestChannelMessage = temp;
+          callback();
+        });
+      },
+
+      /**
        * init socket
        * @param callback
        */
@@ -258,6 +281,28 @@ Polymer({
         console.log('Error : ' + err);
       }
     });
+  },
+
+  latestChannelMessageChanged: function (oldValue, newValue) {
+    this.updateChannelOrders();
+  },
+
+  updateChannelOrders: function () {
+    var self = this;
+    function sort(channels) {
+      return _.sortBy(channels, function (channel) {
+        var latestChannelMessage = self.latestChannelMessage['' + channel.id];
+        if (latestChannelMessage) {
+          return -1 * self.latestChannelMessage['' + channel.id];
+        } else {
+          return 1 << 15;
+        }
+      });
+    }
+
+    this.myPublicChannels = sort(this.myPublicChannels);
+    this.myTeamMemberChannels = sort(this.myTeamMemberChannels);
+    this.myPrivateChannels = sort(this.myPrivateChannels);
   },
 
   getUniqueMember: function (array) {
@@ -284,17 +329,22 @@ Polymer({
       self.$.connectingDialog.close();
       self.socket.emit('init', {
         userId: self.currentUser.id,
-        myPublicChannels : self.myPublicChannels,
-        myPrivateChannels : self.myPrivateChannels,
-        myTeamMemberChannels : self.myTeamMemberChannels,
+        myPublicChannels: self.myPublicChannels,
+        myPrivateChannels: self.myPrivateChannels,
+        myTeamMemberChannels: self.myTeamMemberChannels,
         currentChannel: self.channel
       });
     });
 
     self.socket.on('send:message', function (message) {
-      if (message.channelId !== ''+self.channel.id) {
+      if (message.channelId !== '' + self.channel.id) {
         self.unread[message.channelId] = self.unread[message.channelId] || [];
         self.unread[message.channelId].push(message.text);
+
+        self.latestChannelMessage[message.channelId] = message.id;
+        // too violence, to trigger latestChannelMessageChanged
+        self.latestChannelMessage = _.clone(self.latestChannelMessage);
+
         self.showNotification(message.userId, message.text, message.channelId);
         return;
       }
@@ -480,11 +530,6 @@ Polymer({
   }
   ,
 
-  sortByTime :function(array, property) {
-    console.log(property);
-    return array;
-  },
-
   goToDefaultChannel: function () {
     var querySelector = this.$.groupChannel.querySelector('paper-item');
     if (querySelector) {
@@ -543,7 +588,7 @@ Polymer({
     // add the message to our model locally
     var msg = {
       userId: self.currentUser.id,
-      channelId : self.channel.id,
+      channelId: self.channel.id,
       text: self.message,
       guid: uuid,
       messageStatus: 'unsend',
@@ -562,6 +607,9 @@ Polymer({
           break;
         }
       }
+      self.latestChannelMessage[message.channelId] = message.id;
+      // too violence, to trigger latestChannelMessageChanged
+      self.latestChannelMessage = _.clone(self.latestChannelMessage);
     });
     this.message = '';
     this.$.messageInput.update();
@@ -589,19 +637,19 @@ Polymer({
     this.$.informationDialog.open();
   },
   showNotification: function (userId, content, channelId) {
-    if (!Notification){
+    if (!Notification) {
       return;
     }
-    var notification = new Notification("New Message from "+ 
-        this.$.globals.values.memberCache[userId].username, {
-        body: content, 
-        icon: this.$.globals.values.memberCache[userId].url + "?d=identicon"
+    var notification = new Notification("New Message from " +
+    this.$.globals.values.memberCache[userId].username, {
+      body: content,
+      icon: this.$.globals.values.memberCache[userId].url + "?d=identicon"
     });
     var self = this;
     var directToChannel = "";
     for (var i = this.myPublicChannels.length - 1; i >= 0; i--) {
       if (this.myPublicChannels[i].id === channelId) {
-        directToChannel =  this.myPublicChannels[i].name;
+        directToChannel = this.myPublicChannels[i].name;
       }
     }
     for (var i = this.myTeamMemberChannels.length - 1; i >= 0; i--) {
@@ -612,11 +660,11 @@ Polymer({
 
     notification.onclick = function () {
       window.focus();
-      if (channelId != self.channel.id){
-         document.querySelector('app-router').go('/' + self.pluginName + '/channels/' + directToChannel);
+      if (channelId != self.channel.id) {
+        document.querySelector('app-router').go('/' + self.pluginName + '/channels/' + directToChannel);
       }
     }
-    setTimeout(function(){
+    setTimeout(function () {
 
       notification.close();
     }, 3000);

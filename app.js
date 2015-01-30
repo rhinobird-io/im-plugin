@@ -4,6 +4,7 @@
 
 var express = require('express'),
   socket = require('./routes/socket.js')
+  , Sequelize = require('./db/models.js').Sequelize
   , PrivateChannelUsers = require('./db/models.js').PrivateChannelUsers
   , Message = require('./db/models.js').Message
   , PrivateChannel = require('./db/models.js').PrivateChannel
@@ -62,6 +63,14 @@ app.get('/api/channels/:channelId/messages', function (req, res) {
     where: {channelId: req.params.channelId, id : { gt : sinceId, lt : beforeId }}, order: 'id DESC', limit: limit
   }).then(function (messages) {
     res.json(messages.rows.reverse());
+  });
+});
+
+app.post('/api/messages/latest', function (req, res) {
+  var userId = req.headers.user;
+  var channelIds = req.body.channelIds;
+  Message.findAll({ attributes: ['channelId', [Sequelize.fn('max', Sequelize.col('id')), 'messageId']] ,group : '"channelId"', where : { 'channelId' : channelIds }}).then(function (messages) {
+    res.json(messages);
   });
 });
 
