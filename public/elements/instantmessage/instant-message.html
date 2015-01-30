@@ -101,9 +101,7 @@
                     <div id="directMessage" flex>
                         <template repeat="{{ g in myTeamMemberChannels }}">
                             <div horizontal layout center>
-                                <paper-item on-click="{{ handleChannelSelect }}" hash="{{'@'+g.realname}}" class="{{ {highlight : '@' + g.realname  === channelName} | tokenList }}">{{
-                                    g.realname }}
-                                </paper-item>
+                                <paper-item on-click="{{ handleChannelSelect }}" hash="{{'@'+g.realname}}" class="{{ {highlight : '@' + g.realname  === channelName, offline: $.globals.values.onlineList[g.userId] !== 1 } | tokenList }}">{{g.realname }}</paper-item>
                                 <core-icon icon="markunread" style="color :red;" hidden?="{{ !(unread[g.id] && unread[g.id].length > 0)}}"></core-icon>
                             </div>
                         </template>

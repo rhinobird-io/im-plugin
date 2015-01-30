@@ -32,15 +32,25 @@ module.exports = function (socket) {
       socket.join(channel.id);
     });
 
-    socket.broadcast.to(currentChannel.id).emit('user:join', {
+    socket.join(defaultChannel);
+
+    socket.broadcast.to(defaultChannel).emit('user:join', {
       // notify other clients that a new user has joined
       userId: userId,
-      channelId: currentChannel.id
+      channelId: defaultChannel
     });
+    var keys = {};
+    for (var key in socketsMap) {
+      keys[key] = 1;
+    };
+    callback(keys);
   });
 
   // broadcast a user's message to other users
   socket.on('send:message', function (data, callback) {
+    if (!socketsMap[userId]){
+      socketsMap[userId] = socket;
+    }
     Message.create({
       text: data.text,
       userId: data.userId,
@@ -59,20 +69,36 @@ module.exports = function (socket) {
     });
   });
 
+  // due to sometimes it will discconect randomly (heartbeat problem) 
+  //  socket.io:client client close with reason ping timeout
+  //  socket.io:socket closing socket - reason ping timeout +0ms
+  //  socket.io:client ignoring remove for xxxxxxx
+  socket.on('user:alive', function(){
+    socketsMap[userId] = socket;
+    socket.broadcast.to(defaultChannel).emit('user:join', {
+      // notify other clients that a new user has joined
+      userId: userId,
+      channelId: defaultChannel
+    });
+  });
 
   // clean up when a user leaves, and broadcast it to other users
   socket.on('disconnect', function (data) {
     delete socketsMap[userId];
-    // need to leave rooms
+    socket.broadcast.to(defaultChannel).emit('user:left', {
+      // notify other clients that a new user has joined
+      userId: userId,
+      channelId: defaultChannel
+    });
+    socket.broadcast.to(socketsMap[user.id].id).emit('user:dead', {});
 
-    //User.findAll({where:{id:userId}}).then(function(users){
-    //  users.forEach(function(user){
-    //    socket.broadcast.to(user.ChannelId).emit('user:left', {
-    //      userId: data.userId,
-    //      channelId: user.channelId
-    //    });
-    //    socket.leave(user.ChannelId);
-    //  });
-    //});
+    // need to leave rooms
+    // ans: don't need, but if you want to have something on leave, 
+    // you can do like this
+    // var rooms = io.sockets.manager.roomClients[socket.id];
+    //    for(var room in rooms) {
+    //        socket.leave(room);
+    //    }
+
   });
 };

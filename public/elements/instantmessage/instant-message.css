@@ -51,3 +51,6 @@ h3 {
 #directMessage {
     overflow: auto;
 }
+.offline {
+    color: grey;
+}

@@ -320,12 +320,18 @@ Polymer({
   initSocket: function () {
     var self = this;
     if (!this.$.globals.values.socket) {
-      self.$.connectingDialog.open();
+      this.$.connectingDialog.open();
       this.$.globals.values.socket = io('http://' + hostname, {path: '/im/socket.io'}).connect();
+      window.onbeforeunload = function(e){
+        self.socket.emit('user:disconnect', {userId:self.currentUser.id});
+        self.$.globals.values.socket.disconnect();
+        self.$.globals.values.socket = null;
+
+      }
     }
-    self.socket = this.$.globals.values.socket;
-    self.socket.removeAllListeners();
-    self.socket.on('connect', function () {
+    this.socket = this.$.globals.values.socket;
+    this.socket.removeAllListeners();
+    this.socket.on('connect', function () {
       self.$.connectingDialog.close();
       self.socket.emit('init', {
         userId: self.currentUser.id,
@@ -333,10 +339,12 @@ Polymer({
         myPrivateChannels: self.myPrivateChannels,
         myTeamMemberChannels: self.myTeamMemberChannels,
         currentChannel: self.channel
+      }, function(onlineList){
+        self.$.globals.values.onlineList = onlineList;
       });
     });
 
-    self.socket.on('send:message', function (message) {
+    this.socket.on('send:message', function (message) {
       if (message.channelId !== '' + self.channel.id) {
         self.unread[message.channelId] = self.unread[message.channelId] || [];
         self.unread[message.channelId].push(message.text);
@@ -372,8 +380,16 @@ Polymer({
 
 
     });
+    this.socket.on('user:dead', function(data){
+      self.socket.emit('user:alive', {}); 
+    });
 
-    self.socket.on('user:join', function (data) {
+    this.socket.on('user:join', function (data) {
+      if (data.channelId === 'default'){
+        self.$.globals.values.onlineList = self.$.globals.values.onlineList || {};
+        self.$.globals.values.onlineList[data.userId] = 1;
+        return;
+      }
       if (data.channelId !== self.channel.id) {
         // other channel message
         return;
@@ -381,7 +397,11 @@ Polymer({
       // do some other things
     });
 
-    self.socket.on('user:left', function (data) {
+    this.socket.on('user:left', function (data) {
+      if (data.channelId === 'default'&& self.$.globals.values.onlineList){
+        delete self.$.globals.values.onlineList[data.userId];
+        return;
+      }
       if (data.channelId !== self.channel.id) {
         // other channel message
         return;
@@ -390,20 +410,20 @@ Polymer({
         text: 'User ' + data.userId + ' has left.'
       });
     });
-    self.socket.on('disconnect', function () {
+    this.socket.on('disconnect', function () {
       self.$.connectingDialog.open();
       self.connectinStatus = "disconnected.";
     });
 
-    self.socket.on('reconnecting', function (number) {
+    this.socket.on('reconnecting', function (number) {
       self.$.connectingDialog.open();
       self.connectinStatus = "reconnecting... (" + number + ")";
     });
-    self.socket.on('reconnecting_failed', function () {
+    this.socket.on('reconnecting_failed', function () {
       self.$.connectingDialog.open();
       self.connectinStatus = "reconnecting failed.";
     });
-    self.socket.on('reconnect', function () {
+    this.socket.on('reconnect', function () {
       self.$.connectingDialog.open();
       self.connectinStatus = "connected";
     });
