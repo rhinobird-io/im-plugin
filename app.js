@@ -67,7 +67,7 @@ app.get('/api/channels/:channelId/messages', function (req, res) {
 });
 
 app.post('/api/messages/latest', function (req, res) {
-  var userId = req.headers.user;
+  var userId = req.headers['x-user'];
   var channelIds = req.body.channelIds;
   Message.findAll({ attributes: ['channelId', [Sequelize.fn('max', Sequelize.col('id')), 'messageId']] ,group : '"channelId"', where : { 'channelId' : channelIds }}).then(function (messages) {
     res.json(messages);
@@ -76,7 +76,7 @@ app.post('/api/messages/latest', function (req, res) {
 
 app.get('/api/channels/:channelId/lastSeenMessageId', function (req, res){
   var channelId = req.params.channelId;
-  var userId = req.headers.user;
+  var userId = req.headers['x-user'];
   UsersChannelsMessages.findOne({where: {channelId: ''+ channelId, userId : userId}})
     .then(function (usersChannelsMessages){
       res.json(usersChannelsMessages);
