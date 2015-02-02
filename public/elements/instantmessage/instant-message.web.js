@@ -328,7 +328,6 @@ Polymer({
       this.$.connectingDialog.open();
       this.$.globals.values.socket = io('http://' + hostname, {path: '/im/socket.io'}).connect();
       window.onbeforeunload = function(e){
-        self.socket.emit('user:disconnect', {userId:self.currentUser.id});
         self.$.globals.values.socket.disconnect();
         self.$.globals.values.socket = null;
 
