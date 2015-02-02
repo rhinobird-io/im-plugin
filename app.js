@@ -74,6 +74,15 @@ app.post('/api/messages/latest', function (req, res) {
   });
 });
 
+app.get('/api/channels/:channelId/lastSeenMessageId', function (req, res){
+  var channelId = req.params.channelId;
+  var userId = req.headers.user;
+  UsersChannelsMessages.findOne({where: {channelId: ''+ channelId, userId : userId}})
+    .then(function (usersChannelsMessages){
+      res.json(usersChannelsMessages);
+    });
+});
+
 //app.post('/api/userId/:userId/allChannels', function (req, res){
 //
 //  var body = req.body;
