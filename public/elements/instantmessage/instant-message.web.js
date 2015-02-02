@@ -285,12 +285,33 @@ Polymer({
           });
         }
       },
+      /**
+       * init socket
+       * @param callback
+       */
+      function (channel, callback) {
+        self.initSocket();
+        callback(null, channel);
+      },
+
+      function(channel, callback){
+        $.get(serverUrl + '/api/channels/' + self.channel.id + '/lastSeenMessageId')
+         .done(function (lastSeenMessageId){
+            if (!lastSeenMessageId){
+              callback(null, channel);
+              return;
+            }
+            self.getLastSeenMessages(lastSeenMessageId.MessageId).done(function(){
+              callback(null, channel);
+            });
+          });
+      },
 
       /**
        * load history
        * @param callback
        */
-        function (channel, callback) {
+      function (channel, callback) {
         self.loadHistory(self.channel.id).done(function () {
           callback();
         });
@@ -311,16 +332,8 @@ Polymer({
           self.latestChannelMessage = temp;
           callback();
         });
-      },
-
-      /**
-       * init socket
-       * @param callback
-       */
-        function (callback) {
-        self.initSocket();
-        callback();
       }
+
 
     ], function (err, result) {
       if (err) {
@@ -424,7 +437,7 @@ Polymer({
       }
       self.messages.push(message);
       self.$.messageInput.update();
-
+      self.messageHasBeenSeen(self.currentUser.id, message.id, message.channelId);
 
     });
     this.socket.on('user:dead', function (data) {
@@ -624,8 +637,8 @@ Polymer({
       messages.forEach(function (message) {
         temp.push({
           id: message.id,
-          userId: message.UserId,
-          text: message.message,
+          userId: message.userId,
+          text: message.text,
           updatedAt: message.updatedAt,
           disableLoadedEvent: true,
           disableReadyEvent: true,
@@ -638,11 +651,53 @@ Polymer({
     });
   }
   ,
-
+  getLastSeenMessages:function(lastSeenMessageId){
+    var self = this;
+    return $.get(serverUrl + '/api/channels/' + this.channel.id + '/messages?sinceId=' + lastSeenMessageId)
+        .done(function (messages) {
+          var temp = [];
+          var lastMessage = null;
+          messages.forEach(function (message) {
+            temp.push({
+              id: message.id,
+              userId: message.userId,
+              text: message.text,
+              updatedAt: message.updatedAt,
+              hideMemberElement: self.isHideMemberElement(lastMessage, message),
+              disableReadyEvent: true,
+              disableLoadedEvent: true
+            });
+            lastMessage = message;
+          });
+          self.messages = temp.concat(self.messages);
+          delete self.unread[self.channel.id];
+        })
+        .done(function (){
+          if (self.messages.length > 0){
+            var message = {text:'unread messages'};
+            self.messages.splice(0,0, message);
+            self.messageHasBeenSeen(self.currentUser.id, self.messages[self.messages.length-1].id, self.channel.id);
+          }
+        });
+  },
   loadHistory: function (roomId) {
     var self = this;
+    var unseenMessageId = 0;
+    var beforeOption = '';
+    if (this.messages.length > 0 ){
+      var id = undefined;
+      for (var i = 0, length = this.messages.length; i < length; i++) {
+        if (this.messages[i].id){
+          id = this.messages[i].id;
+          break;
+        }
+      };
+      if (id){
+        beforeOption = '&beforeId=' + id ;
+      }
+    }
 
-    return $.get(serverUrl + '/api/channels/' + self.channel.id + '/messages?limit=30').done(function (messages) {
+    return $.get(serverUrl + '/api/channels/' + self.channel.id + '/messages?limit=30' + beforeOption).done(function (messages) {
       var temp = [];
       var lastMessage = null;
       messages.forEach(function (message) {
@@ -814,6 +869,10 @@ Polymer({
     var minId = id1 < id2 ? id1 : id2;
     var maxId = id1 < id2 ? id2 : id1;
     return '' + minId + ':' + maxId;
+  },
+  messageHasBeenSeen: function(userId, messageId, channelId){
+    this.socket.emit('user:message:seen',
+      {userId: userId, messageId: messageId, channelId:channelId});
   },
 
   roomId: '',
