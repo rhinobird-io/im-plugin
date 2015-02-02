@@ -520,8 +520,8 @@ Polymer({
       messages.forEach(function (message) {
         temp.push({
           id: message.id,
-          userId: message.UserId,
-          text: message.message,
+          userId: message.userId,
+          text: message.text,
           updatedAt: message.updatedAt,
           disableLoadedEvent: true,
           disableReadyEvent: true,
