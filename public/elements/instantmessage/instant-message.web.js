@@ -193,42 +193,11 @@ Polymer({
           });
       },
 
-      /**
-       * 1.3 get private channels from imdb
-       */
-        function (callback) {
-        $.get(serverUrl + '/api/channels').done(
-          function (channels) {
-            self.myPrivateChannels = channels;
-            callback();
-          }
-        );
-      },
-
-      /**
-       * get all private channel team members
-       */
-        function (callback) {
-        var teamMembers = [];
-        async.each(self.myPrivateChannels,
-          function (team, cb) {
-            $.get(serverUrl + '/api/channels/' + team.id + '/users')
-              .done(function (users) {
-                self.teamMemberChannelMap[team.id] = [];
-                users.forEach(function (user) {
-                  self.teamMemberChannelMap[team.id].push(user);
-                  if (user.id !== self.currentUser.id) {
-                    teamMembers.push(user);
-                  }
-                });
-                cb();
-              });
-          }, function (err) {
-            if (!err) {
-              callback();
-            }
-          });
-      },
+    /**
+     * 1.3 get private channels from imdb
+     * get all private channel team members
+     */
+      self.loadPrivateChannels.bind(self),
 
       /**
        * get all channels
@@ -289,19 +258,19 @@ Polymer({
        * init socket
        * @param callback
        */
-      function (channel, callback) {
+        function (channel, callback) {
         self.initSocket();
         callback(null, channel);
       },
 
-      function(channel, callback){
+      function (channel, callback) {
         $.get(serverUrl + '/api/channels/' + self.channel.id + '/lastSeenMessageId')
-         .done(function (lastSeenMessageId){
-            if (!lastSeenMessageId){
+          .done(function (lastSeenMessageId) {
+            if (!lastSeenMessageId) {
               callback(null, channel);
               return;
             }
-            self.getLastSeenMessages(lastSeenMessageId.MessageId).done(function(){
+            self.getLastSeenMessages(lastSeenMessageId.MessageId).done(function () {
               callback(null, channel);
             });
           });
@@ -311,7 +280,7 @@ Polymer({
        * load history
        * @param callback
        */
-      function (channel, callback) {
+        function (channel, callback) {
         self.loadHistory(self.channel.id).done(function () {
           callback();
         });
@@ -440,6 +409,11 @@ Polymer({
       self.messageHasBeenSeen(self.currentUser.id, message.id, message.channelId);
 
     });
+
+    this.socket.on('channel:created', function (channel) {
+      (self.loadPrivateChannels.bind(self))(function(){});
+    });
+
     this.socket.on('user:dead', function (data) {
       self.socket.emit('user:alive', {});
     });
@@ -523,6 +497,33 @@ Polymer({
             cb('cannot create private channel');
           }
         })
+      },
+
+      /**
+       * get the users of this channel
+       * @param cb
+       * @param channel
+       */
+        function (channel, cb) {
+        $.get(serverUrl + '/api/channels/' + channel.id + '/users').done(function (users) {
+          cb(null, channel, users);
+        })
+      },
+
+      /**
+       * notify other users he is joined in this channel
+       * @param cb
+       * @param channel the channel newly created
+       * @param users the users in this channel
+       */
+        function (channel, users, cb) {
+        self.socket.emit('channel:created', {
+          channel: channel,
+          users: users,
+          userId: self.currentUser.id
+        }, function () {
+          cb(null, channel);
+        });
       }
     ], function (err, channel) {
       if (!err) {
@@ -583,7 +584,7 @@ Polymer({
   }
   ,
 
-  resizeTeamMemberDialog : function (event, detail, target) {
+  resizeTeamMemberDialog: function (event, detail, target) {
     if (target.getBoundingClientRect().bottom > $(document).height()) {
       target.style['height'] = ($(document).height() - parseInt(target.style.top) - 200) + 'px';
     }
@@ -657,49 +658,50 @@ Polymer({
     });
   }
   ,
-  getLastSeenMessages:function(lastSeenMessageId){
+  getLastSeenMessages: function (lastSeenMessageId) {
     var self = this;
     return $.get(serverUrl + '/api/channels/' + this.channel.id + '/messages?sinceId=' + lastSeenMessageId)
-        .done(function (messages) {
-          var temp = [];
-          var lastMessage = null;
-          messages.forEach(function (message) {
-            temp.push({
-              id: message.id,
-              userId: message.userId,
-              text: message.text,
-              updatedAt: message.updatedAt,
-              hideMemberElement: self.isHideMemberElement(lastMessage, message),
-              disableReadyEvent: true,
-              disableLoadedEvent: true
-            });
-            lastMessage = message;
+      .done(function (messages) {
+        var temp = [];
+        var lastMessage = null;
+        messages.forEach(function (message) {
+          temp.push({
+            id: message.id,
+            userId: message.userId,
+            text: message.text,
+            updatedAt: message.updatedAt,
+            hideMemberElement: self.isHideMemberElement(lastMessage, message),
+            disableReadyEvent: true,
+            disableLoadedEvent: true
           });
-          self.messages = temp.concat(self.messages);
-          delete self.unread[self.channel.id];
-        })
-        .done(function (){
-          if (self.messages.length > 0){
-            var message = {text:'unread messages'};
-            self.messages.splice(0,0, message);
-            self.messageHasBeenSeen(self.currentUser.id, self.messages[self.messages.length-1].id, self.channel.id);
-          }
+          lastMessage = message;
         });
+        self.messages = temp.concat(self.messages);
+        delete self.unread[self.channel.id];
+      })
+      .done(function () {
+        if (self.messages.length > 0) {
+          var message = {text: 'unread messages'};
+          self.messages.splice(0, 0, message);
+          self.messageHasBeenSeen(self.currentUser.id, self.messages[self.messages.length - 1].id, self.channel.id);
+        }
+      });
   },
   loadHistory: function (roomId) {
     var self = this;
     var unseenMessageId = 0;
     var beforeOption = '';
-    if (this.messages.length > 0 ){
+    if (this.messages.length > 0) {
       var id = undefined;
       for (var i = 0, length = this.messages.length; i < length; i++) {
-        if (this.messages[i].id){
+        if (this.messages[i].id) {
           id = this.messages[i].id;
           break;
         }
-      };
-      if (id){
-        beforeOption = '&beforeId=' + id ;
+      }
+      ;
+      if (id) {
+        beforeOption = '&beforeId=' + id;
       }
     }
 
@@ -726,6 +728,34 @@ Polymer({
     });
   }
   ,
+
+  loadPrivateChannels: function (callback){
+    var self = this;
+    $.get(serverUrl + '/api/channels').done(
+      function (channels) {
+        self.myPrivateChannels = channels;
+      }).done(function (channels) {
+        var teamMembers = [];
+        async.each(self.myPrivateChannels,
+          function (team, cb) {
+            $.get(serverUrl + '/api/channels/' + team.id + '/users')
+              .done(function (users) {
+                self.teamMemberChannelMap[team.id] = [];
+                users.forEach(function (user) {
+                  self.teamMemberChannelMap[team.id].push(user);
+                  if (user.id !== self.currentUser.id) {
+                    teamMembers.push(user);
+                  }
+                });
+                cb();
+              });
+          }, function (err) {
+            if (!err) {
+              callback();
+            }
+          });
+      });
+  },
 
   goToDefaultChannel: function () {
     var querySelector = this.$.groupChannel.querySelector('paper-item');
@@ -876,9 +906,9 @@ Polymer({
     var maxId = id1 < id2 ? id2 : id1;
     return '' + minId + ':' + maxId;
   },
-  messageHasBeenSeen: function(userId, messageId, channelId){
+  messageHasBeenSeen: function (userId, messageId, channelId) {
     this.socket.emit('user:message:seen',
-      {userId: userId, messageId: messageId, channelId:channelId});
+      {userId: userId, messageId: messageId, channelId: channelId});
   },
 
   roomId: '',
