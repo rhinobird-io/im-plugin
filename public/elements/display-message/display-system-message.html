@@ -1,0 +1,44 @@
+<polymer-element name="display-system-message" attributes="text">
+
+    <template>
+        <style>
+        :host {
+            margin: 10px auto ;
+            width:100%;
+
+        }
+            pre {
+                margin: 0;
+            }
+            hr {
+                border: none;
+                position: absolute;
+                left: 0;
+                z-index: 1;
+                right: 0;
+                border-bottom: 1px solid grey;
+            }
+            span {
+                position: relative;
+                z-index: 10;
+                background: white;
+                padding: 4px 6px;
+
+            }
+            div {
+                text-align: center;
+                position: relative;
+            }
+        </style>
+        <div >
+            <hr></hr>
+            <span>{{text}}</span>
+        </div>
+        <content></content>
+    </template>
+
+    <script>
+        Polymer({
+        });
+    </script>
+</polymer-element>

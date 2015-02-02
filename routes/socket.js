@@ -46,6 +46,17 @@ module.exports = function (socket) {
     callback(keys);
   });
 
+  socket.on('user:message:seen', function(data){
+    UsersChannelsMessages
+      .findOrCreate({where:{userId: data.userId, channelId: ''+data.channelId}})
+      .then(function(instance){
+        var lastSeen = instance[0];
+        if (!lastSeen.messageId || lastSeen.messageId < data.messageId){
+          lastSeen.updateAttributes({MessageId:data.messageId});
+        }
+      });
+  });
+
   // broadcast a user's message to other users
   socket.on('send:message', function (data, callback) {
     if (!socketsMap[userId]){
@@ -59,6 +70,12 @@ module.exports = function (socket) {
     }).then(function (afterCreate) {
       var message = afterCreate.dataValues;
       message.messageStatus = 'done';
+      UsersChannelsMessages
+        .findOrCreate({where: {userId: data.userId, channelId: ''+ data.channelId }})
+        .then(function(instance){
+          var lastSeen = instance[0];
+            lastSeen.updateAttributes({MessageId:message.id});
+        });
 
       /**
        * it is possible that the opposite user(s) may not join the channel, we need to force them to join the channel
