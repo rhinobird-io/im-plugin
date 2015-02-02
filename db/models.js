@@ -10,10 +10,13 @@ var sequelize = new Sequelize(url);
  * @type {*|Model}
  */
 var PrivateChannel = sequelize.define('PrivateChannel', {
+  id : {
+    type: Sequelize.STRING,
+    primaryKey : true
+  },
   name: {
     type: Sequelize.STRING,
-    unique: true,
-    allowNull: false
+    unique : true
   }
 });
 
@@ -22,8 +25,8 @@ var PrivateChannelsUsers = sequelize.define('PrivateChannelsUsers', {
     type: Sequelize.INTEGER,
     primaryKey: true
   },
-  PrivateChannelId: {
-    type: Sequelize.INTEGER,
+  privateChannelId: {
+    type: Sequelize.STRING,
     primaryKey: true,
     references: "PrivateChannels",
     referencesKey: "id",
@@ -32,23 +35,23 @@ var PrivateChannelsUsers = sequelize.define('PrivateChannelsUsers', {
 });
 
 var Message = sequelize.define('Message', {
-    channelId: {
-      type: Sequelize.STRING,
-      allowNull: false
-    },
-    userId: {
-      type: Sequelize.INTEGER,
-      allowNull: false
-    },
-    text: {
-      type: Sequelize.TEXT,
-      allowNull: false
-    },
-    guid: {
-      type: Sequelize.UUID,
-      allowNull: false
-    }
-  });
+  channelId: {
+    type: Sequelize.STRING,
+    allowNull: false
+  },
+  userId: {
+    type: Sequelize.INTEGER,
+    allowNull: false
+  },
+  text: {
+    type: Sequelize.TEXT,
+    allowNull: false
+  },
+  guid: {
+    type: Sequelize.UUID,
+    allowNull: false
+  }
+});
 
 var UsersChannelsMessages = sequelize.define('UsersChannelsMessages', {
   userId: {
@@ -62,7 +65,7 @@ var UsersChannelsMessages = sequelize.define('UsersChannelsMessages', {
 });
 
 
-PrivateChannelsUsers.belongsTo(PrivateChannel);
+PrivateChannelsUsers.belongsTo(PrivateChannel, { foreignKey : 'privateChannelId'});
 UsersChannelsMessages.belongsTo(Message);
 
 module.exports = {
@@ -70,10 +73,12 @@ module.exports = {
   PrivateChannel: PrivateChannel,
   PrivateChannelsUsers: PrivateChannelsUsers,
   UsersChannelsMessages: UsersChannelsMessages,
-  Sequelize : sequelize,
+  Sequelize: sequelize,
   sync: function () {
-    return sequelize.sync({force: true}).then(function () {
-      console.log('finish sync');
+    return sequelize.drop().then(function(){
+      sequelize.sync({force: true}).then(function () {
+        console.log('finish sync');
+      });
     });
   }
 

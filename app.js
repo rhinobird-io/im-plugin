@@ -5,7 +5,7 @@
 var express = require('express'),
   socket = require('./routes/socket.js')
   , Sequelize = require('./db/models.js').Sequelize
-  , PrivateChannelUsers = require('./db/models.js').PrivateChannelUsers
+  , PrivateChannelsUsers = require('./db/models.js').PrivateChannelsUsers
   , Message = require('./db/models.js').Message
   , PrivateChannel = require('./db/models.js').PrivateChannel
   , UsersChannelsMessages = require('./db/models.js').UsersChannelsMessages
@@ -60,88 +60,77 @@ app.get('/api/channels/:channelId/messages', function (req, res) {
   var limit = req.query.limit || beforeId - sinceId;
 
   Message.findAndCountAll({
-    where: {channelId: req.params.channelId, id : { gt : sinceId, lt : beforeId }}, order: 'id DESC', limit: limit
+    where: {channelId: req.params.channelId, id: {gt: sinceId, lt: beforeId}}, order: 'id DESC', limit: limit
   }).then(function (messages) {
     res.json(messages.rows.reverse());
+  });
+});
+
+
+app.get('/api/channels', function (req, res) {
+  var userId = req.headers.user;
+  var channelName = req.query.name;
+  if (channelName) {
+    PrivateChannel.findAll( { where : {name : channelName}}).then(function(privateChannel) {
+      res.json(privateChannel);
+    });
+  } else {
+    PrivateChannelsUsers.findAll({where: {userId: userId}}).then(function (privateChannelsUsers) {
+      PrivateChannel.findAll({where: {id: _.pluck(privateChannelsUsers, 'privateChannelId')}}).then(function (channels) {
+        res.json(channels);
+      })
+    });
+  }
+});
+
+app.get('/api/channels/:channelId/users', function (req, res) {
+  var userId = req.headers.user;
+  var channelId = req.params.channelId;
+
+  PrivateChannelsUsers.findAll({where: {privateChannelId: channelId}}).then(function (privateChannelsUsers) {
+    res.json(privateChannelsUsers);
+  });
+});
+
+app.post('/api/channels', function (req, res) {
+  var name = req.body.name;
+  var users = req.body.users;
+  var id = req.body.id;
+
+  Sequelize.transaction(function(t){
+    return PrivateChannel.create({
+      id: id,
+      name: name
+    }, {transaction : t}).then(function(channel) {
+      var temp = [];
+      users.forEach(function (userId) {
+        temp.push({
+          userId: userId,
+          privateChannelId: channel.id
+        })
+      });
+      return PrivateChannelsUsers.bulkCreate(temp, {transaction : t});
+    });
+  }).then(function(result) {
+    PrivateChannel.find(id).then(function(channel){
+      res.json(channel);
+    })
+  }).catch(function(err) {
+    res.sendStatus(500);
   });
 });
 
 app.post('/api/messages/latest', function (req, res) {
   var userId = req.headers.user;
   var channelIds = req.body.channelIds;
-  Message.findAll({ attributes: ['channelId', [Sequelize.fn('max', Sequelize.col('id')), 'messageId']] ,group : '"channelId"', where : { 'channelId' : channelIds }}).then(function (messages) {
+  Message.findAll({
+    attributes: ['channelId', [Sequelize.fn('max', Sequelize.col('id')), 'messageId']],
+    group: '"channelId"',
+    where: {'channelId': channelIds}
+  }).then(function (messages) {
     res.json(messages);
   });
 });
-
-//app.post('/api/userId/:userId/allChannels', function (req, res){
-//
-//  var body = req.body;
-//  var userId = req.params.userId;
-//
-//  if (userId === -1){
-//    res.sendStatus(404);
-//    return;
-//  }
-//
-//  async.waterfall([
-//    function(callback){
-//      async.each(body.teamMembers,
-//        function(teamMember, cb){
-//          var minId = userId > teamMember.id ? teamMember.id : userId;
-//          var maxId = userId > teamMember.id ? userId : teamMember.id;
-//          Channel.findOrCreate({where: {name: '' + minId + ':' + maxId, isPrivate: true}})
-//                 .then(function (channels) {
-//                    var channel = channels[0];
-//                    User.findOrCreate({where:{id:minId, ChannelId: channel.dataValues.id}})
-//                        .then(function(){
-//                           User.findOrCreate({where:{id:maxId, ChannelId: channel.dataValues.id}})
-//                               .then(function(){
-//                                teamMember.channelId = channel.id;
-//                                cb();
-//                               });
-//                        });
-//                  });
-//        },
-//        function (err){
-//          if (!err){
-//            callback();
-//          }
-//        }
-//      );
-//    },
-//    function (callback){
-//      async.each(body.myPublicChannels,
-//        function(group, cb){
-//          Channel.findOrCreate({where: {name: group.id, isPrivate: false}})
-//           .then(function (channels) {
-//              var  channel= channels[0];
-//              User.findOrCreate({where:{id:userId, ChannelId: channel.dataValues.id}})
-//                  .then(function(){
-//                    group.channelId = channel.id;
-//                    cb();
-//                  });
-//          });
-//        },
-//        function (err){
-//          if (!err){
-//            callback();
-//          }
-//        }
-//      );
-//    }
-//    ],
-//    function (err, result) {
-//      if (err) {
-//        console.log('Error : ' + err);
-//      }
-//      res.json(body);
-//    }
-//    );
-//});
-
-
-
 
 app.get('/api/urlMetadata', function (req, res) {
   ogp(req.query['url'], function (error, data) {

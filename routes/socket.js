@@ -59,11 +59,6 @@ module.exports = function (socket) {
     }).then(function (afterCreate) {
       var message = afterCreate.dataValues;
       message.messageStatus = 'done';
-
-      /**
-       * it is possible that the opposite user(s) may not join the channel, we need to force them to join the channel
-       *
-       */
       socket.broadcast.to(message.channelId).emit('send:message', message);
       callback(message);
     });

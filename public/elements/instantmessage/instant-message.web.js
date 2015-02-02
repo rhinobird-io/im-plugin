@@ -2,6 +2,7 @@ var hostname = window.location.hostname + ':' + window.location.port;
 var serverUrl = 'http://' + hostname + '/im';
 var defaultChannel = 'default';
 
+var validateTimeout = undefined;
 
 Polymer({
   boxTapped: function () {
@@ -45,10 +46,19 @@ Polymer({
    */
   latestChannelMessage: {},
 
-  memberDialogStyle : {
-    width : '300px'
+  memberDialogStyle: {
+    width: '300px'
   },
 
+  newPrivateChannel: {
+    init: function () {
+      this.name = '';
+      this.users = [];
+    },
+
+    name: '',
+    users: []
+  },
 
   pluginName: 'instantmessage',
   unread: {},
@@ -78,7 +88,9 @@ Polymer({
         event.preventDefault();
         return;
       }
-      self.$.textInput.focus();
+      if (!self.$.addPrivateChannelDialog.opened) {
+        self.$.textInput.focus();
+      }
     }
   },
 
@@ -185,8 +197,37 @@ Polymer({
        * 1.3 get private channels from imdb
        */
         function (callback) {
-        self.myPrivateChannels = [];
-        callback();
+        $.get(serverUrl + '/api/channels').done(
+          function (channels) {
+            self.myPrivateChannels = channels;
+            callback();
+          }
+        );
+      },
+
+      /**
+       * get all private channel team members
+       */
+        function (callback) {
+        var teamMembers = [];
+        async.each(self.myPrivateChannels,
+          function (team, cb) {
+            $.get(serverUrl + '/api/channels/' + team.id + '/users')
+              .done(function (users) {
+                self.teamMemberChannelMap[team.id] = [];
+                users.forEach(function (user) {
+                  self.teamMemberChannelMap[team.id].push(user);
+                  if (user.id !== self.currentUser.id) {
+                    teamMembers.push(user);
+                  }
+                });
+                cb();
+              });
+          }, function (err) {
+            if (!err) {
+              callback();
+            }
+          });
       },
 
       /**
@@ -294,6 +335,7 @@ Polymer({
 
   updateChannelOrders: function () {
     var self = this;
+
     function sort(channels) {
       return _.sortBy(channels, function (channel) {
         var latestChannelMessage = self.latestChannelMessage['' + channel.id];
@@ -327,8 +369,8 @@ Polymer({
     if (!this.$.globals.values.socket) {
       this.$.connectingDialog.open();
       this.$.globals.values.socket = io('http://' + hostname, {path: '/im/socket.io'}).connect();
-      window.onbeforeunload = function(e){
-        self.socket.emit('user:disconnect', {userId:self.currentUser.id});
+      window.onbeforeunload = function (e) {
+        self.socket.emit('user:disconnect', {userId: self.currentUser.id});
         self.$.globals.values.socket.disconnect();
         self.$.globals.values.socket = null;
 
@@ -344,7 +386,7 @@ Polymer({
         myPrivateChannels: self.myPrivateChannels,
         myTeamMemberChannels: self.myTeamMemberChannels,
         currentChannel: self.channel
-      }, function(onlineList){
+      }, function (onlineList) {
         self.$.globals.values.onlineList = onlineList;
       });
     });
@@ -385,12 +427,12 @@ Polymer({
 
 
     });
-    this.socket.on('user:dead', function(data){
-      self.socket.emit('user:alive', {}); 
+    this.socket.on('user:dead', function (data) {
+      self.socket.emit('user:alive', {});
     });
 
     this.socket.on('user:join', function (data) {
-      if (data.channelId === 'default'){
+      if (data.channelId === 'default') {
         self.$.globals.values.onlineList = self.$.globals.values.onlineList || {};
         self.$.globals.values.onlineList[data.userId] = 1;
         return;
@@ -403,7 +445,7 @@ Polymer({
     });
 
     this.socket.on('user:left', function (data) {
-      if (data.channelId === 'default'&& self.$.globals.values.onlineList){
+      if (data.channelId === 'default' && self.$.globals.values.onlineList) {
         delete self.$.globals.values.onlineList[data.userId];
         return;
       }
@@ -434,6 +476,68 @@ Polymer({
     });
   }
   ,
+  showAddPrivateChannelDialog: function (event, detail, target) {
+    // target.querySelector('paper-action-dialog') && target.querySelector('paper-action-dialog').open();
+    // target.querySelector('paper-dialog') && target.querySelector('paper-dialog').open();
+    this.newPrivateChannel.users = [this.currentUser.id];
+    this.$.addPrivateChannelDialog.open();
+  }
+  ,
+
+  addPrivateChannel: function (event, detail, target) {
+    var self = this;
+    async.waterfall([
+      function (cb) {
+        $.get(serverUrl + '/api/channels?name=' + self.newPrivateChannel.name).done(function (channels) {
+          self.$.privateChannelNameInput.isInvalid = channels.length > 0;
+          if (!self.$.privateChannelNameInput.isInvalid) {
+            cb();
+          } else {
+            cb('Private channel name duplicated');
+          }
+        })
+      },
+
+      function (cb) {
+        self.newPrivateChannel.id = self.guid();
+        $.post(serverUrl + '/api/channels', self.newPrivateChannel).done(function (channel) {
+          cb(null, channel);
+        }).fail(function (err) {
+          if (err.status === 409) {
+            // highlight the input
+            cb(409)
+          } else {
+            cb('cannot create private channel');
+          }
+        })
+      }
+    ], function (err, channel) {
+      if (!err) {
+        self.$.addPrivateChannelDialog.close();
+        self.newPrivateChannel.init();
+        self.router.go('/' + self.pluginName + '/channels/' + channel.name);
+      } else {
+        console.log('error during creating private channel : ' + err);
+      }
+    });
+  }
+  ,
+
+  validatePrivateChannelName: function (oldValue, newValue) {
+    var self = this;
+    clearTimeout(validateTimeout);
+    validateTimeout = setTimeout(function () {
+      $.get(serverUrl + '/api/channels?name=' + newValue).done(function (channels) {
+        console.log('called validation for ' + newValue);
+        self.$.privateChannelNameInput.isInvalid = channels.length > 0;
+      });
+    }, 1000);
+  }
+  ,
+
+  observe: {
+    'newPrivateChannel.name': 'validatePrivateChannelName'
+  },
 
   showTeamMemberDialog: function (event, detail, target) {
     target.querySelector('paper-dialog') && target.querySelector('paper-dialog').open();
