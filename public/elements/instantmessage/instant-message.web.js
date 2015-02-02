@@ -583,6 +583,12 @@ Polymer({
   }
   ,
 
+  resizeTeamMemberDialog : function (event, detail, target) {
+    if (target.getBoundingClientRect().bottom > $(document).height()) {
+      target.style['height'] = ($(document).height() - parseInt(target.style.top) - 200) + 'px';
+    }
+  }
+  ,
   talkDirect: function (event, detail, target) {
     target.parentElement && target.parentElement.close();
     this.router.go('/' + this.pluginName + '/channels/@' + target.templateInstance.model.directMessageChannel.realname);

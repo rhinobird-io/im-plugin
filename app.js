@@ -68,7 +68,7 @@ app.get('/api/channels/:channelId/messages', function (req, res) {
 
 
 app.get('/api/channels', function (req, res) {
-  var userId = req.headers.user;
+  var userId = req.headers['x-user'];
   var channelName = req.query.name;
   if (channelName) {
     PrivateChannel.findAll( { where : {name : channelName}}).then(function(privateChannel) {
@@ -84,7 +84,7 @@ app.get('/api/channels', function (req, res) {
 });
 
 app.get('/api/channels/:channelId/users', function (req, res) {
-  var userId = req.headers.user;
+  var userId = req.headers['x-user'];
   var channelId = req.params.channelId;
 
   PrivateChannelsUsers.findAll({where: {privateChannelId: channelId}}).then(function (privateChannelsUsers) {
