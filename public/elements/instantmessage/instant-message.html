@@ -32,6 +32,14 @@
         <app-globals id="globals"></app-globals>
         <link rel="stylesheet" type="text/css" href="instant-message.css">
         <core-style ref="theme"></core-style>
+        <paper-action-dialog id="addPrivateChannelDialog" heading="Add Private Channel" backdrop autoCloseDisabled closeSelector="#cancelBtn" style="width: 70%; height: 70%;" >
+            <paper-input-decorator id="privateChannelNameInput" label="Channel Name" floatingLabel autoValidate style="width: 100%;" error="{{newPrivateChannel.error.msg}}" >
+                <input is="core-input" required value="{{newPrivateChannel.name}}">
+            </paper-input-decorator>
+            <member-select selected="{{newPrivateChannel.users}}"></member-select>
+            <paper-button id="cancelBtn" dismissive>Cancel</paper-button>
+            <paper-button affirmative on-click="{{addPrivateChannel}}" disabled="{{newPrivateChannelUsersInvalid}}">OK</paper-button>
+        </paper-action-dialog>
         <home-container>
             <div class="title" horizontal layout center>
                 <div  flex>
@@ -45,15 +53,6 @@
             <core-drawer-panel id="drawerPanel" narrow="{{narrow}}" rightDrawer >
                 <paper-action-dialog id="connectingDialog" backdrop autoCloseDisabled>
                     <p>{{connectinStatus}}</p>
-                </paper-action-dialog>
-
-                <paper-action-dialog id="addPrivateChannelDialog" heading="Add Private Channel" backdrop autoCloseDisabled closeSelector="#cancelBtn" style="width: 70%; height: 70%;" >
-                    <paper-input-decorator id="privateChannelNameInput" label="Channel Name" floatingLabel autoValidate style="width: 100%;" error="{{newPrivateChannel.error.msg}}" >
-                        <input is="core-input" required value="{{newPrivateChannel.name}}">
-                    </paper-input-decorator>
-                    <member-select selected="{{newPrivateChannel.users}}"></member-select>
-                    <paper-button id="cancelBtn" dismissive>Cancel</paper-button>
-                    <paper-button affirmative on-click="{{addPrivateChannel}}" disabled="{{newPrivateChannelUsersInvalid}}">OK</paper-button>
                 </paper-action-dialog>
 
                 <div main id="historyAndInput" four flex vertical layout class="mainBgColor">
@@ -144,6 +143,13 @@
                                         </paper-item>
                                         <paper-icon-button icon="markunread" style="color :red;" hidden?="{{ !(unread[g.id] && unread[g.id].length > 0)}}"></paper-icon-button>
                                     </div>
+                                    <paper-icon-button icon="clear" on-click="{{ showRemovePrivateChannelDialog}}">
+                                        <paper-action-dialog id="removePrivateChannelDialog" heading="Leaving {{ g.name }}" backdrop autoCloseDisabled closeSelector="#cancelBtn" style="width: 30%; height: 30%;">
+                                            <p>Are you sure</p>
+                                            <paper-button id="cancelBtn" dismissive >Close</paper-button>
+                                            <paper-button affirmative channelId="{{g.id}}" on-click="{{removePrivateChannel}}">Yes</paper-button>
+                                        </paper-action-dialog>
+                                    </paper-icon-button>
                                 </div>
                             </template>
                         </div>
@@ -167,11 +173,6 @@
             </core-drawer-panel>
             </div>
 
-            <paper-action-dialog  id="noGroupDlg"  heading="Instant Message not Init" backdrop autoCloseDisabled>
-                <p>Instant Message is not initialized, please ask administrator</p>
-                <paper-button dismissive on-click="{{goToIndex}}">Close</paper-button>
-                <paper-button affirmative on-click="{{goToConfig}}">Config</paper-button>
-            </paper-action-dialog>
             <paper-dialog id="informationDialog" transition="core-transition-center" heading="Manual">
                 <p>1. ENTER to send</p>
                 <p>2. SHIFT + ENTER to have newline</p>

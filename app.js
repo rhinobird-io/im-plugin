@@ -122,6 +122,15 @@ app.post('/api/channels', function (req, res) {
   });
 });
 
+app.delete('/api/channels/:channelId', function (req, res) {
+  var userId = req.headers['x-user'];
+  var channelId = req.params.channelId;
+  PrivateChannelsUsers.destroy( { where : {userId : userId, privateChannelId: channelId}}).then(function(result){
+    res.sendStatus(200);
+  });
+
+});
+
 app.post('/api/messages/latest', function (req, res) {
   var userId = req.headers['x-user'];
   var channelIds = req.body.channelIds;

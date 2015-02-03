@@ -468,10 +468,13 @@ Polymer({
   }
   ,
   showAddPrivateChannelDialog: function (event, detail, target) {
-    // target.querySelector('paper-action-dialog') && target.querySelector('paper-action-dialog').open();
-    // target.querySelector('paper-dialog') && target.querySelector('paper-dialog').open();
     this.newPrivateChannel.users = [this.currentUser.id];
     this.$.addPrivateChannelDialog.open();
+  }
+  ,
+
+  showRemovePrivateChannelDialog:function (event, detail, target) {
+    target.querySelector('#removePrivateChannelDialog').open();
   }
   ,
 
@@ -536,6 +539,25 @@ Polymer({
         self.router.go('/' + self.pluginName + '/channels/' + channel.name);
       } else {
         console.log('error during creating private channel : ' + err);
+      }
+    });
+  }
+  ,
+
+  removePrivateChannel: function (event, detail, target) {
+    var self = this;
+    var channelId = target.attributes.channelId.value;
+    var dlg = target.parentElement;
+    $.ajax({
+      url: serverUrl + '/api/channels/' + channelId,
+      type: 'DELETE',
+      success: function(result) {
+        dlg.close();
+        if (self.channel.id === channelId) {
+          self.router.go('/' + self.pluginName + '/channels/' + defaultChannel);
+        } else {
+          self.loadPrivateChannels(function(){});
+        }
       }
     });
   }
