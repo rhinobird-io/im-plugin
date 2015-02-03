@@ -14,8 +14,9 @@
 <link rel="import" href="/platform/bower_components/core-icon/core-icon.html">
 <link rel="import" href="/platform/bower_components/paper-dialog/paper-action-dialog.html">
 <link rel="import" href="/platform/bower_components/paper-input/paper-autogrow-textarea.html">
-<link rel="import" href="/platform/bower_components/paper-input/paper-input.html">\
+<link rel="import" href="/platform/bower_components/paper-input/paper-input.html">
 <link rel="import" href="/platform/bower_components/paper-input/paper-input-decorator.html">
+<link rel="import" href="/platform/bower_components/core-drawer-panel/core-drawer-panel.html">
 <link rel="import" href="/platform/bower_components/paper-toast/paper-toast.html">
 
 <link rel="import" href="/platform/home-container.html">
@@ -33,9 +34,15 @@
         <core-style ref="theme"></core-style>
         <home-container>
             <div class="title" horizontal layout center>
-                {{ channelName }}
+                <div  flex>
+                    {{ channelName }}
+                </div>
+                <div horizontal  end-justified layout>
+                     <core-icon-button id="menuButton" class='{{ {narrowShow :!narrow} | tokenList }}' icon="menu" on-tap="{{togglePanel}}"></core-icon-button>
+                </div>
             </div>
             <div class="mainBackground" horizontal layout fit>
+            <core-drawer-panel id="drawerPanel" narrow="{{narrow}}" rightDrawer >
                 <paper-action-dialog id="connectingDialog" backdrop autoCloseDisabled>
                     <p>{{connectinStatus}}</p>
                 </paper-action-dialog>
@@ -49,7 +56,7 @@
                     <paper-button affirmative on-click="{{addPrivateChannel}}" disabled="{{newPrivateChannel.users.length < 2 || $.privateChannelNameInput.isInvalid}}">OK</paper-button>
                 </paper-action-dialog>
 
-                <div id="historyAndInput" four flex vertical layout class="mainBgColor">
+                <div main id="historyAndInput" four flex vertical layout class="mainBgColor">
 
                     <div id="history" flex>
                         <event-infinite-scroll id="infiniteScroll" readyOnStart="false" scrollDenominator="2" loadingDelay="50" on-reach-top="{{reachedTop}}"></event-infinite-scroll>
@@ -82,7 +89,7 @@
                     </div>
                 </div>
 
-                <div vertical layout flex>
+                <div id='imPanel' drawer vertical layout flex>
                     <div> 
                         <h3 class="secondColor">Group Channel</h3>
                     </div>
@@ -156,6 +163,8 @@
                         <paper-fab mini icon="info-outline"  class="iconColor" on-click="{{onClickInfomation}}"></paper-fab>
                     </div>
                 </div>
+
+            </core-drawer-panel>
             </div>
 
             <paper-action-dialog  id="noGroupDlg"  heading="Instant Message not Init" backdrop autoCloseDisabled>
