@@ -929,6 +929,9 @@ Polymer({
     this.socket.emit('user:message:seen',
       {userId: userId, messageId: messageId, channelId: channelId});
   },
+  togglePanel: function() {
+      this.$.drawerPanel.togglePanel();
+  },
 
   roomId: '',
   codeSnippetExample: "```c++\nint main(){\n    printf(\"helloworld\");\n    return 0;\n}\n```"
