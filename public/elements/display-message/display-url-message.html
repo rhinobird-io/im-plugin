@@ -99,6 +99,9 @@
 					this.videoWidth = parseInt(newValue.og.video.width);
 				}catch(err){}
 			}
+			if (!this.urlImage && !this.videoURL && !this.disableLoadedEvent){
+				this.fire('loaded', '');
+			}
 		}, 
 		imageLoaded: function(event){
 			if (!this.disableLoadedEvent){
