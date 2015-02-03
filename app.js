@@ -4,11 +4,12 @@
 
 var express = require('express'),
   socket = require('./routes/socket.js')
-  , Sequelize = require('./db/models.js').Sequelize
-  , PrivateChannelsUsers = require('./db/models.js').PrivateChannelsUsers
-  , Message = require('./db/models.js').Message
-  , PrivateChannel = require('./db/models.js').PrivateChannel
-  , UsersChannelsMessages = require('./db/models.js').UsersChannelsMessages
+  , models = require('./models')
+  , Sequelize = models.sequelize
+  , PrivateChannelsUsers = models.PrivateChannelsUsers
+  , Message = models.Messages
+  , PrivateChannel = models.PrivateChannels
+  , UsersChannelsMessages = models.UsersChannelsMessages
   , ogp = require("open-graph")
   , _ = require('lodash')
   , async = require('async')

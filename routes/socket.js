@@ -1,7 +1,9 @@
-var PrivateChannelUsers = require('../db/models.js').PrivateChannelUsers
-  , Message = require('../db/models.js').Message
-  , PrivateChannel = require('../db/models.js').PrivateChannel
-  , UsersChannelsMessages = require('../db/models.js').UsersChannelsMessages
+var models = require('../models')
+  , Sequelize = models.sequelize
+  , PrivateChannelsUsers = models.PrivateChannelsUsers
+  , Message = models.Messages
+  , PrivateChannel = models.PrivateChannels
+  , UsersChannelsMessages = models.UsersChannelsMessages
   , async = require('async');
 
 var socketsMap = {};

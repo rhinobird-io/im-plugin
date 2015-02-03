@@ -13,11 +13,12 @@
     "method-override": "^2.3.1",
     "npm": "^2.2.0",
     "open-graph": "git://github.com/chadliu23/node-open-graph",
+    "pg": "~4.2.0",
+    "pg-hstore": "~2.3.1",
     "restify": "^2.8.4",
     "sequelize": "2.0.0-rc7",
+    "sequelize-cli": "^1.0.8",
     "socket.io": ">= 0.9.6",
-    "sqlite3": "^3.0.4",
-    "pg": "~4.2.0",
-    "pg-hstore": "~2.3.1"
+    "sqlite3": "^3.0.4"
   }
 }
