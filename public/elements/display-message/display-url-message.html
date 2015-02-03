@@ -25,8 +25,7 @@
     response="{{ogp}}"
     ></core-ajax>
 
-    <shadow></shadow>
-	
+    <a href="{{url}}"><shadow></shadow></a>
 	
 	<div vertical layout>
 		<div>
@@ -98,6 +97,9 @@
 				try{
 					this.videoWidth = parseInt(newValue.og.video.width);
 				}catch(err){}
+			}
+			if (!this.urlImage && !this.videoURL && !this.disableLoadedEvent){
+				this.fire('loaded', '');
 			}
 		}, 
 		imageLoaded: function(event){

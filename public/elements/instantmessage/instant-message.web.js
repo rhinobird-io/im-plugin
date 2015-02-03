@@ -746,7 +746,7 @@ Polymer({
       }
     }
 
-    return $.get(serverUrl + '/api/channels/' + self.channel.id + '/messages?limit=30' + beforeOption).done(function (messages) {
+    return $.get(serverUrl + '/api/channels/' + self.channel.id + '/messages?limit=50' + beforeOption).done(function (messages) {
       var temp = [];
       var lastMessage = null;
       messages.forEach(function (message) {
