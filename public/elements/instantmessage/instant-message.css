@@ -32,13 +32,18 @@ h3 {
     border: 2px solid rgba(0, 0, 0, 0.12);
     border-radius: 0.25em;
     cursor: text;
+    border-right: none;
+    border-top-right-radius: 0px;
+    border-bottom-right-radius: 0px;
 }
-#infoButtonArea{
-    margin: 1em;
-}
-
-#infoButtonArea paper-fab {
-    color: white;
+.input-group-addon{
+    margin-top: 1em;
+    padding: 0.5em 1em;
+    border: 2px solid rgba(0, 0, 0, 0.12);
+    border-radius: 0.25em;
+    cursor: pointer;
+    border-top-left-radius: 0px;
+    border-bottom-left-radius: 0px;
 }
 
 .highlight {

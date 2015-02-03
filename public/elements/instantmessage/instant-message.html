@@ -82,8 +82,10 @@
                                                          on-input="{{inputChanging}}" flex>
                                     <textarea row="1" id="textInput" value="{{message}}"></textarea>
                                 </paper-autogrow-textarea>
-
                             </div>
+                        </div>
+                        <div layout horizontal center>
+                            <span class="input-group-addon " on-tap="{{onClickInfomation}}">!</span>
                         </div>
                     </div>
                 </div>
@@ -164,9 +166,6 @@
                                 <core-icon icon="markunread" style="color :red;" hidden?="{{ !(unread[g.id] && unread[g.id].length > 0)}}"></core-icon>
                             </div>
                         </template>
-                    </div>
-                    <div id='infoButtonArea'  horizontal layout end-justified>
-                        <paper-fab mini icon="info-outline"  class="iconColor" on-click="{{onClickInfomation}}"></paper-fab>
                     </div>
                 </div>
 
