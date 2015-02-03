@@ -58,6 +58,7 @@ h3 {
 }
 #privateChannel {
     overflow-y: auto;
+    max-height: 300px;
 }
 .offline {
     color: grey;

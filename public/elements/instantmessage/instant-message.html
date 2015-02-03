@@ -41,12 +41,12 @@
                 </paper-action-dialog>
 
                 <paper-action-dialog id="addPrivateChannelDialog" heading="Add Private Channel" backdrop autoCloseDisabled closeSelector="#cancelBtn" style="width: 70%; height: 70%;" >
-                    <paper-input-decorator id="privateChannelNameInput" label="Channel Name" floatingLabel autoValidate style="width: 100%;" error="Channel name duplilcated" >
-                        <input is="core-input" value="{{newPrivateChannel.name}}">
+                    <paper-input-decorator id="privateChannelNameInput" label="Channel Name" floatingLabel autoValidate style="width: 100%;" error="{{newPrivateChannel.error.msg}}" >
+                        <input is="core-input" required value="{{newPrivateChannel.name}}">
                     </paper-input-decorator>
                     <member-select selected="{{newPrivateChannel.users}}"></member-select>
                     <paper-button id="cancelBtn" dismissive>Cancel</paper-button>
-                    <paper-button affirmative on-click="{{addPrivateChannel}}" disabled="{{newPrivateChannel.users.length < 2 || $.privateChannelNameInput.isInvalid}}">OK</paper-button>
+                    <paper-button affirmative on-click="{{addPrivateChannel}}" disabled="{{newPrivateChannelUsersInvalid}}">OK</paper-button>
                 </paper-action-dialog>
 
                 <div id="historyAndInput" four flex vertical layout class="mainBgColor">
@@ -119,7 +119,7 @@
                         </div>
 
                     </div>
-                    <div id="privateChannel" flex>
+                    <div id="privateChannel">
                         <div vertical layout>
                             <template repeat="{{ g in myPrivateChannels }}">
                                 <div horizontal layout center>

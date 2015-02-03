@@ -93,6 +93,7 @@ app.get('/api/channels/:channelId/users', function (req, res) {
 });
 
 app.post('/api/channels', function (req, res) {
+  var ownerUserId = req.headers['x-user'];
   var name = req.body.name;
   var users = req.body.users;
   var id = req.body.id;
@@ -100,7 +101,8 @@ app.post('/api/channels', function (req, res) {
   Sequelize.transaction(function(t){
     return PrivateChannel.create({
       id: id,
-      name: name
+      name: name,
+      ownerUserId: ownerUserId
     }, {transaction : t}).then(function(channel) {
       var temp = [];
       users.forEach(function (userId) {

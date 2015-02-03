@@ -231,7 +231,7 @@ Polymer({
         function (callback) {
 
         var channelNameMappedId = -1;
-        if (self.channelName.indexOf('@') === 0) {
+        if ((''+self.channelName).indexOf('@') === 0) {
           var name = self.channelName.substr(1);
           self.myTeamMemberChannels.forEach(function (teamMemberChannel) {
             if (name === teamMemberChannel.realname) {
@@ -309,6 +309,10 @@ Polymer({
         console.log('Error : ' + err);
       }
     });
+  },
+
+  computed : {
+    newPrivateChannelUsersInvalid : 'newPrivateChannel.users.length < 2 || $.privateChannelNameInput.isInvalid || newPrivateChannel.name.length === 0'
   },
 
   latestChannelMessageChanged: function (oldValue, newValue) {
@@ -541,9 +545,24 @@ Polymer({
     var self = this;
     clearTimeout(validateTimeout);
     validateTimeout = setTimeout(function () {
+      if (!newValue.match(/^[a-zA-Z]{1}[\w,\s]*$/g)) {
+        self.$.privateChannelNameInput.isInvalid = true;
+        self.newPrivateChannel.error = {
+          msg : 'Name should be start with characters'
+        };
+        return;
+      } else {
+        self.$.privateChannelNameInput.isInvalid = false;
+        self.newPrivateChannel.error = {
+          msg : ''
+        };
+      }
       $.get(serverUrl + '/api/channels?name=' + newValue).done(function (channels) {
         console.log('called validation for ' + newValue);
         self.$.privateChannelNameInput.isInvalid = channels.length > 0;
+        self.newPrivateChannel.error = {
+          msg : 'Name duplicated'
+        };
       });
     }, 1000);
   }

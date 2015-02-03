@@ -17,6 +17,9 @@ var PrivateChannel = sequelize.define('PrivateChannel', {
   name: {
     type: Sequelize.STRING,
     unique : true
+  },
+  ownerUserId : {
+    type: Sequelize.INTEGER
   }
 });
 
