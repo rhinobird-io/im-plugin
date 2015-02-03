@@ -188,16 +188,19 @@ Polymer({
                 self.userIdTeamMemberMap[member.id] = member;
                 member.name = member.realname;
               });
-              callback();
+              callback(null);
             }
           });
       },
+
 
     /**
      * 1.3 get private channels from imdb
      * get all private channel team members
      */
       self.loadPrivateChannels.bind(self),
+
+
 
       /**
        * get all channels
@@ -474,7 +477,8 @@ Polymer({
   ,
 
   showRemovePrivateChannelDialog:function (event, detail, target) {
-    target.querySelector('#removePrivateChannelDialog').open();
+    this.removedPrivateChannel = target.templateInstance.model.g;
+    this.$.removePrivateChannelDialog.open();
   }
   ,
 
@@ -586,7 +590,7 @@ Polymer({
           msg : 'Name duplicated'
         };
       });
-    }, 1000);
+    }, 500);
   }
   ,
 
@@ -632,8 +636,12 @@ Polymer({
   }
   ,
   talkDirect: function (event, detail, target) {
+    var self = this;
     target.parentElement && target.parentElement.close();
-    this.router.go('/' + this.pluginName + '/channels/@' + target.templateInstance.model.directMessageChannel.realname);
+    // private channel users does not have name at the beginning
+    if (target.templateInstance.model.directMessageChannel.realname) {
+      this.router.go('/' + this.pluginName + '/channels/@' + target.templateInstance.model.directMessageChannel.realname);
+    }
   }
   ,
 
@@ -776,7 +784,7 @@ Polymer({
       function (channels) {
         self.myPrivateChannels = channels;
       }).done(function (channels) {
-        var teamMembers = [];
+        // var teamMembers = [];
         async.each(self.myPrivateChannels,
           function (team, cb) {
             $.get(serverUrl + '/api/channels/' + team.id + '/users')
@@ -785,7 +793,7 @@ Polymer({
                 users.forEach(function (user) {
                   self.teamMemberChannelMap[team.id].push(user);
                   if (user.id !== self.currentUser.id) {
-                    teamMembers.push(user);
+                    // teamMembers.push(user);
                   }
                 });
                 cb();

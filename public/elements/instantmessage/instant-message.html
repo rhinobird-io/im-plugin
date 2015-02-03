@@ -40,6 +40,14 @@
             <paper-button id="cancelBtn" dismissive>Cancel</paper-button>
             <paper-button affirmative on-click="{{addPrivateChannel}}" disabled="{{newPrivateChannelUsersInvalid}}">OK</paper-button>
         </paper-action-dialog>
+
+
+        <paper-action-dialog id="removePrivateChannelDialog" heading="Leaving {{ removedPrivateChannel.name }}" backdrop autoCloseDisabled closeSelector="#cancelBtn" style="width: 30%; height: 30%;">
+            <p>Are you sure</p>
+            <paper-button id="cancelBtn" dismissive >Close</paper-button>
+            <paper-button affirmative channelId="{{removedPrivateChannel.id}}" on-click="{{removePrivateChannel}}">Yes</paper-button>
+        </paper-action-dialog>
+
         <home-container>
             <div class="title" horizontal layout center>
                 <div  flex>
@@ -54,6 +62,7 @@
                 <paper-action-dialog id="connectingDialog" backdrop autoCloseDisabled>
                     <p>{{connectinStatus}}</p>
                 </paper-action-dialog>
+
 
                 <div main id="historyAndInput" four flex vertical layout class="mainBgColor">
 
@@ -131,7 +140,8 @@
                         <div vertical layout>
                             <template repeat="{{ g in myPrivateChannels }}">
                                 <div horizontal layout center>
-                                    <paper-icon-button icon="account-child" on-click="{{showTeamMemberDialog}}" >
+                                    <!-- hide it, wait for userMap[useId] -->
+                                    <paper-icon-button icon="account-child" on-click="{{showTeamMemberDialog}}" hidden?="{{true}}">
                                         <paper-dialog id="teamMemberDialog" heading="Members" on-core-overlay-position="{{positionTeamMemberDialog}}" on-core-overlay-open-completed="{{resizeTeamMemberDialog}}" on-blur="{{hideTeamMemberDialog}}" style="{{ memberDialogStyle | styleObject}}">
                                             <template repeat="{{directMessageChannel in teamMemberChannelMap[g.id]}}">
                                                 <paper-item hidden?="{{!directMessageChannel.userId || directMessageChannel.userId === currentUser.id}}"  on-click="{{talkDirect}}">
@@ -146,11 +156,7 @@
                                         <paper-icon-button icon="markunread" style="color :red;" hidden?="{{ !(unread[g.id] && unread[g.id].length > 0)}}"></paper-icon-button>
                                     </div>
                                     <paper-icon-button icon="clear" on-click="{{ showRemovePrivateChannelDialog}}">
-                                        <paper-action-dialog id="removePrivateChannelDialog" heading="Leaving {{ g.name }}" backdrop autoCloseDisabled closeSelector="#cancelBtn" style="width: 30%; height: 30%;">
-                                            <p>Are you sure</p>
-                                            <paper-button id="cancelBtn" dismissive >Close</paper-button>
-                                            <paper-button affirmative channelId="{{g.id}}" on-click="{{removePrivateChannel}}">Yes</paper-button>
-                                        </paper-action-dialog>
+
                                     </paper-icon-button>
                                 </div>
                             </template>
