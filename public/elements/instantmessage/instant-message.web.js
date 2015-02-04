@@ -63,6 +63,7 @@ Polymer({
   pluginName: 'instantmessage',
   unread: {},
   users: [], // the users in this room
+  newMessage: false,
 
   ready: function () {
     this.scrollToBottom(100);
@@ -730,8 +731,9 @@ Polymer({
       })
       .done(function () {
         if (self.messages.length > 0) {
-          var message = {text: 'unread messages'};
+          var message = {text: 'new messages'};
           self.messages.splice(0, 0, message);
+          self.newMessage = true;
           self.messageHasBeenSeen(self.currentUser.id, self.messages[self.messages.length - 1].id, self.channel.id);
         }
       });
@@ -862,6 +864,15 @@ Polymer({
     var self = this;
     var uuid = this.guid();
     // add the message to our model locally
+    if (this.newMessage){
+      for (var i = this.messages.length - 1; i >= 0; i--) {
+        if (!this.messages[i].userId && this.messages[i].text === 'NEW MESSAGES'){
+          this.messages.splice(i,1);
+          this.newMessage = false;
+          break;
+        }
+      }
+    }
     var msg = {
       userId: self.currentUser.id,
       channelId: self.channel.id,
