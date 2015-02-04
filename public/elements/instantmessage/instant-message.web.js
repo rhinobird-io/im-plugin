@@ -273,7 +273,7 @@ Polymer({
               callback(null, channel);
               return;
             }
-            self.getLastSeenMessages(lastSeenMessageId.MessageId).done(function () {
+            self.getLastSeenMessages(lastSeenMessageId.messageId).done(function () {
               callback(null, channel);
             });
           });
