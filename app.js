@@ -45,32 +45,21 @@ var allowCrossDomain = function (req, res, next) {
   }
 };
 
+app.use(allowCrossDomain);
+app.use(bodyParser.urlencoded({
+  extended: true
+}));
+app.use(bodyParser.json());
+app.use(methodOverride());
+app.use(express.static(__dirname + '/public'));
 
 if ('development' == env) {
-  app.use(allowCrossDomain);
-  app.use(bodyParser.urlencoded({
-    extended: true
-  }));
-  app.use(bodyParser.json());
-  app.use(methodOverride());
-  app.use(express.static(__dirname + '/public'));
   app.use(errorhandler({dumpExceptions: true, showStack: true}));
 }
 
 if ('production' == env) {
-  app.use(allowCrossDomain);
-  app.use(bodyParser.urlencoded({
-    extended: true
-  }));
-  app.use(bodyParser.json());
-  app.use(methodOverride());
-  app.use(express.static(__dirname + '/public'));
   app.use(errorhandler());
 }
-
-
-
-
 
 // Routes
 

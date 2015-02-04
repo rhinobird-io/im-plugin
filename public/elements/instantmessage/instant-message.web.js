@@ -256,6 +256,11 @@ Polymer({
             }
           });
         }
+
+        if (!self.channel) {
+          // redirect to 403
+          callback(403);
+        }
       },
       /**
        * init socket
@@ -308,8 +313,12 @@ Polymer({
 
 
     ], function (err, result) {
-      if (err) {
+      if (403 === err) {
+        self.$.forbiddenDiv.hidden = false;
+      } else if (err){
         console.log('Error : ' + err);
+      } else {
+        self.$.forbiddenDiv.hidden = true;
       }
     });
   },
