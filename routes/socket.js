@@ -54,7 +54,7 @@ module.exports = function (socket) {
       .then(function(instance){
         var lastSeen = instance[0];
         if (!lastSeen.messageId || lastSeen.messageId < data.messageId){
-          lastSeen.updateAttributes({MessageId:data.messageId});
+          lastSeen.updateAttributes({messageId:data.messageId});
         }
       });
   });
@@ -76,7 +76,7 @@ module.exports = function (socket) {
         .findOrCreate({where: {userId: data.userId, channelId: ''+ data.channelId }})
         .then(function(instance){
           var lastSeen = instance[0];
-            lastSeen.updateAttributes({MessageId:message.id});
+            lastSeen.updateAttributes({messageId:message.id});
         });
 
       /**
