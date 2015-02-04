@@ -11,7 +11,6 @@ module.exports = function(sequelize, DataTypes) {
     },
     messageId: {
       type: DataTypes.INTEGER,
-      primaryKey: true,
       references: "Messages",
       referencesKey: "id",
       onDelete: "cascade"

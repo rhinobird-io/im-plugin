@@ -12,7 +12,6 @@ module.exports = {
       },
       messageId: {
         type: DataTypes.INTEGER,
-        primaryKey: true,
         references: "Messages",
         referencesKey: "id",
         onDelete: "cascade"
