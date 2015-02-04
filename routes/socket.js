@@ -50,12 +50,13 @@ module.exports = function (socket) {
 
   socket.on('user:message:seen', function(data){
     UsersChannelsMessages
-      .findOrCreate({where:{userId: data.userId, channelId: ''+data.channelId}})
-      .then(function(instance){
-        var lastSeen = instance[0];
-        if (!lastSeen.messageId || lastSeen.messageId < data.messageId){
-          lastSeen.updateAttributes({messageId:data.messageId});
+      .findOne({where: {userId: data.userId, channelId: ''+ data.channelId }})
+      .then(function (instance){
+        if (!instance){
+          UsersChannelsMessages.create({messageId:data.messageId, userId: data.userId, channelId: ''+ data.channelId });
+          return;
         }
+        instance.update({messageId:data.messageId});
       });
   });
 
@@ -73,11 +74,14 @@ module.exports = function (socket) {
       var message = afterCreate.dataValues;
       message.messageStatus = 'done';
       UsersChannelsMessages
-        .findOrCreate({where: {userId: data.userId, channelId: ''+ data.channelId }})
-        .then(function(instance){
-          var lastSeen = instance[0];
-            lastSeen.updateAttributes({messageId:message.id});
-        });
+      .findOne({where: {userId: data.userId, channelId: ''+ data.channelId }})
+      .then(function (instance){
+        if (!instance){
+          UsersChannelsMessages.create({messageId:message.id, userId: data.userId, channelId: ''+ data.channelId });
+          return;
+        }
+        instance.update({messageId:message.id});
+      });
 
       /**
        * it is possible that the opposite user(s) may not join the channel, we need to force them to join the channel

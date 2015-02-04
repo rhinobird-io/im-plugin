@@ -63,6 +63,7 @@ Polymer({
   pluginName: 'instantmessage',
   unread: {},
   users: [], // the users in this room
+  newMessage: false,
 
   ready: function () {
     this.scrollToBottom(100);
@@ -278,7 +279,7 @@ Polymer({
               callback(null, channel);
               return;
             }
-            self.getLastSeenMessages(lastSeenMessageId.MessageId).done(function () {
+            self.getLastSeenMessages(lastSeenMessageId.messageId).done(function () {
               callback(null, channel);
             });
           });
@@ -649,6 +650,9 @@ Polymer({
     target.parentElement && target.parentElement.close();
     // private channel users does not have name at the beginning
     if (target.templateInstance.model.directMessageChannel.realname) {
+      if (this.newMessage){
+        this.messageHasBeenSeen(this.currentUser.id, this.messages[this.messages.length -1].id, this.channel.id);
+      }
       this.router.go('/' + this.pluginName + '/channels/@' + target.templateInstance.model.directMessageChannel.realname);
     }
   }
@@ -739,8 +743,9 @@ Polymer({
       })
       .done(function () {
         if (self.messages.length > 0) {
-          var message = {text: 'unread messages'};
+          var message = {text: 'new messages'};
           self.messages.splice(0, 0, message);
+          self.newMessage = true;
           self.messageHasBeenSeen(self.currentUser.id, self.messages[self.messages.length - 1].id, self.channel.id);
         }
       });
@@ -844,6 +849,9 @@ Polymer({
     }
 
     var hash = target.attributes['hash'].value;
+    if (this.newMessage){
+      this.messageHasBeenSeen(this.currentUser.id, this.messages[this.messages.length -1].id, this.channel.id);
+    }
     self.router.go('/' + this.pluginName + '/channels/' + hash);
   }
   ,
@@ -871,6 +879,15 @@ Polymer({
     var self = this;
     var uuid = this.guid();
     // add the message to our model locally
+    if (this.newMessage){
+      for (var i = this.messages.length - 1; i >= 0; i--) {
+        if (!this.messages[i].userId && this.messages[i].text === 'NEW MESSAGES'){
+          this.messages.splice(i,1);
+          this.newMessage = false;
+          break;
+        }
+      }
+    }
     var msg = {
       userId: self.currentUser.id,
       channelId: self.channel.id,
