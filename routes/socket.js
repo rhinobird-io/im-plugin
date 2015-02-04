@@ -50,8 +50,14 @@ module.exports = function (socket) {
 
   socket.on('user:message:seen', function(data){
     UsersChannelsMessages
-      .upsert({messageId:data.messageId, userId: data.userId, channelId: ''+ data.channelId },
-                {where: {userId: data.userId, channelId: ''+ data.channelId }});
+      .findOne({where: {userId: data.userId, channelId: ''+ data.channelId }})
+      .then(function (instance){
+        if (!instance){
+          UsersChannelsMessages.create({messageId:data.messageId, userId: data.userId, channelId: ''+ data.channelId });
+          return;
+        }
+        instance.update({messageId:data.messageId});
+      });
   });
 
   // broadcast a user's message to other users
@@ -68,8 +74,14 @@ module.exports = function (socket) {
       var message = afterCreate.dataValues;
       message.messageStatus = 'done';
       UsersChannelsMessages
-        .upsert({messageId:message.id, userId: data.userId, channelId: ''+ data.channelId },
-                {where: {userId: data.userId, channelId: ''+ data.channelId }});
+      .findOne({where: {userId: data.userId, channelId: ''+ data.channelId }})
+      .then(function (instance){
+        if (!instance){
+          UsersChannelsMessages.create({messageId:message.id, userId: data.userId, channelId: ''+ data.channelId });
+          return;
+        }
+        instance.update({messageId:message.id});
+      });
 
       /**
        * it is possible that the opposite user(s) may not join the channel, we need to force them to join the channel
