@@ -641,6 +641,9 @@ Polymer({
     target.parentElement && target.parentElement.close();
     // private channel users does not have name at the beginning
     if (target.templateInstance.model.directMessageChannel.realname) {
+      if (this.newMessage){
+        this.messageHasBeenSeen(this.currentUser.id, this.messages[this.messages.length -1].id, this.channel.id);
+      }
       this.router.go('/' + this.pluginName + '/channels/@' + target.templateInstance.model.directMessageChannel.realname);
     }
   }
@@ -837,6 +840,9 @@ Polymer({
     }
 
     var hash = target.attributes['hash'].value;
+    if (this.newMessage){
+      this.messageHasBeenSeen(this.currentUser.id, this.messages[this.messages.length -1].id, this.channel.id);
+    }
     self.router.go('/' + this.pluginName + '/channels/' + hash);
   }
   ,
