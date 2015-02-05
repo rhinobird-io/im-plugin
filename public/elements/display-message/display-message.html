@@ -94,7 +94,7 @@
 			afterprocessing = [];
 			for(t in processingText){
 				if (!processingText[t].process){
-					afterprocessing.push(this.processHttp(processingText[t].text));
+					afterprocessing = afterprocessing.concat(this.processHttp(processingText[t].text));
 				}else{
 					afterprocessing.push(processingText[t]);
 				}
@@ -133,18 +133,37 @@
 			return result;
 		},
 		processHttp: function(processingText){
-			var r = {};
+			var result = [];
 			// this uri pattern is extract from URI.js 
 			var uri_pattern = /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/ig;
-			r.text =  processingText;
+
 			var matched = processingText.match(uri_pattern);
 			if(matched){
-				r.process = 'url';
-				r.url = matched[0];
+				var startPos = processingText.indexOf(matched[0]);
+				if (startPos > 0){
+					var beforeUri = {};
+					beforeUri.text = processingText.substr(0, startPos);
+					beforeUri.process = false;
+					result.push(beforeUri);
+				}
+				var uri = {};
+				uri.process = 'url';
+				uri.url = matched[0];
+				uri.text = matched[0];
+				result.push(uri);
+				if (startPos + matched[0].length < processingText.length){
+					var afterUri  = {};
+					afterUri.text = processingText.substr(startPos + matched[0].length);
+					afterUri.process = false;
+					result.push(afterUri);
+				}
 			}else{
+				var r = {};
+				r.text = processingText;
 				r.process = false;
+				result.push(r);
 			}
-			return r;
+			return result;
 		}, 
 		messageLoaded: function(event){
 			if (!this.disableLoadedEvent){
