@@ -36,7 +36,7 @@
             <paper-input-decorator id="privateChannelNameInput" label="Channel Name" floatingLabel autoValidate style="width: 100%;" error="{{newPrivateChannel.error.msg}}" >
                 <input is="core-input" required value="{{newPrivateChannel.name}}">
             </paper-input-decorator>
-            <member-select selected="{{newPrivateChannel.users}}"></member-select>
+            <member-select type="user" selected="{{newPrivateChannel}}" adaptive></member-select>
             <paper-button id="cancelBtn" dismissive>Cancel</paper-button>
             <paper-button affirmative on-click="{{addPrivateChannel}}" disabled="{{newPrivateChannelUsersInvalid}}">OK</paper-button>
         </paper-action-dialog>

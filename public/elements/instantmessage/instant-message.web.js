@@ -54,10 +54,12 @@ Polymer({
     init: function () {
       this.name = '';
       this.users = [];
+      this.teams = [];
     },
 
     name: '',
-    users: []
+    users: [],
+    teams: []
   },
 
   pluginName: 'instantmessage',
