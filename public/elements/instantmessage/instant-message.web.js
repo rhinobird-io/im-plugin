@@ -947,6 +947,9 @@ Polymer({
     if (!Notification) {
       return;
     }
+    if (userId === this.currentUser.id){
+      return;
+    }
     var notification = new Notification("New Message from " +
     this.$.globals.values.memberCache[userId].username, {
       body: content,
