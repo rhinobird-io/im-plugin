@@ -950,8 +950,13 @@ Polymer({
     var self = this;
     var directToChannel = "";
     for (var i = this.myPublicChannels.length - 1; i >= 0; i--) {
-      if (this.myPublicChannels[i].id === channelId) {
+      if ((''+this.myPublicChannels[i].id) === channelId) {
         directToChannel = this.myPublicChannels[i].name;
+      }
+    }
+    for (var i = this.myPrivateChannels.length - 1; i >= 0; i--) {
+      if ((this.myPrivateChannels[i].id) === channelId) {
+        directToChannel = this.myPrivateChannels[i].name;
       }
     }
     for (var i = this.myTeamMemberChannels.length - 1; i >= 0; i--) {
