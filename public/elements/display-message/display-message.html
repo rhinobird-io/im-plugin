@@ -41,12 +41,13 @@
 <div horizontal layout class='boarder'>
 
 	<template if="{{user}}">
+	<div horizontal layout>
 		<div class='avatar'>
 			<template if="{{!hideMemberElement}}">
 				<avatar-image userid="{{user}}" size="36"></avatar-image>
 			</template>
 		</div>
-		<div vertical layout class="box">
+		<div vertical layout class="box" flex>
 			<div horizontal layout >
 				<template if="{{!hideMemberElement}}">
 					<div class='username'>{{$.globals.values.memberCache[user].username}}</div>
@@ -69,6 +70,7 @@
 				</template>
 			</div>
 		</div>
+	</div>
 	</template>
 	<template if="{{!user}}">
 		<display-system-message text="{{text}}"></display-system-message>
