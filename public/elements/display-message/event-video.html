@@ -2,7 +2,16 @@
 <script src="../../bower_components/imagesloaded/imagesloaded.pkgd.js"></script>
 <template>
 	<style>
-		
+		@media only screen and (max-width:750px) {
+	        #coreVideo { 
+				max-width: 300px;
+	        }
+	    }
+		@media only screen and (max-width:400px) {
+	        #coreVideo { 
+				max-width: 200px;
+	        }
+	    }
 	</style>
 	<iframe id="coreVideo" width="{{ajustWidth}}" height="{{ajustHeight}}" src="{{src}}"></iframe>
 </template>

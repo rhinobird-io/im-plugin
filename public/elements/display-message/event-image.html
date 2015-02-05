@@ -5,6 +5,12 @@
 		.msg_inline_img {
 			max-width: {{width}};
 		}
+		/* iphone */
+	    @media only screen and (max-width:400px) {
+	        .msg_inline_img { 
+				max-width: 200px;
+	        }
+	    }
 	</style>
 	<img id="coreImage" class="msg_inline_img msg_inline_child" src="{{src}}">
 </template>
