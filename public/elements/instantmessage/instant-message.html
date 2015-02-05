@@ -75,12 +75,13 @@
                         <event-infinite-scroll id="infiniteScroll" readyOnStart="false" scrollDenominator="2" loadingDelay="50" on-reach-top="{{reachedTop}}"></event-infinite-scroll>
                         <template repeat="{{m in messages}}">
                             <display-message user="{{m.userId}}" text="{{m.text}}" 
-                                             on-loaded="{{messageLoaded}}"
+                                             on-messageloaded="{{messageLoaded}}"
                                              messageStatus="{{m.messageStatus}}" 
                                              updatedAt="{{m.updatedAt}}"
-                                             disableLoadedEvent="{{m.disableLoadedEvent}}"
-                                             disableReadyEvent="{{m.disableReadyEvent}}"
+                                             disableEvent="{{m.disableEvent}}"
                                              hideMemberElement="{{m.hideMemberElement}}"
+                                             messageGuid="{{m.guid}}"
+                                             previewHidden="{{m.displayPreview}}"
                                              on-ready="{{messageReady}}"></display-message>
                         </template>
                     </div>

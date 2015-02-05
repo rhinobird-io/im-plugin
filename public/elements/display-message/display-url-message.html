@@ -3,7 +3,7 @@
 <link rel="import" href="display-default-message.html">
 <link rel="import" href="event-image.html">
 <link rel="import" href="event-video.html">
-<polymer-element name="display-url-message" extends="display-default-message" attributes="url disableLoadedEvent">
+<polymer-element name="display-url-message" extends="display-default-message" attributes="url previewHidden">
 
 <template>
 	<style>
@@ -14,6 +14,10 @@
 			font-weight: bold;
 			font-size: 16px;
 		}
+		.previewHidden {
+			display: none;
+		}
+
 		
 	</style>
 <core-ajax id='getOGP'
@@ -27,28 +31,28 @@
 
     <a href="{{url}}" target="{{url}}"><shadow></shadow></a>
 	
-	<div vertical layout>
+	<div class='{{previewHidden}}' vertical layout>
 		<div>
 			<template if="{{urlSiteName}}">
-				<span class="attachment_service_name">{{urlSiteName}}</span>
+				<span class="attachment_service_name {{previewHidden}}">{{urlSiteName}}</span>
 			</template>
 		</div>
 		<div>
 			<template if="{{urlTitle}}">
-				<span class="attachment_title"><a href="{{url}}" rel="noreferrer" target="{{url}}">{{urlTitle}}</a></span>
+				<span class="attachment_title {{previewHidden}}"><a href="{{url}}" rel="noreferrer" target="{{url}}">{{urlTitle}}</a></span>
 			</template>
 		</div>
 		<div>
 			<template if="{{urlDescription}}">
-				<div class="attachment_contents">{{urlDescription}}</div>
+				<div class="attachment_contents {{previewHidden}}">{{urlDescription}}</div>
 			</template>
 		</div>
 		<div>
 			<template if="{{!videoURL && urlImage}}">
-				<event-image src="{{urlImage}}" width="400px" disableLoadedEvent="{{disableLoadedEvent}}" on-loaded="{{imageLoaded}}"></event-image>
+				<event-image class='{{previewHidden}}' src="{{urlImage}}" width="400px" on-imageloaded="{{imageLoaded}}"></event-image>
 			</template>
 			<template if="{{videoURL}}">
-				<event-video src="{{videoURL}}" width="{{videoWidth}}" height="{{videoHeight}}" on-loaded="{{imageLoaded}}" disableLoadedEvent="{{disableLoadedEvent}}"></event-video>
+				<event-video class='{{previewHidden}}' src="{{videoURL}}" width="{{videoWidth}}" height="{{videoHeight}}" on-videoloaded="{{imageLoaded}}"></event-video>
 			</template>
 		</div>
 	</div>
@@ -98,14 +102,12 @@
 					this.videoWidth = parseInt(newValue.og.video.width);
 				}catch(err){}
 			}
-			if (!this.urlImage && !this.videoURL && !this.disableLoadedEvent){
+			if (!this.urlImage && !this.videoURL ){
 				this.fire('loaded', '');
 			}
 		}, 
 		imageLoaded: function(event){
-			if (!this.disableLoadedEvent){
-				this.fire('loaded', '');
-			}
+			this.fire('loaded', '');
 		}
 	});
 </script>

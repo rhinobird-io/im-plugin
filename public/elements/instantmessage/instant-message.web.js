@@ -81,6 +81,8 @@ Polymer({
     window.addEventListener('hashchange', function(){
       window.onkeypress = null;
     });
+
+
     window.onkeypress = function (event) {
       if (event.keyCode === 13 && (!self.message || self.message === '')) {
         event.preventDefault();
@@ -415,17 +417,16 @@ Polymer({
           self.isHideMemberElement(self.messages[self.messages.length - 1], message);
       }
       if (self.$.history.scrollTop + self.$.history.clientHeight === self.$.history.scrollHeight) {
-        message.disableReadyEvent = false;
-        message.disableLoadedEvent = false;
+        message.disableEvent = false;
       } else {
         self.comingMessage = {
           userId: message.userId,
           text: message.text
         }
-        message.disableReadyEvent = true;
-        message.disableLoadedEvent = true;
+        message.disableEvent = true;
         self.$.comingMessageToast.show();
       }
+      message.displayPreview = 'previewHidden';
       self.messages.push(message);
       self.$.messageInput.update();
       self.messageHasBeenSeen(self.currentUser.id, message.id, message.channelId);
@@ -705,45 +706,30 @@ Polymer({
       self.historyOffset += self.historyLimit;
       if (messages.length < self.historyLimit) {
         self.noMoreHistory = true;
+        self.insertFrontMessages(messages, true);
       }
-      var temp = [];
-      var lastMessage = null;
-      messages.forEach(function (message) {
-        temp.push({
-          id: message.id,
-          userId: message.userId,
-          text: message.text,
-          updatedAt: message.updatedAt,
-          disableLoadedEvent: true,
-          disableReadyEvent: true,
-          hideMemberElement: self.isHideMemberElement(lastMessage, message)
-        });
-        lastMessage = message;
-      });
-      self.messages = temp.concat(self.messages);
-
     });
+  }
+  ,
+  insertFrontMessages: function(messages, diableEvent){
+    var temp = [];
+    var self = this;
+    var lastMessage = null;
+    messages.forEach(function (message) {
+      message.hideMemberElement = self.isHideMemberElement(lastMessage, message);
+      message.disableEvent = diableEvent;
+      message.displayPreview = 'previewHidden';
+      temp.push(message);
+      lastMessage = message;
+    });
+    this.messages = temp.concat(this.messages);
   }
   ,
   getLastSeenMessages: function (lastSeenMessageId) {
     var self = this;
     return $.get(serverUrl + '/api/channels/' + this.channel.id + '/messages?sinceId=' + lastSeenMessageId)
       .done(function (messages) {
-        var temp = [];
-        var lastMessage = null;
-        messages.forEach(function (message) {
-          temp.push({
-            id: message.id,
-            userId: message.userId,
-            text: message.text,
-            updatedAt: message.updatedAt,
-            hideMemberElement: self.isHideMemberElement(lastMessage, message),
-            disableReadyEvent: true,
-            disableLoadedEvent: true
-          });
-          lastMessage = message;
-        });
-        self.messages = temp.concat(self.messages);
+        self.insertFrontMessages(messages, false);
         delete self.unread[self.channel.id];
       })
       .done(function () {
@@ -773,20 +759,8 @@ Polymer({
       }
     }
 
-    return $.get(serverUrl + '/api/channels/' + self.channel.id + '/messages?limit=50' + beforeOption).done(function (messages) {
-      var temp = [];
-      var lastMessage = null;
-      messages.forEach(function (message) {
-        temp.push({
-          id: message.id,
-          userId: message.userId,
-          text: message.text,
-          updatedAt: message.updatedAt,
-          hideMemberElement: self.isHideMemberElement(lastMessage, message)
-        });
-        lastMessage = message;
-      });
-      self.messages = temp.concat(self.messages);
+    return $.get(serverUrl + '/api/channels/' + self.channel.id + '/messages?limit=20' + beforeOption).done(function (messages) {
+      self.insertFrontMessages(messages, false);
       delete self.unread[self.channel.id];
       self.scrollToBottom(100);
     }).done(function () {
@@ -875,8 +849,9 @@ Polymer({
   ,
   scrollToBottom: function (delay) {
     var self = this;
+
     setTimeout(function () {
-      self.$.history.scrollTop = self.$.history.scrollHeight;
+      self.$.history.scrollTop = self.$.history.scrollHeight - self.$.history.clientHeight;
     }, delay);
   }
   ,
@@ -899,7 +874,8 @@ Polymer({
       text: self.message,
       guid: uuid,
       messageStatus: 'unsend',
-      hideMemberElement: true
+      hideMemberElement: true,
+      displayPreview:'previewHidden'
     };
     this.messages.push(msg);
     this.scrollToBottom(100);
@@ -937,7 +913,25 @@ Polymer({
   ,
 
   messageLoaded: function (event) {
-    this.scrollToBottom(100);
+    if ( this.$.history.scrollTop === (this.$.history.scrollHeight - this.$.history.clientHeight)){
+      // at the bottom
+      for (var i = this.messages.length - 1; i >= 0; i--) {
+        if (this.messages[i].guid === event.detail.messageGuid){
+          this.messages[i].displayPreview = '';
+          break;
+        }
+      };
+      this.scrollToBottom(0);
+    }else{
+      // not at bottom
+      for (var i = this.messages.length - 1; i >= 0; i--) {
+        if (this.messages[i].guid === event.detail.messageGuid){
+          this.messages[i].displayPreview = '';
+          break;
+        }
+      };
+    }
+    //this.scrollToBottom(0);
   }
   ,
   onClickInfomation: function () {

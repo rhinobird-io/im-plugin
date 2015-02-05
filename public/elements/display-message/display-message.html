@@ -6,7 +6,7 @@
 <link rel="import" href="/platform/elements/member-select/avatar-image.html">
 <link rel="import" href="/platform/elements/member-select/member-element.html">
 <link rel="import" href="/platform/bower_components/polymer-filters/polymer-filters.html">
-<polymer-element name="display-message" attributes="hideMemberElement user text messageStatus updatedAt disableLoadedEvent disableReadyEvent">
+<polymer-element name="display-message" attributes="messageGuid hideMemberElement user text messageStatus updatedAt disableEvent previewHidden">
 
 <template>
 <style>
@@ -65,7 +65,7 @@
 						<display-code-snippet-message text="{{t.text}}"></display-code-snippet-message>
 					</template>
 					<template if="{{t.process === 'url'}}">
-						<display-url-message text="{{t.text}}" disableLoadedEvent="{{disableLoadedEvent}}" on-loaded="{{messageLoaded}}" url="{{t.url}}"></display-url-message>
+						<display-url-message text="{{t.text}}" previewHidden="{{previewHidden}}" on-loaded="{{messageLoaded}}" url="{{t.url}}" ></display-url-message>
 					</template>
 				</template>
 			</div>
@@ -81,8 +81,7 @@
 <script>
 	Polymer({
 		processedText : [],
-		disableLoadedEvent: false, 
-		disableReadyEvent: false,
+		disableEvent: false, 
 		hideMemberElement: false,
 		domReady: function(){
 			if (!this.text){
@@ -101,7 +100,7 @@
 			}
 
 			this.processedText = afterprocessing;
-			if (!this.disableReadyEvent){
+			if (!this.disableEvent){
 				this.fire('ready', '');
 			}
 		}, 
@@ -166,8 +165,8 @@
 			return result;
 		}, 
 		messageLoaded: function(event){
-			if (!this.disableLoadedEvent){
-				this.fire('loaded', '');
+			if (!this.disableEvent){
+				this.fire('messageloaded', {messageGuid: this.messageGuid});
 			}
 		}
 	});
