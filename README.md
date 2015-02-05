@@ -1,6 +1,6 @@
 # pre-install
- - install Postgres && create database im 
- - set password to 123456 or define process.env.DATABASE_URL like postgres://postgres:123456@localhost:5432/im
+ - install Postgres
+ - change the database setting in config/config.json as you like
 
 # init db
  - npm install
