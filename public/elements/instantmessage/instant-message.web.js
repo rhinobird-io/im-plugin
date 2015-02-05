@@ -78,6 +78,9 @@ Polymer({
     if (Notification.permission !== "granted") {
       Notification.requestPermission();
     }
+    window.addEventListener('hashchange', function(){
+      window.onkeypress = null;
+    });
     window.onkeypress = function (event) {
       if (event.keyCode === 13 && (!self.message || self.message === '')) {
         event.preventDefault();
