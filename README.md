@@ -6,7 +6,7 @@
 
 ## init db
  - npm install
- - node db/dbInit.js
+ - ./node_modules/sequelize-cli/bin/sequelize db:migrate
 
 ## start server
  ```javascript
