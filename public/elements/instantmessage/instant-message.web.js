@@ -36,9 +36,9 @@ Polymer({
 
   /**
    * key : userId
-   * value : user
+   * value : the channel talk to this user
    */
-  userIdTeamMemberMap: {},
+  userIdTeamMemberChannelMap: {},
 
   /**
    * key : channelId
@@ -82,7 +82,6 @@ Polymer({
       window.onkeypress = null;
     });
 
-
     window.onkeypress = function (event) {
       if (event.keyCode === 13 && (!self.message || self.message === '')) {
         event.preventDefault();
@@ -100,6 +99,8 @@ Polymer({
         self.$.textInput.focus();
       }
     }
+
+    self.imGlobals = self.$.globals.values.im = self.$.globals.values.im || {};
   },
 
   /**
@@ -163,9 +164,14 @@ Polymer({
           callback('no groups found for current user');
           return;
         } else if (self.channelName === defaultChannel) {
-          // by default using the default setting, later use localstorage
-          self.channelName = self.myPublicChannels[0].name;
-          self.router.go('/' + self.pluginName + '/channels/' + self.channelName);
+          if (self.imGlobals.currentChannel) {
+            self.router.go('/' + self.pluginName + '/channels/' + self.imGlobals.currentChannel.name);
+          } else {
+            // by default use appGlobal
+            self.channelName = self.myPublicChannels[0].name;
+            self.router.go('/' + self.pluginName + '/channels/' + self.channelName);
+          }
+          return;
         } else {
           callback();
         }
@@ -193,8 +199,8 @@ Polymer({
             if (!err) {
               self.myTeamMemberChannels = self.getUniqueMember(teamMembers);
               self.myTeamMemberChannels.forEach(function (member) {
-                self.userIdTeamMemberMap[member.id] = member;
-                member.name = member.realname;
+                self.userIdTeamMemberChannelMap[member.id] = member;
+                member.name = '@' + member.realname;
               });
               callback(null);
             }
@@ -264,10 +270,11 @@ Polymer({
             }
           });
         }
-
         if (!self.channel) {
           // redirect to 403
           callback(403);
+        } else {
+          self.imGlobals.currentChannel = self.channel;
         }
       },
       /**
@@ -321,12 +328,9 @@ Polymer({
 
 
     ], function (err, result) {
-      if (403 === err) {
-        self.$.forbiddenDiv.hidden = false;
-      } else if (err){
+      self.$.forbiddenDiv.hidden = 403 !== err;
+      if (err){
         console.log('Error : ' + err);
-      } else {
-        self.$.forbiddenDiv.hidden = true;
       }
     });
   },
@@ -346,9 +350,9 @@ Polymer({
       return _.sortBy(channels, function (channel) {
         var latestChannelMessage = self.latestChannelMessage['' + channel.id];
         if (latestChannelMessage) {
-          return -1 * self.latestChannelMessage['' + channel.id];
+          return ''+((1<<30) -  self.latestChannelMessage['' + channel.id]);
         } else {
-          return channel.name.charCodeAt(0);
+          return channel.name;
         }
       });
     }
@@ -574,6 +578,7 @@ Polymer({
       success: function(result) {
         dlg.close();
         if (self.channel.id === channelId) {
+          delete self.imGlobals.currentChannel;
           self.router.go('/' + self.pluginName + '/channels/' + defaultChannel);
         } else {
           self.loadPrivateChannels(function(){});
@@ -938,9 +943,6 @@ Polymer({
     this.$.informationDialog.open();
   },
   showNotification: function (userId, content, channelId) {
-    if (!Notification) {
-      return;
-    }
     if (userId === this.currentUser.id){
       return;
     }
