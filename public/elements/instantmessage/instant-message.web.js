@@ -404,7 +404,7 @@ Polymer({
       });
     });
 
-    this.socket.on('send:message', function (message) {
+    this.socket.on('message:send', function (message) {
       if (message.channelId !== '' + self.channel.id) {
         self.unread[message.channelId] = self.unread[message.channelId] || [];
         self.unread[message.channelId].push(message.text);
@@ -887,7 +887,7 @@ Polymer({
     };
     this.messages.push(msg);
     this.scrollToBottom(100);
-    this.socket.emit('send:message', msg, function (message) {
+    this.socket.emit('message:send', msg, function (message) {
       for (var i = self.messages.length - 1; i >= 0; i--) {
         if (self.messages[i].guid === message.guid) {
           self.messages[i] = message;
@@ -994,7 +994,7 @@ Polymer({
     return '' + minId + ':' + maxId;
   },
   messageHasBeenSeen: function (userId, messageId, channelId) {
-    this.socket.emit('user:message:seen',
+    this.socket.emit('message:seen',
       {userId: userId, messageId: messageId, channelId: channelId});
   },
   togglePanel: function() {

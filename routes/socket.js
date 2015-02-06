@@ -47,7 +47,7 @@ module.exports = function (socket) {
     callback(keys);
   });
 
-  socket.on('user:message:seen', function(data){
+  socket.on('message:seen', function(data){
     UsersChannelsMessages
       .findOne({where: {userId: data.userId, channelId: ''+ data.channelId }})
       .then(function (instance){
@@ -60,7 +60,7 @@ module.exports = function (socket) {
   });
 
   // broadcast a user's message to other users
-  socket.on('send:message', function (data, callback) {
+  socket.on('message:send', function (data, callback) {
     if (!socketsMap[userId]){
       socketsMap[userId] = socket;
     }
@@ -86,7 +86,7 @@ module.exports = function (socket) {
        * it is possible that the opposite user(s) may not join the channel, we need to force them to join the channel
        *
        */
-      socket.broadcast.to(message.channelId).emit('send:message', message);
+      socket.broadcast.to(message.channelId).emit('message:send', message);
       callback(message);
     });
   });
