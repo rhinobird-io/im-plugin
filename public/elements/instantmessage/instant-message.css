@@ -70,3 +70,7 @@ h3 {
 .narrowShow {
     display: none;
 }
+
+[unsorted] {
+    opacity: 0;
+}

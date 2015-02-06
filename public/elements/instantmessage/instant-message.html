@@ -109,7 +109,7 @@
                     <div> 
                         <h3 class="secondColor">Group Channel</h3>
                     </div>
-                    <div id="groupChannel">
+                    <div id="groupChannel" unsorted>
                         <div vertical layout>
                             <template repeat="{{ g in myPublicChannels }}">
                                 <div horizontal layout center>
@@ -142,7 +142,7 @@
                         </div>
 
                     </div>
-                    <div id="privateChannel">
+                    <div id="privateChannel" unsorted>
                         <div vertical layout>
                             <template repeat="{{ g in myPrivateChannels }}">
                                 <div horizontal layout center>
@@ -171,7 +171,7 @@
                     <div >
                         <h3 class="secondColor">Direct Message</h3>
                     </div>
-                    <div id="directMessage" flex>
+                    <div id="directMessage" flex unsorted>
                         <template repeat="{{ g in myTeamMemberChannels }}">
                             <div horizontal layout center>
                                 <paper-item on-click="{{ handleChannelSelect }}" hash="{{'@'+g.realname}}" class="{{ {highlight : '@' + g.realname  === channelName, offline: $.globals.values.onlineList[g.userId] !== 1 } | tokenList }}">{{g.realname }}</paper-item>

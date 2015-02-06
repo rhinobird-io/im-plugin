@@ -360,6 +360,9 @@ Polymer({
     this.myPublicChannels = sort(this.myPublicChannels);
     this.myTeamMemberChannels = sort(this.myTeamMemberChannels);
     this.myPrivateChannels = sort(this.myPrivateChannels);
+    this.$.groupChannel.removeAttribute('unsorted');
+    this.$.privateChannel.removeAttribute('unsorted');
+    this.$.directMessage.removeAttribute('unsorted');
   },
 
   getUniqueMember: function (array) {
