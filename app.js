@@ -21,14 +21,6 @@ app.use(bodyParser.json());
 app.use(methodOverride());
 app.use(express.static(__dirname + '/public'));
 
-if ('development' == env) {
-  app.use(errorhandler({dumpExceptions: true, showStack: true}));
-}
-
-if ('production' == env) {
-  app.use(errorhandler());
-}
-
 // Routes
 routes(app);
 
@@ -38,6 +30,13 @@ var server = http.Server(app);
 var io = require('socket.io')(server);
 var port = process.env.PORT || 3000;
 var env = process.env.NODE_ENV || 'development';
+if ('development' == env) {
+  app.use(errorhandler({dumpExceptions: true, showStack: true}));
+}
+
+if ('production' == env) {
+  app.use(errorhandler());
+}
 server.listen(port, function () {
   console.log("Express server listening on port %d in %s mode", server.address().port, app.settings.env);
 });
