@@ -1,8 +1,9 @@
 var channels = require('./routes/channels');
 var messages = require('./routes/messages');
 var ogp = require("open-graph");
+var memCache = require('memory-cache');
 
-module.exports = function(app) {
+module.exports = function (app) {
 
   app.get('/api/channels/:channelId/messages', channels.getPrivateChannelMessage);
   app.get('/api/channels', channels.getPrivateChannels);
@@ -18,6 +19,7 @@ module.exports = function(app) {
       if (error) {
         return;
       }
+      memCache.put(req.query['url'], data, 86400 * 1000);
       res.send(data);
     });
   });

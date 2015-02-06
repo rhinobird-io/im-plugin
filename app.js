@@ -17,6 +17,7 @@ app.use(require('./middleware/userIdExtractor.js'));
 app.use(bodyParser.urlencoded({
   extended: true
 }));
+app.use('/api/urlMetadata', require('./middleware/cache.js'));
 app.use(bodyParser.json());
 app.use(methodOverride());
 app.use(express.static(__dirname + '/public'));
