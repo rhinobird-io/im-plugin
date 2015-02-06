@@ -287,7 +287,7 @@ Polymer({
       },
 
       function (channel, callback) {
-        $.get(serverUrl + '/api/channels/' + self.channel.id + '/lastSeenMessageId')
+        $.get(serverUrl + '/api/channels/' + self.channel.id + '/messages/lastSeen')
           .done(function (lastSeenMessageId) {
             if (!lastSeenMessageId) {
               callback(null, channel);

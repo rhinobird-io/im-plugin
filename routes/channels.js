@@ -8,11 +8,19 @@ var models = require('../models')
 
 var _ = require('lodash');
 
+function validateUsers(users) {
+  return users.length >= 2;
+}
+
 exports.addPrivateChannel = function (req, res) {
   var ownerUserId = req.userId;
   var name = req.body.name;
   var users = req.body.users;
   var id = req.body.id;
+
+  if (!validateUsers(users)) {
+    res.sendStatus(500);
+  }
 
   Sequelize.transaction(function(t){
     return PrivateChannel.create({

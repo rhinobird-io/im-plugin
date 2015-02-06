@@ -11,7 +11,7 @@ module.exports = function(app) {
   app.delete('/api/channels/:channelId', channels.deletePrivateChannel);
 
   app.post('/api/messages/latest', messages.getLatestMessages);
-  app.get('/api/channels/:channelId/lastSeenMessageId', messages.getLastSeenMessage);
+  app.get('/api/channels/:channelId/messages/lastSeen', messages.getLastSeenMessage);
 
   app.get('/api/urlMetadata', function (req, res) {
     ogp(req.query['url'], function (error, data) {
