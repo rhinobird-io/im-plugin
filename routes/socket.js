@@ -3,8 +3,7 @@ var models = require('../models')
   , PrivateChannelsUsers = models.PrivateChannelsUsers
   , Message = models.Messages
   , PrivateChannel = models.PrivateChannels
-  , UsersChannelsMessages = models.UsersChannelsMessages
-  , async = require('async');
+  , UsersChannelsMessages = models.UsersChannelsMessages;
 
 var socketsMap = {};
 // export function for listening to the socket

@@ -7,7 +7,6 @@ var models = require('../models')
   , UsersChannelsMessages = models.UsersChannelsMessages;
 
 var _ = require('lodash');
-var async = require('async');
 
 exports.addPrivateChannel = function (req, res) {
   var ownerUserId = req.userId;
