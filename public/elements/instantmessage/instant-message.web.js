@@ -595,10 +595,10 @@ Polymer({
     var self = this;
     clearTimeout(validateTimeout);
     validateTimeout = setTimeout(function () {
-      if (!newValue.match(/^[a-zA-Z]{1}[\w,\s]*$/g)) {
+      if (!newValue.match(/^[a-zA-Z]{1}.*$/g)) {
         self.$.privateChannelNameInput.isInvalid = true;
         self.newPrivateChannel.error = {
-          msg : 'Name should be start with characters'
+          msg : 'Name should be start with alphabets'
         };
         return;
       } else {
