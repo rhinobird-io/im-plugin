@@ -28,7 +28,7 @@
     url="{{serverUrl}}/api/urlMetadata"
     params="{{queryURL}}" 
     handleAs="json"
-    response="{{ogp}}"
+	on-core-response="{{handleOgp}}"
     ></core-ajax>
 
     <a href="{{url}}" target="{{url}}"><shadow></shadow></a>
@@ -80,13 +80,27 @@
 			this.serverUrl = serverUrl;
 			this.queryURL = JSON.stringify({"url":this.url});
 			this.deleteOldMeta();
-			if (this.ogpMap[this.queryURL]) {
-				this.ogp = this.ogpMap[this.queryURL].meta;
+			if (this.ogpMap[this.url]) {
+				this.ogp = this.ogpMap[this.url].meta;
+				this.renderOgp(this.ogp);
 			} else {
 				this.$.getOGP.go();
 			}
-		}, 
-		ogpChanged: function(oldValue, newValue){
+		},
+
+		handleOgp: function(event, detail, target) {
+			var newValue = this.ogp  = detail.response;
+			// save to cache
+			this.$.ls.load();
+			this.ogpMap[this.url] = {
+				updatedAt : new Date(),
+				meta : newValue
+			};
+			this.$.ls.save();
+			this.renderOgp(this.ogp);
+		},
+
+		renderOgp: function(newValue){
 			if (newValue.og.description){
 				this.urlDescription = newValue.og.description;
 			}else if(newValue.description){
@@ -117,11 +131,6 @@
 			if (!this.urlImage && !this.videoURL ){
 				this.fire('loaded', '');
 			}
-			this.ogpMap[this.queryURL] = {
-				updatedAt : new Date(),
-				meta : newValue
-			};
-			this.$.ls.save();
 		},
 		deleteOldMeta : function(){
 			var oldKeys = [];
