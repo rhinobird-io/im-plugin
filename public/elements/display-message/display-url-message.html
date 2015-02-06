@@ -1,5 +1,6 @@
 <link rel="import" href="/platform/bower_components/polymer/polymer.html">
 <link rel="import" href="/platform/bower_components/core-ajax/core-ajax.html">
+<link rel="import" href="/platform/bower_components/core-localstorage/core-localstorage.html">
 <link rel="import" href="display-default-message.html">
 <link rel="import" href="event-image.html">
 <link rel="import" href="event-video.html">
@@ -20,6 +21,7 @@
 
 		
 	</style>
+	<core-localstorage id="ls" name="im.ogpMap" value="{{ogpMap}}"></core-localstorage>
 <core-ajax id='getOGP'
     auto='false'
     method="GET"
@@ -57,7 +59,7 @@
 		</div>
 	</div>
 </template>
-
+<script src="../../bower_components/lodash/dist/lodash.min.js"></script>
 <script>
 	var hostname = window.location.hostname +':'+ window.location.port;
 	var serverUrl = 'http://' + hostname + '/im';
@@ -68,11 +70,22 @@
 		urlSiteName: '',
 		videoWidth: 0,
 		videoHeight: 0,
-		disableLoadedEvent: false, 
+		disableLoadedEvent: false,
+		/**
+		 * key : queryUrl
+		 * value : org meta
+		 */
+		ogpMap: {},
 		domReady: function(){
+			debugger;
 			this.serverUrl = serverUrl;
 			this.queryURL = JSON.stringify({"url":this.url});
-			this.$.getOGP.go();
+			this.deleteOldMeta();
+			if (this.ogpMap[this.queryURL]) {
+				this.ogp = this.ogpMap[this.queryURL].meta;
+			} else {
+				this.$.getOGP.go();
+			}
 		}, 
 		ogpChanged: function(oldValue, newValue){
 			if (newValue.og.description){
@@ -105,7 +118,28 @@
 			if (!this.urlImage && !this.videoURL ){
 				this.fire('loaded', '');
 			}
-		}, 
+			this.ogpMap[this.queryURL] = {
+				updatedAt : new Date(),
+				meta : newValue
+			};
+			this.$.ls.save();
+		},
+		deleteOldMeta : function(){
+			var oldKeys = [];
+			var now = new Date();
+			var oneWeek = 86400 * 1000 * 7;
+			var self = this;
+			Object.keys(this.ogpMap).forEach(function(url) {
+				if (now - new Date(self.ogpMap[url].updatedAt) > oneWeek) {
+					oldKeys.push(url);
+				}
+			});
+
+			oldKeys.forEach(function(key) {
+				delete this.ogpMap[key];
+			}, this);
+			this.$.ls.save();
+		},
 		imageLoaded: function(event){
 			this.fire('loaded', '');
 		}
