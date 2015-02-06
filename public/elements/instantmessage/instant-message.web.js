@@ -333,6 +333,7 @@ Polymer({
         console.log('Error : ' + err);
       }
     });
+    this.$.informationButton.style.height = this.$.textInput.clientHeight + 'px';
   },
 
   computed : {
