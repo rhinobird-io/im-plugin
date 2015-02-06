@@ -849,6 +849,8 @@ Polymer({
   ,
   inputChanging: function (event, detail, target) {
     var history = this.$.history;
+    this.$.informationButton.style.height = this.$.textInput.clientHeight + 'px';
+
     // if already bottom
     if (target.atBottom) {
       history.scrollTop = history.scrollHeight;
@@ -904,7 +906,7 @@ Polymer({
     });
     this.message = '';
     this.$.messageInput.update();
-
+    this.$.informationButton.style.height = this.$.textInput.clientHeight + 'px';
   }
   ,
   guid: function () {
