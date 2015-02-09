@@ -712,11 +712,10 @@ Polymer({
     return $.get(serverUrl + '/api/channels/' + self.channel.id +
     '/messages?beforeId=' + this.messages[0].id +
     '&limit=' + this.historyLimit).done(function (messages) {
-      self.historyOffset += self.historyLimit;
       if (messages.length < self.historyLimit) {
         self.noMoreHistory = true;
-        self.insertFrontMessages(messages, true);
       }
+      self.insertFrontMessages(messages, true);
     });
   }
   ,
