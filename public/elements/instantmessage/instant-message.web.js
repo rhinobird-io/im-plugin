@@ -715,7 +715,7 @@ Polymer({
       if (messages.length < self.historyLimit) {
         self.noMoreHistory = true;
       }
-      self.insertFrontMessages(messages, false);
+      self.insertFrontMessages(messages, true);
     });
   }
   ,
