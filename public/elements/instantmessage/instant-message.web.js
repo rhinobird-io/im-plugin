@@ -918,7 +918,9 @@ Polymer({
   ,
 
   messageReady: function (event) {
-    this.scrollToBottom(100);
+    if ( this.$.history.scrollTop === (this.$.history.scrollHeight - this.$.history.clientHeight)){
+      this.scrollToBottom(100);
+    }
   }
   ,
 
