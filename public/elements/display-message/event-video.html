@@ -21,6 +21,11 @@
 		ajustWidth: 400,
 		ajustHeight: 0,
 		disableLoadedEvent: false,
+		ready: function(){
+			if (Array.isArray(this.src)){
+				this.src = this.src[0];
+			}
+		},
 		domReady: function(){
 			var self = this;
 			imagesLoaded (this.$.coreVideo, function (){ 
