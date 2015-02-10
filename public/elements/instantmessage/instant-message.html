@@ -19,6 +19,8 @@
 <link rel="import" href="/platform/bower_components/core-drawer-panel/core-drawer-panel.html">
 <link rel="import" href="/platform/bower_components/paper-toast/paper-toast.html">
 
+<link rel="import" href="/platform/bower_components/core-header-panel/core-header-panel.html">
+
 <link rel="import" href="/platform/home-container.html">
 <link rel="import" href="/platform/elements/member-select/member-element.html">
 <link rel="import" href="/platform/elements/member-select/member-select.html">
@@ -26,178 +28,238 @@
 
 <link rel="import" href="../display-message/display-message.html">
 <link rel="import" href="../event-infinite-scroll/event-infinite-scroll.html">
+<link rel="import" href="../imchannels/im-channnels.html">
 
 <polymer-element name="instant-message" attributes="channelName">
     <template>
         <app-globals id="globals"></app-globals>
         <link rel="stylesheet" type="text/css" href="instant-message.css">
         <core-style ref="theme"></core-style>
-        <paper-action-dialog id="addPrivateChannelDialog" heading="Add Private Channel" backdrop autoCloseDisabled closeSelector="#cancelBtn" style="width: 70%; height: 70%;" >
-            <paper-input-decorator id="privateChannelNameInput" label="Channel Name" floatingLabel autoValidate style="width: 100%;" error="{{newPrivateChannel.error.msg}}" >
+        <paper-action-dialog id="addPrivateChannelDialog" heading="Add Private Channel" backdrop autoCloseDisabled
+                             closeSelector="#cancelBtn" style="width: 70%; height: 70%;">
+            <paper-input-decorator id="privateChannelNameInput" label="Channel Name" floatingLabel autoValidate
+                                   style="width: 100%;" error="{{newPrivateChannel.error.msg}}">
                 <input is="core-input" required value="{{newPrivateChannel.name}}">
             </paper-input-decorator>
             <member-select type="user" selected="{{newPrivateChannel}}" width="100%;"></member-select>
             <paper-button id="cancelBtn" dismissive>Cancel</paper-button>
-            <paper-button affirmative on-click="{{addPrivateChannel}}" disabled="{{newPrivateChannelUsersInvalid}}">OK</paper-button>
+            <paper-button affirmative on-click="{{addPrivateChannel}}" disabled="{{newPrivateChannelUsersInvalid}}">OK
+            </paper-button>
         </paper-action-dialog>
 
 
-        <paper-action-dialog id="removePrivateChannelDialog" heading="Leaving {{ removedPrivateChannel.name }}" backdrop autoCloseDisabled closeSelector="#cancelBtn" style="width: 30%; height: 30%;">
+        <paper-action-dialog id="removePrivateChannelDialog" heading="Leaving {{ removedPrivateChannel.name }}" backdrop
+                             autoCloseDisabled closeSelector="#cancelBtn" style="width: 30%; height: 30%;">
             <p>Are you sure</p>
-            <paper-button id="cancelBtn" dismissive >Close</paper-button>
-            <paper-button affirmative channelId="{{removedPrivateChannel.id}}" on-click="{{removePrivateChannel}}">Yes</paper-button>
+            <paper-button id="cancelBtn" dismissive>Close</paper-button>
+            <paper-button affirmative channelId="{{removedPrivateChannel.id}}" on-click="{{removePrivateChannel}}">Yes
+            </paper-button>
         </paper-action-dialog>
 
         <home-container>
             <div class="title" horizontal layout center>
-                <div  flex>
+                <div flex>
                     {{ channelName }}
                 </div>
-                <div horizontal  end-justified layout>
-                     <core-icon-button id="menuButton" class='{{ {narrowShow :!narrow} | tokenList }}' icon="menu" on-tap="{{togglePanel}}"></core-icon-button>
+                <div horizontal end-justified layout>
+                    <core-icon-button id="menuButton" class='{{ {narrowShow :!narrow} | tokenList }}' icon="menu"
+                                      on-tap="{{togglePanel}}"></core-icon-button>
                 </div>
             </div>
 
-            <div class="mainBackground"  horizontal layout fit>
-            <core-drawer-panel id="drawerPanel" narrow="{{narrow}}" rightDrawer >
-                <paper-action-dialog id="connectingDialog" backdrop autoCloseDisabled>
-                    <p>{{connectinStatus}}</p>
-                </paper-action-dialog>
+            <div class="mainBackground" horizontal layout fit>
+                <core-drawer-panel id="drawerPanel" narrow="{{narrow}}" rightDrawer>
+                    <paper-action-dialog id="connectingDialog" backdrop autoCloseDisabled>
+                        <p>{{connectinStatus}}</p>
+                    </paper-action-dialog>
 
-                <div id="forbiddenDiv" hidden main four flex horizontal layout center center-justified >
-                    <div style="font-size: 3em; font-weight: bold;">
-                        You are not allowed to access this channel
-                    </div>
-                </div>
-                <div id="historyAndInput" main four flex vertical layout class="mainBgColor">
-
-                    <div id="history" flex>
-                        <event-infinite-scroll id="infiniteScroll" readyOnStart="false" scrollDenominator="2" loadingDelay="50" on-reach-top="{{reachedTop}}"></event-infinite-scroll>
-                        <template repeat="{{m in messages}}">
-                            <display-message user="{{m.userId}}" text="{{m.text}}" 
-                                             on-messageloaded="{{messageLoaded}}"
-                                             messageStatus="{{m.messageStatus}}" 
-                                             updatedAt="{{m.updatedAt}}"
-                                             disableEvent="{{m.disableEvent}}"
-                                             hideMemberElement="{{m.hideMemberElement}}"
-                                             messageGuid="{{m.guid}}"
-                                             previewHidden="{{m.displayPreview}}"
-                                             on-ready="{{messageReady}}"></display-message>
-                        </template>
-                    </div>
-                    <div>
-                         <paper-toast id="comingMessageToast" text="New Message">
-                        from <member-element userid="{{comingMessage.userId}}" ></member-element>
-                         </paper-toast>
-                    </div>
-                    <div layout horizontal center>
-                        <div id="inputbox" on-tap="{{boxTapped}}" flex>
-                            <div layout horizontal>
-                                <paper-autogrow-textarea id="messageInput" maxRows="6" on-keydown="{{keyDown}}"
-                                                         on-input="{{inputChanging}}" flex>
-                                    <textarea row="1" id="textInput" value="{{message}}"></textarea>
-                                </paper-autogrow-textarea>
-                            </div>
-                        </div>
-                        <div layout horizontal center>
-                                <span id='informationButton' class="input-group-addon " on-tap="{{onClickInfomation}}">!</span>
+                    <div id="forbiddenDiv" hidden main four flex horizontal layout center center-justified>
+                        <div style="font-size: 3em; font-weight: bold;">
+                            You are not allowed to access this channel
                         </div>
                     </div>
-                </div>
+                    <div id="historyAndInput" main four flex vertical layout class="mainBgColor">
 
-                <div id='imPanel' drawer vertical layout flex>
-                    <div> 
-                        <h3 class="secondColor">Group Channel</h3>
-                    </div>
-                    <div id="groupChannel" unsorted>
-                        <div vertical layout>
-                            <template repeat="{{ g in myPublicChannels }}">
-                                <div horizontal layout center>
-                                    <paper-icon-button icon="account-child" on-click="{{showTeamMemberDialog}}" >
-                                        <paper-dialog id="teamMemberDialog" heading="Members" on-core-overlay-position="{{positionTeamMemberDialog}}" on-blur="{{hideTeamMemberDialog}}" style="{{ memberDialogStyle | styleObject}}">
-                                            <template repeat="{{directMessageChannel in teamMemberChannelMap[g.id]}}">
-                                                <paper-item hidden?="{{!directMessageChannel.userId}}"  on-click="{{talkDirect}}">
-                                                    <member-element userid="{{directMessageChannel.userId}}" ></member-element>
-                                                </paper-item>
-                                            </template>
-                                        </paper-dialog>
-                                    </paper-icon-button>
-                                    <div flex horizontal layout center>
-                                        <paper-item on-click="{{ handleChannelSelect }}" hash="{{g.name}}" class="{{ {highlight : g.id === channel.id} | tokenList }}"> {{ g.name }}
-                                        </paper-item>
-                                        <paper-icon-button icon="markunread" style="color :red;" hidden?="{{ !(unread[g.id] && unread[g.id].length > 0)}}"></paper-icon-button>
-                                    </div>
-                                </div>
+                        <div id="history" flex>
+                            <event-infinite-scroll id="infiniteScroll" readyOnStart="false" scrollDenominator="2"
+                                                   loadingDelay="50"
+                                                   on-reach-top="{{reachedTop}}"></event-infinite-scroll>
+                            <template repeat="{{m in messages}}">
+                                <display-message user="{{m.userId}}" text="{{m.text}}"
+                                                 on-messageloaded="{{messageLoaded}}"
+                                                 messageStatus="{{m.messageStatus}}"
+                                                 updatedAt="{{m.updatedAt}}"
+                                                 disableEvent="{{m.disableEvent}}"
+                                                 hideMemberElement="{{m.hideMemberElement}}"
+                                                 messageGuid="{{m.guid}}"
+                                                 previewHidden="{{m.displayPreview}}"
+                                                 on-ready="{{messageReady}}"></display-message>
                             </template>
-                        </div>
-                    </div>
-                    <div horizontal layout center class="secondColor">
-                        <div flex>
-                            <h3>Private Channels</h3>
                         </div>
                         <div>
-                            <paper-icon-button icon="add-circle-outline" on-click="{{ showAddPrivateChannelDialog}}" >
+                            <paper-toast id="comingMessageToast" text="New Message">
+                                from
+                                <member-element userid="{{comingMessage.userId}}"></member-element>
+                            </paper-toast>
+                        </div>
+                        <div layout horizontal center>
+                            <div id="inputbox" on-tap="{{boxTapped}}" flex>
+                                <div layout horizontal>
+                                    <paper-autogrow-textarea id="messageInput" maxRows="6" on-keydown="{{keyDown}}"
+                                                             on-input="{{inputChanging}}" flex>
+                                        <textarea row="1" id="textInput" value="{{message}}"></textarea>
+                                    </paper-autogrow-textarea>
+                                </div>
+                            </div>
+                            <div layout horizontal center>
+                                <span id='informationButton' class="input-group-addon "
+                                      on-tap="{{onClickInfomation}}">!</span>
+                            </div>
+                        </div>
+                    </div>
 
-                            </paper-icon-button>
+                    <div id='imPanel' drawer vertical layout flex>
+                        <div id="groupImChannels" is="im-channels" channels="{{publicChannels}}" unread="{{unread}}"
+                             currentChannel="{{channel}}" showMemberList >
+                            <div class="title">
+                                <h3 class="secondColor">Group Channel</h3>
+                            </div>
                         </div>
 
-                    </div>
-                    <div id="privateChannel" unsorted>
-                        <div vertical layout>
-                            <template repeat="{{ g in myPrivateChannels }}">
-                                <div horizontal layout center>
-                                    <!-- hide it, wait for userMap[useId] -->
-                                    <paper-icon-button icon="account-child" on-click="{{showTeamMemberDialog}}" hidden?="{{true}}">
-                                        <paper-dialog id="teamMemberDialog" heading="Members" on-core-overlay-position="{{positionTeamMemberDialog}}" on-core-overlay-open-completed="{{resizeTeamMemberDialog}}" on-blur="{{hideTeamMemberDialog}}" style="{{ memberDialogStyle | styleObject}}">
-                                            <template repeat="{{directMessageChannel in teamMemberChannelMap[g.id]}}">
-                                                <paper-item hidden?="{{!directMessageChannel.userId || directMessageChannel.userId === currentUser.id}}"  on-click="{{talkDirect}}">
-                                                    <member-element userid="{{directMessageChannel.userId}}" ></member-element>
-                                                </paper-item>
-                                            </template>
-                                        </paper-dialog>
-                                    </paper-icon-button>
-                                    <div flex horizontal layout center>
-                                        <paper-item on-click="{{ handleChannelSelect }}" hash="{{g.name}}" class="{{ {highlight : g.id === channel.id} | tokenList }}"> {{ g.name }}
-                                        </paper-item>
-                                        <paper-icon-button icon="markunread" style="color :red;" hidden?="{{ !(unread[g.id] && unread[g.id].length > 0)}}"></paper-icon-button>
-                                    </div>
-                                    <paper-icon-button icon="clear" on-click="{{ showRemovePrivateChannelDialog}}">
+                        <div id="privateImChannels" is="im-channels" channels="{{privateChannels}}" unread="{{unread}}"
+                             currentChannel="{{channel}}" removable>
+                            <div class="title secondColor" flex horizontal layout center>
+                                <div flex>
+                                    <h3>Private Channels</h3>
+                                </div>
+                                <div>
+                                    <paper-icon-button icon="add-circle-outline"
+                                                       on-click="{{ showAddPrivateChannelDialog}}">
 
                                     </paper-icon-button>
                                 </div>
-                            </template>
-                        </div>
-                    </div>
-                    <div >
-                        <h3 class="secondColor">Direct Message</h3>
-                    </div>
-                    <div id="directMessage" flex unsorted>
-                        <template repeat="{{ g in myTeamMemberChannels }}">
-                            <div horizontal layout center>
-                                <paper-item on-click="{{ handleChannelSelect }}" hash="{{'@'+g.realname}}" class="{{ {highlight : '@' + g.realname  === channelName, offline: $.globals.values.onlineList[g.userId] !== 1 } | tokenList }}">{{g.realname }}</paper-item>
-                                <core-icon icon="markunread" style="color :red;" hidden?="{{ !(unread[g.id] && unread[g.id].length > 0)}}"></core-icon>
                             </div>
-                        </template>
-                    </div>
-                </div>
+                        </div>
 
-            </core-drawer-panel>
+                        <div id="teamMemberImChannels" is="im-channels" channels="{{teamMemberChannels}}" unread="{{unread}}"
+                             currentChannel="{{channel}}" flex vertical layout>
+                            <div class="title" flex>
+                                <h3 class="secondColor">Direct Message</h3>
+                            </div>
+                        </div>
+
+                        <!--<div>-->
+                        <!--<h3 class="secondColor">Group Channel</h3>-->
+                        <!--</div>-->
+                        <!--<div id="groupChannel" unsorted>-->
+                        <!--<div vertical layout>-->
+                        <!--<template repeat="{{ g in myPublicChannels }}">-->
+                        <!--<div horizontal layout center>-->
+                        <!--<paper-icon-button icon="account-child" on-click="{{showTeamMemberDialog}}" >-->
+                        <!--<paper-dialog id="teamMemberDialog" heading="Members" on-core-overlay-position="{{positionTeamMemberDialog}}" on-blur="{{hideTeamMemberDialog}}" style="{{ memberDialogStyle | styleObject}}">-->
+                        <!--<template repeat="{{directMessageChannel in teamMemberChannelMap[g.id]}}">-->
+                        <!--<paper-item hidden?="{{!directMessageChannel.userId}}"  on-click="{{talkDirect}}">-->
+                        <!--<member-element userid="{{directMessageChannel.userId}}" ></member-element>-->
+                        <!--</paper-item>-->
+                        <!--</template>-->
+                        <!--</paper-dialog>-->
+                        <!--</paper-icon-button>-->
+                        <!--<div flex horizontal layout center>-->
+                        <!--<paper-item on-click="{{ handleChannelSelect }}" hash="{{g.name}}" class="{{ {highlight : g.id === channel.id} | tokenList }}"> {{ g.name }}-->
+                        <!--</paper-item>-->
+                        <!--<paper-icon-button icon="markunread" style="color :red;" hidden?="{{ !(unread[g.id] && unread[g.id].length > 0)}}"></paper-icon-button>-->
+                        <!--</div>-->
+                        <!--</div>-->
+                        <!--</template>-->
+                        <!--</div>-->
+                        <!--</div>-->
+                        <!--<div horizontal layout center class="secondColor">-->
+                            <!--<div flex>-->
+                                <!--<h3>Private Channels</h3>-->
+                            <!--</div>-->
+                            <!--<div>-->
+                                <!--<paper-icon-button icon="add-circle-outline"-->
+                                                   <!--on-click="{{ showAddPrivateChannelDialog}}">-->
+
+                                <!--</paper-icon-button>-->
+                            <!--</div>-->
+
+                        <!--</div>-->
+                        <!--<div id="privateChannel" unsorted>-->
+                            <!--<div vertical layout>-->
+                                <!--<template repeat="{{ g in myPrivateChannels }}">-->
+                                    <!--<div horizontal layout center>-->
+                                        <!--&lt;!&ndash; hide it, wait for userMap[useId] &ndash;&gt;-->
+                                        <!--<paper-icon-button icon="account-child" on-click="{{showTeamMemberDialog}}"-->
+                                                           <!--hidden?="{{true}}">-->
+                                            <!--<paper-dialog id="teamMemberDialog" heading="Members"-->
+                                                          <!--on-core-overlay-position="{{positionTeamMemberDialog}}"-->
+                                                          <!--on-core-overlay-open-completed="{{resizeTeamMemberDialog}}"-->
+                                                          <!--on-blur="{{hideTeamMemberDialog}}"-->
+                                                          <!--style="{{ memberDialogStyle | styleObject}}">-->
+                                                <!--<template-->
+                                                        <!--repeat="{{directMessageChannel in teamMemberChannelMap[g.id]}}">-->
+                                                    <!--<paper-item-->
+                                                            <!--hidden?="{{!directMessageChannel.userId || directMessageChannel.userId === currentUser.id}}"-->
+                                                            <!--on-click="{{talkDirect}}">-->
+                                                        <!--<member-element-->
+                                                                <!--userid="{{directMessageChannel.userId}}"></member-element>-->
+                                                    <!--</paper-item>-->
+                                                <!--</template>-->
+                                            <!--</paper-dialog>-->
+                                        <!--</paper-icon-button>-->
+                                        <!--<div flex horizontal layout center>-->
+                                            <!--<paper-item on-click="{{ handleChannelSelect }}" hash="{{g.name}}"-->
+                                                        <!--class="{{ {highlight : g.id === channel.id} | tokenList }}"> {{-->
+                                                <!--g.name }}-->
+                                            <!--</paper-item>-->
+                                            <!--<paper-icon-button icon="markunread" style="color :red;"-->
+                                                               <!--hidden?="{{ !(unread[g.id] && unread[g.id].length > 0)}}"></paper-icon-button>-->
+                                        <!--</div>-->
+                                        <!--<paper-icon-button icon="clear" on-click="{{ showRemovePrivateChannelDialog}}">-->
+
+                                        <!--</paper-icon-button>-->
+                                    <!--</div>-->
+                                <!--</template>-->
+                            <!--</div>-->
+                        <!--</div>-->
+                        <!--<div>-->
+                            <!--<h3 class="secondColor">Direct Message</h3>-->
+                        <!--</div>-->
+                        <!--<div id="directMessage" flex unsorted>-->
+                            <!--<template repeat="{{ g in myTeamMemberChannels }}">-->
+                                <!--<div horizontal layout center>-->
+                                    <!--<paper-item on-click="{{ handleChannelSelect }}" hash="{{'@'+g.realname}}"-->
+                                                <!--class="{{ {highlight : '@' + g.realname  === channelName, offline: $.globals.values.onlineList[g.userId] !== 1 } | tokenList }}">-->
+                                        <!--{{g.realname }}-->
+                                    <!--</paper-item>-->
+                                    <!--<core-icon icon="markunread" style="color :red;"-->
+                                               <!--hidden?="{{ !(unread[g.id] && unread[g.id].length > 0)}}"></core-icon>-->
+                                <!--</div>-->
+                            <!--</template>-->
+                        <!--</div>-->
+                    </div>
+
+                </core-drawer-panel>
             </div>
 
             <paper-dialog id="informationDialog" transition="core-transition-center" heading="Manual">
                 <p>1. ENTER to send</p>
+
                 <p>2. SHIFT + ENTER to have newline</p>
+
                 <p>3. Code Snippet
-                        <div layout horizontal center>
-                            <div>
-                                Input:
-                                <pre>{{codeSnippetExample}}</pre>
-                            </div>
-                            <div>
-                                Display:
-                                <display-code-snippet-message text="{{codeSnippetExample}}"></display-code-snippet-message>
-                            </div>
-                        </div>
+
+                <div layout horizontal center>
+                    <div>
+                        Input:
+                        <pre>{{codeSnippetExample}}</pre>
+                    </div>
+                    <div>
+                        Display:
+                        <display-code-snippet-message text="{{codeSnippetExample}}"></display-code-snippet-message>
+                    </div>
+                </div>
                 </p>
             </paper-dialog>
 

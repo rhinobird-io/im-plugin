@@ -55,13 +55,7 @@ h3 {
     right: 55px;
     left: auto;
 }
-#directMessage {
-    overflow: auto;
-}
-#privateChannel {
-    overflow-y: auto;
-    max-height: 300px;
-}
+
 .offline {
     color: grey;
 }
@@ -73,5 +67,5 @@ h3 {
 }
 
 [unsorted] {
-    opacity: 0;
+    /*opacity: 0;*/
 }

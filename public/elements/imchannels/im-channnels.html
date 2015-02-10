@@ -1,0 +1,161 @@
+<link rel="import" href="/platform/bower_components/polymer/polymer.html">
+<link rel="import" href="/platform/bower_components/core-style/core-style.html">
+<link rel="import" href="/platform/bower_components/core-signals/core-signals.html">
+<link rel="import" href="/platform/home-container.html">
+<link rel="import" href="/platform/elements/member-select/member-element.html">
+<link rel="import" href="/platform/elements/member-select/member-select.html">
+<link rel="import" href="/platform/elements/app-globals/app-globals.html">
+<link rel="import" src="../../bower_components/simple-scroller/simple-scroller.html">
+
+<script src="../../bower_components/async/lib/async.js"></script>
+<script src="../../bower_components/lodash/dist/lodash.min.js"></script>
+
+<link rel="import" href="/platform/elements/app-globals/app-globals.html">
+
+<!--
+Element providing infinite scroll to track the parentNode on reaching bottom and end.
+It will raise event when it reaches.
+##### Example
+
+    <event-infinite-scroll  on-reach-bottom="{{reachBottom}}" on-reach-top="{{reachTop}}"></event-infinite-scroll>
+
+@element event-infinite-scroll
+@blurb Element providing infinite scroll to track the parentNode on reaching bottom and end.
+@status alpha
+@homepage http://chadliu23.github.io/event-infinite-scroll
+-->
+<polymer-element name="im-channels" extends="div" attributes="channels teamMemberChannelMap unread currentChannel showMemberList removable">
+
+    <template>
+        <app-globals id="globals"></app-globals>
+        <core-style ref="theme"></core-style>
+        <core-signals on-core-signal-sort="{{sort}}"></core-signals>
+        <core-signals on-core-new-message="{{handleNewMessage}}"></core-signals>
+        <style>
+            :host {
+                display: block;
+            }
+
+            h3 {
+                font-size: 20px;
+                padding: 20px;
+                margin: 0px;
+            }
+            .highlight {
+                font-weight: bold;
+            }
+
+            #groupChannel {
+                overflow-y: auto;
+            }
+
+            .offline {
+                color: grey;
+            }
+
+            [unsorted] {
+                opacity: 0;
+            }
+
+        </style>
+        <div>
+            <content select=".title"></content>
+        </div>
+        <div id="groupChannel" flex unsorted>
+            <template repeat="{{ g in channels }}">
+                <div horizontal layout center>
+                    <paper-icon-button icon="account-child" on-click="{{showTeamMemberDialog}}" hidden?="{{!showMemberList}}" >
+                        <paper-dialog id="teamMemberDialog" heading="Members" on-core-overlay-position="{{positionTeamMemberDialog}}" on-blur="{{hideTeamMemberDialog}}" style="{{ memberDialogStyle | styleObject}}">
+                            <template repeat="{{directMessageChannel in g.userChannels}}">
+                                <paper-item hidden?="{{!directMessageChannel.user.id}}"  on-click="{{talkDirect}}">
+                                    <member-element userid="{{directMessageChannel.user.id}}" ></member-element>
+                                </paper-item>
+                            </template>
+                        </paper-dialog>
+                    </paper-icon-button>
+                    <div flex horizontal layout center>
+                        <paper-item on-click="{{ handleChannelSelect }}" hash="{{g.name}}" class="{{ {highlight : g.id === ''+currentChannel.id, offline: g.isPrivate && $.globals.values.onlineList[g.users[0].id] !== 1 } | tokenList }}"> {{ g.name }}
+                        </paper-item>
+                        <paper-icon-button icon="markunread" style="color :red;" hidden?="{{ !(unread[g.id] && unread[g.id].length > 0)}}"></paper-icon-button>
+                    </div>
+                    <paper-icon-button icon="clear" on-click="{{ showRemovePrivateChannelDialog}}" hidden?="{{!removable}}">
+
+                    </paper-icon-button>
+                </div>
+            </template>
+        </div>
+    </template>
+    <script>
+        Polymer('im-channels', {
+            publish : {
+                showMemberList : false,
+                removable: false
+            },
+
+            memberDialogStyle: {
+                width: '300px'
+            },
+
+            ready: function() {
+
+            },
+
+            domReady: function() {
+            },
+
+            showTeamMemberDialog: function (event, detail, target) {
+                target.querySelector('paper-dialog') && target.querySelector('paper-dialog').open();
+            }
+            ,
+
+            hideTeamMemberDialog: function (event, detail, target) {
+                if (event.relatedTarget && event.relatedTarget.parentElement !== target) {
+                    target.close();
+                }
+            }
+            ,
+
+            positionTeamMemberDialog: function (event, detail, target) {
+                target.dimensions.position = {v: 'top', h: 'left'};
+
+                var rect = target.parentElement.getBoundingClientRect();
+                target.style.top = '' + rect.top + 'px';
+                target.style.left = '' + (rect.left - parseInt(this.memberDialogStyle.width) - 20 ) + 'px';
+            }
+            ,
+
+            handleChannelSelect : function(event, detail, target) {
+                this.fire('channel-select', target.templateInstance.model.g);
+            }
+            ,
+
+            talkDirect: function(event, detail, target) {
+                // use blur instead?
+                target.parentElement.close();
+                this.fire('channel-select', target.templateInstance.model.directMessageChannel);
+            },
+
+            sort: function (event) {
+                var latestChannelMessages = event.detail;
+                function _sort(channels) {
+                    return _.sortBy(channels, function (channel) {
+                        var latestChannelMessage = latestChannelMessages['' + channel.id];
+                        if (latestChannelMessage) {
+                            return ''+((1<<30) - latestChannelMessages['' + channel.id]);
+                        } else {
+                            return channel.name;
+                        }
+                    });
+                }
+                this.channels = _sort(this.channels);
+                this.$.groupChannel.removeAttribute('unsorted');
+            },
+
+            handleNewMessage: function(event) {
+                debugger;
+            }
+
+        });
+    </script>
+
+</polymer-element>

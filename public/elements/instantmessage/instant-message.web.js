@@ -28,6 +28,22 @@ Polymer({
   myPrivateChannels: [],
 
   /**
+   * from platform, get all teams the current user belongs to
+   */
+  publicChannels: [],
+
+  /**
+   * unique
+   * all the team members without duplication
+   */
+  teamMemberChannels: [],
+
+  /**
+   * private groups
+   */
+  privateChannels: [],
+
+  /**
    * @key : teamId
    * @value: array, all the users in this team
    */
@@ -98,7 +114,17 @@ Polymer({
       if (!self.$.addPrivateChannelDialog.opened) {
         self.$.textInput.focus();
       }
-    }
+    };
+
+    this.addEventListener('channel-select', function(event){
+      var channel = event.detail;
+      self.router.go('/' + self.pluginName + '/channels/' + channel.hash);
+    });
+
+
+    this.$.groupImChannels.addEventListener('channel-sort', function(event, detail, target) {
+      debugger;
+    });
 
     self.imGlobals = self.$.globals.values.im = self.$.globals.values.im || {};
   },
@@ -136,6 +162,15 @@ Polymer({
         $.get('/platform/users/' + self.currentUser.id + '/teams')
           .done(function (teams) {
             self.myPublicChannels = teams;
+            self.publicChannels = [];
+            teams.forEach(function(team) {
+              self.publicChannels.push({
+                id : ''+team.id,
+                name: ''+team.name,
+                hash: ''+team.name,
+                userChannels:[]
+              });
+            });
             callback();
           });
       },
@@ -202,6 +237,47 @@ Polymer({
                 self.userIdTeamMemberChannelMap[member.id] = member;
                 member.name = '@' + member.realname;
               });
+
+              var members = self.getUniqueMember(teamMembers);
+              self.teamMemberChannels = [];
+              members.forEach(function(member) {
+                self.teamMemberChannels.push({
+                  id : self.getTeamMemberChannelId(self.currentUser.id, member.id),
+                  name: member.realname,
+                  hash: '@' + member.realname,
+                  isPrivate : true,
+                  userChannels : [member]
+                });
+              });
+
+              callback(null);
+            }
+          });
+      },
+
+      /**
+       * 1.2 get all team members for publicChannels (not mine)
+       */
+        function (callback) {
+        async.each(self.publicChannels,
+          function (team, cb) {
+            $.get('/platform/teams/' + team.id + '/users')
+              .done(function (users) {
+                team.userChannels = [];
+                users.forEach(function(user) {
+                  if (user.id !== self.currentUser.id){
+                    team.userChannels.push({
+                      id: self.getTeamMemberChannelId(self.currentUser.id, user.id),
+                      name: user.realname,
+                      hash: '@'+user.realname,
+                      user: user
+                    });
+                  }
+                });
+                cb();
+              });
+          }, function (err) {
+            if (!err) {
               callback(null);
             }
           });
@@ -313,7 +389,7 @@ Polymer({
        * load latest message
        */
         function (callback) {
-        var channelIds = _.pluck(self.myPublicChannels, 'id').concat(_.pluck(self.myPrivateChannels, 'id')).concat(_.pluck(self.myTeamMemberChannels, 'id'));
+        var channelIds = _.pluck(self.publicChannels, 'id').concat(_.pluck(self.privateChannels, 'id')).concat(_.pluck(self.teamMemberChannels, 'id'));
         $.post(serverUrl + '/api/messages/latest', {
           channelIds: channelIds
         }).done(function (res) {
@@ -341,29 +417,7 @@ Polymer({
   },
 
   latestChannelMessageChanged: function (oldValue, newValue) {
-    this.updateChannelOrders();
-  },
-
-  updateChannelOrders: function () {
-    var self = this;
-
-    function sort(channels) {
-      return _.sortBy(channels, function (channel) {
-        var latestChannelMessage = self.latestChannelMessage['' + channel.id];
-        if (latestChannelMessage) {
-          return ''+((1<<30) -  self.latestChannelMessage['' + channel.id]);
-        } else {
-          return channel.name;
-        }
-      });
-    }
-
-    this.myPublicChannels = sort(this.myPublicChannels);
-    this.myTeamMemberChannels = sort(this.myTeamMemberChannels);
-    this.myPrivateChannels = sort(this.myPrivateChannels);
-    this.$.groupChannel.removeAttribute('unsorted');
-    this.$.privateChannel.removeAttribute('unsorted');
-    this.$.directMessage.removeAttribute('unsorted');
+    this.fire('core-signal', {name:'sort', data:newValue});
   },
 
   getUniqueMember: function (array) {
@@ -623,78 +677,7 @@ Polymer({
     'newPrivateChannel.name': 'validatePrivateChannelName'
   },
 
-  showTeamMemberDialog: function (event, detail, target) {
-    target.querySelector('paper-dialog') && target.querySelector('paper-dialog').open();
-  }
-  ,
 
-  hideTeamMemberDialog: function (event, detail, target) {
-    if (event.relatedTarget && event.relatedTarget.parentElement !== target) {
-      target.close();
-    }
-  }
-  ,
-
-  showSingleTeamMemberDialog: function (event, detail, target) {
-    var self = this;
-    $.get('/platform/teams/' + self.channel.id + '/users').done(function (users) {
-      self.teamMembers = users;
-    }).done(function () {
-      target.querySelector('paper-dialog') && target.querySelector('paper-dialog').open();
-    });
-  }
-  ,
-
-  positionTeamMemberDialog: function (event, detail, target) {
-    target.dimensions.position = {v: 'top', h: 'left'};
-
-    var rect = target.parentElement.getBoundingClientRect();
-    target.style.top = '' + rect.top + 'px';
-    target.style.left = '' + (rect.left - parseInt(this.memberDialogStyle.width) - 20 ) + 'px';
-  }
-  ,
-
-  resizeTeamMemberDialog: function (event, detail, target) {
-    if (target.getBoundingClientRect().bottom > $(document).height()) {
-      target.style['height'] = ($(document).height() - parseInt(target.style.top) - 200) + 'px';
-    }
-  }
-  ,
-  talkDirect: function (event, detail, target) {
-    var self = this;
-    target.parentElement && target.parentElement.close();
-    // private channel users does not have name at the beginning
-    if (target.templateInstance.model.directMessageChannel.realname) {
-      if (this.newMessage){
-        this.messageHasBeenSeen(this.currentUser.id, this.messages[this.messages.length -1].id, this.channel.id);
-      }
-      this.router.go('/' + this.pluginName + '/channels/@' + target.templateInstance.model.directMessageChannel.realname);
-    }
-  }
-  ,
-
-  isHideMemberElement: function (lastMessage, newMessage) {
-    if (!lastMessage || !newMessage) {
-      return false;
-    }
-    var lastUserId = lastMessage.UserId;
-    if (!lastUserId) {
-      lastUserId = lastMessage.userId;
-    }
-    var newUserId = newMessage.UserId;
-    if (!newUserId) {
-      newUserId = newMessage.userId;
-    }
-    if (!lastMessage || !lastUserId || !newUserId || !newMessage.updatedAt || !lastMessage.updatedAt) {
-      return false;
-    }
-    if (lastUserId === newUserId &&
-      new Date(newMessage.updatedAt).getTime() - new Date(lastMessage.updatedAt).getTime() < 60 * 1000) {
-      return true;
-    }
-    return false;
-  }
-  ,
   historyLimit: 10,
   noMoreHistory: false,
 
@@ -785,6 +768,15 @@ Polymer({
     $.get(serverUrl + '/api/channels').done(
       function (channels) {
         self.myPrivateChannels = channels;
+        self.privateChannels = [];
+        channels.forEach(function(channel){
+          self.privateChannels.push({
+            id: ''+channel.id,
+            name: channel.name,
+            hash: channel.name,
+            userChannels:[]
+          });
+        })
       }).done(function (channels) {
         // var teamMembers = [];
         async.each(self.myPrivateChannels,
@@ -843,6 +835,7 @@ Polymer({
     self.router.go('/' + this.pluginName + '/channels/' + hash);
   }
   ,
+
   keyDown: function (event, detail, target) {
     var history = this.$.history;
     target.atBottom = history.scrollTop == history.scrollHeight - history.clientHeight;
@@ -866,6 +859,30 @@ Polymer({
     }, delay);
   }
   ,
+
+  isHideMemberElement: function (lastMessage, newMessage) {
+    if (!lastMessage || !newMessage) {
+      return false;
+    }
+    var lastUserId = lastMessage.UserId;
+    if (!lastUserId) {
+      lastUserId = lastMessage.userId;
+    }
+    var newUserId = newMessage.UserId;
+    if (!newUserId) {
+      newUserId = newMessage.userId;
+    }
+    if (!lastMessage || !lastUserId || !newUserId || !newMessage.updatedAt || !lastMessage.updatedAt) {
+      return false;
+    }
+    if (lastUserId === newUserId &&
+      new Date(newMessage.updatedAt).getTime() - new Date(lastMessage.updatedAt).getTime() < 60 * 1000) {
+      return true;
+    }
+    return false;
+  }
+  ,
+
   sendMessage: function () {
     var self = this;
     var uuid = this.guid();
