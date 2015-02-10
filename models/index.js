@@ -18,7 +18,7 @@ var db        = {};
       protocol: 'postgres',
       port:     match[4],
       host:     match[3],
-      logging:  true //false
+      logging:  console.log
     });
   } else {
     // the application is executed on the local machine ... use mysql
