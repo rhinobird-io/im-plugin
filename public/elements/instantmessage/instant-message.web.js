@@ -369,11 +369,27 @@ Polymer({
               callback(null, channel);
               return;
             }
+            self.$.imHistory.getLastSeenMessages(lastSeenMessageId.messageId).done(function () {
+              callback(null, channel);
+            });
+            // TODO call messages has been seen
+          });
+      },
+
+      function (channel, callback) {
+        $.get(serverUrl + '/api/channels/' + self.channel.id + '/messages/lastSeen')
+          .done(function (lastSeenMessageId) {
+            if (!lastSeenMessageId) {
+              callback(null, channel);
+              return;
+            }
             self.getLastSeenMessages(lastSeenMessageId.messageId).done(function () {
               callback(null, channel);
             });
           });
       },
+
+
 
       /**
        * load history
@@ -381,6 +397,16 @@ Polymer({
        */
         function (channel, callback) {
         self.loadHistory(self.channel.id).done(function () {
+          callback();
+        });
+      },
+
+      /**
+       * load history2
+       * @param callback
+       */
+        function (callback) {
+        self.$.imHistory.loadHistory(self.channel.id).done(function () {
           callback();
         });
       },
@@ -907,6 +933,9 @@ Polymer({
     };
     this.messages.push(msg);
     this.scrollToBottom(100);
+
+    self.$.imHistory.sendMessage(msg);
+
     this.socket.emit('message:send', msg, function (message) {
       for (var i = self.messages.length - 1; i >= 0; i--) {
         if (self.messages[i].guid === message.guid) {
@@ -918,6 +947,8 @@ Polymer({
           break;
         }
       }
+
+      self.$.imHistory.confirmSended(message);
       self.latestChannelMessage[message.channelId] = message.id;
       // too violence, to trigger latestChannelMessageChanged
       self.latestChannelMessage = _.clone(self.latestChannelMessage);
@@ -1017,6 +1048,7 @@ Polymer({
     this.socket.emit('message:seen',
       {userId: userId, messageId: messageId, channelId: channelId});
   },
+
   togglePanel: function() {
       this.$.drawerPanel.togglePanel();
   },
