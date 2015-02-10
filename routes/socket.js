@@ -14,9 +14,9 @@ module.exports = function (socket) {
 
   socket.on('init', function (data, callback) {
     userId = data.userId;
-    var myPublicChannels = data.myPublicChannels;
-    var myPrivateChannels = data.myPrivateChannels;
-    var myTeamMemberChannels = data.myTeamMemberChannels;
+    var myPublicChannels = data.publicChannels;
+    var myPrivateChannels = data.privateChannels;
+    var myTeamMemberChannels = data.teamMemberChannels;
     var currentChannel = data.currentChannel;
 
     socketsMap[userId] = socket;

@@ -81,31 +81,8 @@
                     </div>
                     <div id="historyAndInput" main four flex vertical layout class="mainBgColor">
 
-                        <div id="history" flex>
-                            <event-infinite-scroll id="infiniteScroll" readyOnStart="false" scrollDenominator="2"
-                                                   loadingDelay="50"
-                                                   on-reach-top="{{reachedTop}}"></event-infinite-scroll>
-                            <template repeat="{{m in messages}}">
-                                <display-message user="{{m.userId}}" text="{{m.text}}"
-                                                 on-messageloaded="{{messageLoaded}}"
-                                                 messageStatus="{{m.messageStatus}}"
-                                                 updatedAt="{{m.updatedAt}}"
-                                                 disableEvent="{{m.disableEvent}}"
-                                                 hideMemberElement="{{m.hideMemberElement}}"
-                                                 messageGuid="{{m.guid}}"
-                                                 previewHidden="{{m.displayPreview}}"
-                                                 on-ready="{{messageReady}}"></display-message>
-                            </template>
-                        </div>
+                        <div id="imHistory" is="im-history" flex channel="{{channel}}" unread="{{unread}}" latestChannelMessage="{{latestChannelMessage}}" on-message-seen="{{ handleMessageSeen }}" on-message-notify="{{ handleMessageNotify}}"></div>
 
-                        <div id="imHistory" is="im-history" flex channel="{{channel}}" unread="{{unread}}"></div>
-
-                        <div>
-                            <paper-toast id="comingMessageToast" text="New Message">
-                                from
-                                <member-element userid="{{comingMessage.userId}}"></member-element>
-                            </paper-toast>
-                        </div>
                         <div layout horizontal center>
                             <div id="inputbox" on-tap="{{boxTapped}}" flex>
                                 <div layout horizontal>

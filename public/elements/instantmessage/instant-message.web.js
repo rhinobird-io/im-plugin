@@ -14,22 +14,6 @@ Polymer({
   /**
    * from platform, get all teams the current user belongs to
    */
-  myPublicChannels: [],
-
-  /**
-   * unique
-   * all the team members without duplication
-   */
-  myTeamMemberChannels: [],
-
-  /**
-   * private groups
-   */
-  myPrivateChannels: [],
-
-  /**
-   * from platform, get all teams the current user belongs to
-   */
   publicChannels: [],
 
   /**
@@ -84,7 +68,7 @@ Polymer({
   newMessage: false,
 
   ready: function () {
-    this.scrollToBottom(100);
+    this.$.imHistory.scrollToBottom(100);
     var self = this;
     if (!Notification) {
       alert('Please use a modern version of Chrome');
@@ -120,12 +104,7 @@ Polymer({
       var channel = event.detail;
       self.router.go('/' + self.pluginName + '/channels/' + channel.hash);
     });
-
-
-    this.$.groupImChannels.addEventListener('channel-sort', function(event, detail, target) {
-      debugger;
-    });
-
+    
     self.imGlobals = self.$.globals.values.im = self.$.globals.values.im || {};
   },
 
@@ -161,7 +140,6 @@ Polymer({
         function (callback) {
         $.get('/platform/users/' + self.currentUser.id + '/teams')
           .done(function (teams) {
-            self.myPublicChannels = teams;
             self.publicChannels = [];
             teams.forEach(function(team) {
               self.publicChannels.push({
@@ -194,7 +172,7 @@ Polymer({
        * @param callback
        */
         function (callback) {
-        if (self.myPublicChannels.length === 0) {
+        if (self.publicChannels.length === 0) {
           self.$.noGroupDlg.open();
           callback('no groups found for current user');
           return;
@@ -203,7 +181,7 @@ Polymer({
             self.router.go('/' + self.pluginName + '/channels/' + self.imGlobals.currentChannel.name);
           } else {
             // by default use appGlobal
-            self.channelName = self.myPublicChannels[0].name;
+            self.channelName = self.publicChannels[0].name;
             self.router.go('/' + self.pluginName + '/channels/' + self.channelName);
           }
           return;
@@ -213,52 +191,10 @@ Polymer({
       },
 
       /**
-       * 1.2 get all team members
-       */
-        function (callback) {
-        var teamMembers = [];
-        async.each(self.myPublicChannels,
-          function (team, cb) {
-            $.get('/platform/teams/' + team.id + '/users')
-              .done(function (users) {
-                self.teamMemberChannelMap[team.id] = [];
-                users.forEach(function (user) {
-                  self.teamMemberChannelMap[team.id].push(user);
-                  if (user.id !== self.currentUser.id) {
-                    teamMembers.push(user);
-                  }
-                });
-                cb();
-              });
-          }, function (err) {
-            if (!err) {
-              self.myTeamMemberChannels = self.getUniqueMember(teamMembers);
-              self.myTeamMemberChannels.forEach(function (member) {
-                self.userIdTeamMemberChannelMap[member.id] = member;
-                member.name = '@' + member.realname;
-              });
-
-              var members = self.getUniqueMember(teamMembers);
-              self.teamMemberChannels = [];
-              members.forEach(function(member) {
-                self.teamMemberChannels.push({
-                  id : self.getTeamMemberChannelId(self.currentUser.id, member.id),
-                  name: member.realname,
-                  hash: '@' + member.realname,
-                  isPrivate : true,
-                  userChannels : [member]
-                });
-              });
-
-              callback(null);
-            }
-          });
-      },
-
-      /**
        * 1.2 get all team members for publicChannels (not mine)
        */
         function (callback) {
+        var teamMemberChannels = [];
         async.each(self.publicChannels,
           function (team, cb) {
             $.get('/platform/teams/' + team.id + '/users')
@@ -266,18 +202,22 @@ Polymer({
                 team.userChannels = [];
                 users.forEach(function(user) {
                   if (user.id !== self.currentUser.id){
-                    team.userChannels.push({
+                    var channel = {
                       id: self.getTeamMemberChannelId(self.currentUser.id, user.id),
                       name: user.realname,
-                      hash: '@'+user.realname,
-                      user: user
-                    });
+                      hash: '@' + user.realname,
+                      isPrivate : true,
+                      user : user
+                    };
+                    team.userChannels.push(channel);
+                    teamMemberChannels.push(channel);
                   }
                 });
                 cb();
               });
           }, function (err) {
             if (!err) {
+              self.teamMemberChannels = self.getUniqueTeamMemberChannel(teamMemberChannels);
               callback(null);
             }
           });
@@ -290,33 +230,6 @@ Polymer({
      */
       self.loadPrivateChannels.bind(self),
 
-
-
-      /**
-       * get all channels
-       * 1. myTeam -> myPublicChannels
-       * 2. myTeamMembers
-       * 3. myPrivateChannels
-       * @param callback
-       */
-        function (callback) {
-
-        // myPublicChannels dont need to do anything, because team.id is already the id of the channel
-
-        self.myTeamMemberChannels.forEach(function (teamMemberChannel) {
-          // opposite userId
-          teamMemberChannel.userId = teamMemberChannel.id;
-
-          // channel id
-          teamMemberChannel.id = self.getTeamMemberChannelId(self.currentUser.id, teamMemberChannel.userId);
-        });
-
-        // myPrivateChannels dont need to do anything, because it fetches when first load from imdb
-
-
-        callback();
-      },
-
       /**
        * get current channel, from channelName ->  self.channel
        * @param callback
@@ -326,20 +239,20 @@ Polymer({
         var channelNameMappedId = -1;
         if ((''+self.channelName).indexOf('@') === 0) {
           var name = self.channelName.substr(1);
-          self.myTeamMemberChannels.forEach(function (teamMemberChannel) {
-            if (name === teamMemberChannel.realname) {
+          self.teamMemberChannels.forEach(function (teamMemberChannel) {
+            if (teamMemberChannel.name === name) {
               self.channel = teamMemberChannel;
               callback(null, self.channel);
             }
           });
         } else {
-          self.myPublicChannels.forEach(function (publicChannel) {
+          self.publicChannels.forEach(function (publicChannel) {
             if (publicChannel.name === self.channelName) {
               self.channel = publicChannel;
               callback(null, self.channel);
             }
           });
-          self.myPrivateChannels.forEach(function (privateChannel) {
+          self.privateChannels.forEach(function (privateChannel) {
             if (privateChannel.name === self.channelName) {
               self.channel = privateChannel;
               callback(null, self.channel);
@@ -372,23 +285,8 @@ Polymer({
             self.$.imHistory.getLastSeenMessages(lastSeenMessageId.messageId).done(function () {
               callback(null, channel);
             });
-            // TODO call messages has been seen
           });
       },
-
-      function (channel, callback) {
-        $.get(serverUrl + '/api/channels/' + self.channel.id + '/messages/lastSeen')
-          .done(function (lastSeenMessageId) {
-            if (!lastSeenMessageId) {
-              callback(null, channel);
-              return;
-            }
-            self.getLastSeenMessages(lastSeenMessageId.messageId).done(function () {
-              callback(null, channel);
-            });
-          });
-      },
-
 
 
       /**
@@ -396,16 +294,6 @@ Polymer({
        * @param callback
        */
         function (channel, callback) {
-        self.loadHistory(self.channel.id).done(function () {
-          callback();
-        });
-      },
-
-      /**
-       * load history2
-       * @param callback
-       */
-        function (callback) {
         self.$.imHistory.loadHistory(self.channel.id).done(function () {
           callback();
         });
@@ -442,11 +330,7 @@ Polymer({
     newPrivateChannelUsersInvalid : 'newPrivateChannel.users.length < 2 || $.privateChannelNameInput.isInvalid || newPrivateChannel.name.length === 0'
   },
 
-  latestChannelMessageChanged: function (oldValue, newValue) {
-    this.fire('core-signal', {name:'sort', data:newValue});
-  },
-
-  getUniqueMember: function (array) {
+  getUniqueTeamMemberChannel: function (array) {
     var u = {}, uArray = [];
     for (var i = array.length - 1; i >= 0; i--) {
       if (u.hasOwnProperty(array[i].id)) {
@@ -476,9 +360,9 @@ Polymer({
       self.$.connectingDialog.close();
       self.socket.emit('init', {
         userId: self.currentUser.id,
-        myPublicChannels: self.myPublicChannels,
-        myPrivateChannels: self.myPrivateChannels,
-        myTeamMemberChannels: self.myTeamMemberChannels,
+        publicChannels: self.publicChannels,
+        privateChannels: self.privateChannels,
+        teamMemberChannels: self.teamMemberChannels,
         currentChannel: self.channel
       }, function (onlineList) {
         self.$.globals.values.onlineList = onlineList;
@@ -486,39 +370,8 @@ Polymer({
     });
 
     this.socket.on('message:send', function (message) {
-      if (message.channelId !== '' + self.channel.id) {
-        self.unread[message.channelId] = self.unread[message.channelId] || [];
-        self.unread[message.channelId].push(message.text);
-
-        self.latestChannelMessage[message.channelId] = message.id;
-        // too violence, to trigger latestChannelMessageChanged
-        self.latestChannelMessage = _.clone(self.latestChannelMessage);
-
-        self.showNotification(message.userId, message.text, message.channelId);
-        return;
-      }
-      if (!document.hasFocus()) {
-        self.showNotification(message.userId, message.text, message.channelId);
-      }
-      if (self.messages.length > 0) {
-        message.hideMemberElement =
-          self.isHideMemberElement(self.messages[self.messages.length - 1], message);
-      }
-      if (self.$.history.scrollTop + self.$.history.clientHeight === self.$.history.scrollHeight) {
-        message.disableEvent = false;
-      } else {
-        self.comingMessage = {
-          userId: message.userId,
-          text: message.text
-        }
-        message.disableEvent = true;
-        self.$.comingMessageToast.show();
-      }
-      message.displayPreview = 'previewHidden';
-      self.messages.push(message);
+      self.$.imHistory.receiveMessage(message);
       self.$.messageInput.update();
-      self.messageHasBeenSeen(self.currentUser.id, message.id, message.channelId);
-
     });
 
     this.socket.on('channel:created', function (channel) {
@@ -551,9 +404,6 @@ Polymer({
         // other channel message
         return;
       }
-      self.messages.push({
-        text: 'User ' + data.userId + ' has left.'
-      });
     });
     this.socket.on('disconnect', function () {
       self.$.connectingDialog.open();
@@ -704,96 +554,10 @@ Polymer({
   },
 
 
-  historyLimit: 10,
-  noMoreHistory: false,
-
-  reachedTop: function (event) {
-    if (this.noMoreHistory) {
-      return;
-    }
-    if (this.messages.length < 1) {
-      return;
-    }
-    if (this.messages[0].id == null) {
-      return;
-    }
-    var self = this;
-    return $.get(serverUrl + '/api/channels/' + self.channel.id +
-    '/messages?beforeId=' + this.messages[0].id +
-    '&limit=' + this.historyLimit).done(function (messages) {
-      self.historyOffset += self.historyLimit;
-      if (messages.length < self.historyLimit) {
-        self.noMoreHistory = true;
-        self.insertFrontMessages(messages, true);
-      }
-    });
-  }
-  ,
-  insertFrontMessages: function(messages, diableEvent){
-    var temp = [];
-    var self = this;
-    var lastMessage = null;
-    messages.forEach(function (message) {
-      message.hideMemberElement = self.isHideMemberElement(lastMessage, message);
-      message.disableEvent = diableEvent;
-      message.displayPreview = 'previewHidden';
-      temp.push(message);
-      lastMessage = message;
-    });
-    this.messages = temp.concat(this.messages);
-  }
-  ,
-  getLastSeenMessages: function (lastSeenMessageId) {
-    var self = this;
-    return $.get(serverUrl + '/api/channels/' + this.channel.id + '/messages?sinceId=' + lastSeenMessageId)
-      .done(function (messages) {
-        self.insertFrontMessages(messages, false);
-        delete self.unread[self.channel.id];
-      })
-      .done(function () {
-        if (self.messages.length > 0) {
-          var message = {text: 'new messages'};
-          self.messages.splice(0, 0, message);
-          self.newMessage = true;
-          self.messageHasBeenSeen(self.currentUser.id, self.messages[self.messages.length - 1].id, self.channel.id);
-        }
-      });
-  },
-  loadHistory: function (roomId) {
-    var self = this;
-    var unseenMessageId = 0;
-    var beforeOption = '';
-    if (this.messages.length > 0) {
-      var id = undefined;
-      for (var i = 0, length = this.messages.length; i < length; i++) {
-        if (this.messages[i].id) {
-          id = this.messages[i].id;
-          break;
-        }
-      }
-      ;
-      if (id) {
-        beforeOption = '&beforeId=' + id;
-      }
-    }
-
-    return $.get(serverUrl + '/api/channels/' + self.channel.id + '/messages?limit=20' + beforeOption).done(function (messages) {
-      self.insertFrontMessages(messages, false);
-      delete self.unread[self.channel.id];
-      self.scrollToBottom(100);
-    }).done(function () {
-      setTimeout(function () {
-        self.$.infiniteScroll.startObserve();
-      }, 1000);
-    });
-  }
-  ,
-
   loadPrivateChannels: function (callback){
     var self = this;
     $.get(serverUrl + '/api/channels').done(
       function (channels) {
-        self.myPrivateChannels = channels;
         self.privateChannels = [];
         channels.forEach(function(channel){
           self.privateChannels.push({
@@ -804,8 +568,7 @@ Polymer({
           });
         })
       }).done(function (channels) {
-        // var teamMembers = [];
-        async.each(self.myPrivateChannels,
+        async.each(self.privateChannels,
           function (team, cb) {
             $.get(serverUrl + '/api/channels/' + team.id + '/users')
               .done(function (users) {
@@ -839,36 +602,12 @@ Polymer({
   }
   ,
 
-  handleChannelSelect: function (event, detail, target) {
-    // exit current room
-    var self = this;
-    var name = target.templateInstance.model.g.name;
-    if (!name) {
-      name = target.templateInstance.model.g.realname;
-    }
-    var channelName = self.channelName;
-    if (channelName.indexOf('@') === 0) {
-      channelName = channelName.substr(1);
-    }
-    if (name === channelName) {
-      return;
-    }
-
-    var hash = target.attributes['hash'].value;
-    if (this.newMessage){
-      this.messageHasBeenSeen(this.currentUser.id, this.messages[this.messages.length -1].id, this.channel.id);
-    }
-    self.router.go('/' + this.pluginName + '/channels/' + hash);
-  }
-  ,
-
   keyDown: function (event, detail, target) {
-    var history = this.$.history;
-    target.atBottom = history.scrollTop == history.scrollHeight - history.clientHeight;
+    target.atBottom = this.$.imHistory.atBottom();
   }
   ,
   inputChanging: function (event, detail, target) {
-    var history = this.$.history;
+    var history = this.$.imHistory;
     this.$.informationButton.style.height = this.$.textInput.clientHeight + 'px';
 
     // if already bottom
@@ -877,51 +616,10 @@ Polymer({
     }
   }
   ,
-  scrollToBottom: function (delay) {
-    var self = this;
-
-    setTimeout(function () {
-      self.$.history.scrollTop = self.$.history.scrollHeight - self.$.history.clientHeight;
-    }, delay);
-  }
-  ,
-
-  isHideMemberElement: function (lastMessage, newMessage) {
-    if (!lastMessage || !newMessage) {
-      return false;
-    }
-    var lastUserId = lastMessage.UserId;
-    if (!lastUserId) {
-      lastUserId = lastMessage.userId;
-    }
-    var newUserId = newMessage.UserId;
-    if (!newUserId) {
-      newUserId = newMessage.userId;
-    }
-    if (!lastMessage || !lastUserId || !newUserId || !newMessage.updatedAt || !lastMessage.updatedAt) {
-      return false;
-    }
-    if (lastUserId === newUserId &&
-      new Date(newMessage.updatedAt).getTime() - new Date(lastMessage.updatedAt).getTime() < 60 * 1000) {
-      return true;
-    }
-    return false;
-  }
-  ,
 
   sendMessage: function () {
     var self = this;
     var uuid = this.guid();
-    // add the message to our model locally
-    if (this.newMessage){
-      for (var i = this.messages.length - 1; i >= 0; i--) {
-        if (!this.messages[i].userId && this.messages[i].text === 'NEW MESSAGES'){
-          this.messages.splice(i,1);
-          this.newMessage = false;
-          break;
-        }
-      }
-    }
     var msg = {
       userId: self.currentUser.id,
       channelId: self.channel.id,
@@ -931,27 +629,11 @@ Polymer({
       hideMemberElement: true,
       displayPreview:'previewHidden'
     };
-    this.messages.push(msg);
-    this.scrollToBottom(100);
 
     self.$.imHistory.sendMessage(msg);
 
     this.socket.emit('message:send', msg, function (message) {
-      for (var i = self.messages.length - 1; i >= 0; i--) {
-        if (self.messages[i].guid === message.guid) {
-          self.messages[i] = message;
-          if (i - 1 >= 0) {
-            self.messages[i].hideMemberElement =
-              self.isHideMemberElement(self.messages[i - 1], message);
-          }
-          break;
-        }
-      }
-
       self.$.imHistory.confirmSended(message);
-      self.latestChannelMessage[message.channelId] = message.id;
-      // too violence, to trigger latestChannelMessageChanged
-      self.latestChannelMessage = _.clone(self.latestChannelMessage);
     });
     this.message = '';
     this.$.messageInput.update();
@@ -966,75 +648,9 @@ Polymer({
   }
   ,
 
-  messageReady: function (event) {
-    this.scrollToBottom(100);
-  }
-  ,
-
-  messageLoaded: function (event) {
-    if ( this.$.history.scrollTop === (this.$.history.scrollHeight - this.$.history.clientHeight)){
-      // at the bottom
-      for (var i = this.messages.length - 1; i >= 0; i--) {
-        if (this.messages[i].guid === event.detail.messageGuid){
-          this.messages[i].displayPreview = '';
-          break;
-        }
-      };
-      this.scrollToBottom(0);
-    }else{
-      // not at bottom
-      for (var i = this.messages.length - 1; i >= 0; i--) {
-        if (this.messages[i].guid === event.detail.messageGuid){
-          this.messages[i].displayPreview = '';
-          break;
-        }
-      };
-    }
-    //this.scrollToBottom(0);
-  }
-  ,
   onClickInfomation: function () {
     this.$.informationDialog.open();
   },
-  showNotification: function (userId, content, channelId) {
-    if (userId === this.currentUser.id){
-      return;
-    }
-    var notification = new Notification("New Message from " +
-    this.$.globals.values.memberCache[userId].username, {
-      body: content,
-      icon: this.$.globals.values.memberCache[userId].url + "?d=identicon"
-    });
-    var self = this;
-    var directToChannel = "";
-    for (var i = this.myPublicChannels.length - 1; i >= 0; i--) {
-      if ((''+this.myPublicChannels[i].id) === channelId) {
-        directToChannel = this.myPublicChannels[i].name;
-      }
-    }
-    for (var i = this.myPrivateChannels.length - 1; i >= 0; i--) {
-      if ((this.myPrivateChannels[i].id) === channelId) {
-        directToChannel = this.myPrivateChannels[i].name;
-      }
-    }
-    for (var i = this.myTeamMemberChannels.length - 1; i >= 0; i--) {
-      if (this.myTeamMemberChannels[i].id === channelId) {
-        directToChannel = '@' + this.myTeamMemberChannels[i].realname;
-      }
-    }
-
-    notification.onclick = function () {
-      window.focus();
-      if (channelId != self.channel.id) {
-        document.querySelector('app-router').go('/' + self.pluginName + '/channels/' + directToChannel);
-      }
-    }
-    setTimeout(function () {
-
-      notification.close();
-    }, 3000);
-  }
-  ,
 
   getTeamMemberChannelId: function (id1, id2) {
     if (!(id1 && id2)) {
@@ -1044,10 +660,20 @@ Polymer({
     var maxId = id1 < id2 ? id2 : id1;
     return '' + minId + ':' + maxId;
   },
-  messageHasBeenSeen: function (userId, messageId, channelId) {
+
+  handleMessageSeen : function(event) {
+    var self = this;
+    var channel = event.detail.channel;
+    var message = event.detail.message;
     this.socket.emit('message:seen',
-      {userId: userId, messageId: messageId, channelId: channelId});
+      {userId: self.currentUser.id, messageId: message.id, channelId: channel.id});
   },
+
+  handleMessageNotify: function(event) {
+    var message = event.detail;
+    _showNotification.call(this, message.userId, message.text, message.channelId)
+  },
+
 
   togglePanel: function() {
       this.$.drawerPanel.togglePanel();
@@ -1057,4 +683,43 @@ Polymer({
   codeSnippetExample: "```c++\nint main(){\n    printf(\"helloworld\");\n    return 0;\n}\n```"
 })
 ;
+
+function _showNotification(userId, content, channelId) {
+  if (userId === this.currentUser.id){
+    return;
+  }
+  var notification = new Notification("New Message from " +
+  this.$.globals.values.memberCache[userId].username, {
+    body: content,
+    icon: this.$.globals.values.memberCache[userId].url + "?d=identicon"
+  });
+  var self = this;
+  var directToChannel = "";
+  for (var i = this.publicChannels.length - 1; i >= 0; i--) {
+    if ((''+this.publicChannels[i].id) === channelId) {
+      directToChannel = this.publicChannels[i].name;
+    }
+  }
+  for (var i = this.privateChannels.length - 1; i >= 0; i--) {
+    if ((this.privateChannels[i].id) === channelId) {
+      directToChannel = this.privateChannels[i].name;
+    }
+  }
+  for (var i = this.teamMemberChannels.length - 1; i >= 0; i--) {
+    if (this.teamMemberChannels[i].id === channelId) {
+      directToChannel = '@' + this.teamMemberChannels[i].realname;
+    }
+  }
+
+  notification.onclick = function () {
+    window.focus();
+    if (channelId != self.channel.id) {
+      document.querySelector('app-router').go('/' + self.pluginName + '/channels/' + directToChannel);
+    }
+  }
+  setTimeout(function () {
+
+    notification.close();
+  }, 3000);
+}
 

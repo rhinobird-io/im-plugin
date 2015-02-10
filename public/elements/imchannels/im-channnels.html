@@ -74,7 +74,7 @@ It will raise event when it reaches.
                         </paper-dialog>
                     </paper-icon-button>
                     <div flex horizontal layout center>
-                        <paper-item on-click="{{ handleChannelSelect }}" hash="{{g.name}}" class="{{ {highlight : g.id === ''+currentChannel.id, offline: g.isPrivate && $.globals.values.onlineList[g.users[0].id] !== 1 } | tokenList }}"> {{ g.name }}
+                        <paper-item on-click="{{ handleChannelSelect }}" hash="{{g.name}}" class="{{ {highlight : g.id === ''+currentChannel.id, offline: g.isPrivate && $.globals.values.onlineList[g.userChannels[0].userId] !== 1 } | tokenList }}"> {{ g.name }}
                         </paper-item>
                         <paper-icon-button icon="markunread" style="color :red;" hidden?="{{ !(unread[g.id] && unread[g.id].length > 0)}}"></paper-icon-button>
                     </div>

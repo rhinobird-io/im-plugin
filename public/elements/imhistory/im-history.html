@@ -27,7 +27,7 @@ It will raise event when it reaches.
 @status alpha
 @homepage http://chadliu23.github.io/event-infinite-scroll
 -->
-<polymer-element name="im-history" extends="div" attributes="channel unread">
+<polymer-element name="im-history" extends="div" attributes="channel unread latestChannelMessage">
 
     <template>
         <app-globals id="globals"></app-globals>
@@ -53,6 +53,13 @@ It will raise event when it reaches.
                              previewHidden="{{m.displayPreview}}"
                              on-ready="{{messageReady}}"></display-message>
         </template>
+
+        <div>
+            <paper-toast id="comingMessageToast" text="New Message">
+                from
+                <member-element userid="{{comingMessage.userId}}"></member-element>
+            </paper-toast>
+        </div>
     </template>
     <script>
 
@@ -158,6 +165,9 @@ It will raise event when it reaches.
             _scrollToBottom.call(this, 100);
         }
 
+        function _atBottom() {
+            return this.scrollTop === (this.scrollHeight - this.clientHeight);
+        }
 
         function _messageLoaded(event) {
             if (this.scrollTop === (this.scrollHeight - this.clientHeight)) {
@@ -182,6 +192,15 @@ It will raise event when it reaches.
         }
 
         function _sendMessage(msg) {
+            if (this.newMessage){
+                for (var i = this.messages.length - 1; i >= 0; i--) {
+                    if (!this.messages[i].userId && this.messages[i].text === 'NEW MESSAGES'){
+                        this.messages.splice(i,1);
+                        this.newMessage = false;
+                        break;
+                    }
+                }
+            }
             this.messages.push(msg);
             _scrollToBottom.call(this, 100);
         }
@@ -198,6 +217,9 @@ It will raise event when it reaches.
                     break;
                 }
             }
+            self.latestChannelMessage[message.channelId] = message.id;
+            // too violence, to trigger latestChannelMessageChanged
+            self.latestChannelMessage = _.clone(self.latestChannelMessage);
         }
 
         function _getLastSeenMessages(lastSeenMessageId) {
@@ -209,11 +231,56 @@ It will raise event when it reaches.
                     })
                     .done(function () {
                         if (self.messages.length > 0) {
-                            var message = {text: 'new messages'};
+                            var message = {text: 'NEW MESSAGES'};
                             self.messages.splice(0, 0, message);
                             self.newMessage = true;
+                            self.fire('message-seen', {
+                                channel : self.channel,
+                                message : self.messages[self.messages.length - 1]
+                            })
                         }
                     });
+        }
+
+        function _receiveMessage(message) {
+            var self = this;
+            if (message.channelId !== '' + self.channel.id) {
+                self.unread[message.channelId] = self.unread[message.channelId] || [];
+                self.unread[message.channelId].push(message.text);
+
+                self.latestChannelMessage[message.channelId] = message.id;
+                // too violence, to trigger latestChannelMessageChanged
+                self.latestChannelMessage = _.clone(self.latestChannelMessage);
+
+                self.fire('message-notify', message);
+                return;
+            }
+
+            if (!document.hasFocus()) {
+                self.fire('message-notify', message);
+            }
+
+            if (self.messages.length > 0) {
+                message.hideMemberElement =
+                        _isHideMemberElement.call(self, self.messages[self.messages.length - 1], message);
+            }
+            if (self.scrollTop + self.clientHeight === self.scrollHeight) {
+                message.disableEvent = false;
+            } else {
+                self.comingMessage = {
+                    userId: message.userId,
+                    text: message.text
+                }
+                message.disableEvent = true;
+                self.$.comingMessageToast.show();
+            }
+            message.displayPreview = 'previewHidden';
+            self.messages.push(message);
+
+            self.fire('message-seen', {
+                channel : self.channel,
+                message : self.messages[self.messages.length - 1]
+            })
         }
 
 
@@ -227,8 +294,15 @@ It will raise event when it reaches.
                 this.messageReady = _messageReady;
                 this.messageLoaded = _messageLoaded;
                 this.sendMessage = _sendMessage;
+                this.receiveMessage = _receiveMessage;
                 this.confirmSended = _confirmSended;
                 this.getLastSeenMessages = _getLastSeenMessages;
+                this.scrollToBottom = _scrollToBottom;
+                this.atBottom = _atBottom;
+            },
+
+            latestChannelMessageChanged: function (oldValue, newValue) {
+                this.fire('core-signal', {name:'sort', data:newValue});
             }
 
         });
