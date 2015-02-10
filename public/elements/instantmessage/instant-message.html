@@ -28,7 +28,7 @@
 
 <link rel="import" href="../display-message/display-message.html">
 <link rel="import" href="../event-infinite-scroll/event-infinite-scroll.html">
-<link rel="import" href="../imchannels/im-channnels.html">
+<link rel="import" href="../imchannels/im-channels-mixed.html">
 <link rel="import" href="../imhistory/im-history.html">
 
 <polymer-element name="instant-message" attributes="channelName">
@@ -36,26 +36,6 @@
         <app-globals id="globals"></app-globals>
         <link rel="stylesheet" type="text/css" href="instant-message.css">
         <core-style ref="theme"></core-style>
-        <paper-action-dialog id="addPrivateChannelDialog" heading="Add Private Channel" backdrop autoCloseDisabled
-                             closeSelector="#cancelBtn" style="width: 70%; height: 70%;">
-            <paper-input-decorator id="privateChannelNameInput" label="Channel Name" floatingLabel autoValidate
-                                   style="width: 100%;" error="{{newPrivateChannel.error.msg}}">
-                <input is="core-input" required value="{{newPrivateChannel.name}}">
-            </paper-input-decorator>
-            <member-select type="user" selected="{{newPrivateChannel}}" width="100%;"></member-select>
-            <paper-button id="cancelBtn" dismissive>Cancel</paper-button>
-            <paper-button affirmative on-click="{{addPrivateChannel}}" disabled="{{newPrivateChannelUsersInvalid}}">OK
-            </paper-button>
-        </paper-action-dialog>
-
-
-        <paper-action-dialog id="removePrivateChannelDialog" heading="Leaving {{ removedPrivateChannel.name }}" backdrop
-                             autoCloseDisabled closeSelector="#cancelBtn" style="width: 30%; height: 30%;">
-            <p>Are you sure</p>
-            <paper-button id="cancelBtn" dismissive>Close</paper-button>
-            <paper-button affirmative channelId="{{removedPrivateChannel.id}}" on-click="{{removePrivateChannel}}">Yes
-            </paper-button>
-        </paper-action-dialog>
 
         <home-container>
             <div class="title" horizontal layout center>
@@ -81,7 +61,7 @@
                     </div>
                     <div id="historyAndInput" main four flex vertical layout class="mainBgColor">
 
-                        <div id="imHistory" is="im-history" flex channel="{{channel}}" unread="{{unread}}" latestChannelMessage="{{latestChannelMessage}}" on-message-seen="{{ handleMessageSeen }}" on-message-notify="{{ handleMessageNotify}}"></div>
+                        <div id="imHistory" is="im-history" flex channel="{{channel}}" unread="{{$.imChannels.unread}}" latestChannelMessage="{{$.imChannels.latestChannelMessage}}" on-message-seen="{{ handleMessageSeen }}" on-message-notify="{{ handleMessageNotify}}"></div>
 
                         <div layout horizontal center>
                             <div id="inputbox" on-tap="{{boxTapped}}" flex>
@@ -99,34 +79,8 @@
                         </div>
                     </div>
 
-                    <div id='imPanel' drawer vertical layout flex>
-                        <div id="groupImChannels" is="im-channels" channels="{{publicChannels}}" unread="{{unread}}"
-                             currentChannel="{{channel}}" showMemberList >
-                            <div class="title">
-                                <h3 class="secondColor">Group Channel</h3>
-                            </div>
-                        </div>
-
-                        <div id="privateImChannels" is="im-channels" channels="{{privateChannels}}" unread="{{unread}}"
-                             currentChannel="{{channel}}" removable>
-                            <div class="title secondColor" flex horizontal layout center>
-                                <div flex>
-                                    <h3>Private Channels</h3>
-                                </div>
-                                <div>
-                                    <paper-icon-button icon="add-circle-outline"
-                                                       on-click="{{ showAddPrivateChannelDialog}}">
-                                    </paper-icon-button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div id="teamMemberImChannels" is="im-channels" channels="{{teamMemberChannels}}" unread="{{unread}}"
-                             currentChannel="{{channel}}" flex vertical layout>
-                            <div class="title" flex>
-                                <h3 class="secondColor">Direct Message</h3>
-                            </div>
-                        </div>
+                    <div id='imPanel' drawer>
+                        <div id="imChannels" is="im-channels-mixed" channelName="{{channelName}}" vertical layout></div>
                     </div>
 
                 </core-drawer-panel>

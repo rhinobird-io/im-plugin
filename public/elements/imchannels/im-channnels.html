@@ -12,18 +12,6 @@
 
 <link rel="import" href="/platform/elements/app-globals/app-globals.html">
 
-<!--
-Element providing infinite scroll to track the parentNode on reaching bottom and end.
-It will raise event when it reaches.
-##### Example
-
-    <event-infinite-scroll  on-reach-bottom="{{reachBottom}}" on-reach-top="{{reachTop}}"></event-infinite-scroll>
-
-@element event-infinite-scroll
-@blurb Element providing infinite scroll to track the parentNode on reaching bottom and end.
-@status alpha
-@homepage http://chadliu23.github.io/event-infinite-scroll
--->
 <polymer-element name="im-channels" extends="div" attributes="channels teamMemberChannelMap unread currentChannel showMemberList removable">
 
     <template>
@@ -61,6 +49,7 @@ It will raise event when it reaches.
         <div>
             <content select=".title"></content>
         </div>
+
         <div id="groupChannel" flex unsorted>
             <template repeat="{{ g in channels }}">
                 <div horizontal layout center>
@@ -78,7 +67,7 @@ It will raise event when it reaches.
                         </paper-item>
                         <paper-icon-button icon="markunread" style="color :red;" hidden?="{{ !(unread[g.id] && unread[g.id].length > 0)}}"></paper-icon-button>
                     </div>
-                    <paper-icon-button icon="clear" on-click="{{ showRemovePrivateChannelDialog}}" hidden?="{{!removable}}">
+                    <paper-icon-button icon="clear" on-click="{{ fireChannelRemoveEvent }}" hidden?="{{!removable}}">
 
                     </paper-icon-button>
                 </div>
@@ -86,6 +75,8 @@ It will raise event when it reaches.
         </div>
     </template>
     <script>
+
+
         Polymer('im-channels', {
             publish : {
                 showMemberList : false,
@@ -151,8 +142,8 @@ It will raise event when it reaches.
                 this.$.groupChannel.removeAttribute('unsorted');
             },
 
-            handleNewMessage: function(event) {
-                debugger;
+            fireChannelRemoveEvent: function(event, detail, target){
+                this.fire('channel-remove', target.templateInstance.model.g);
             }
 
         });

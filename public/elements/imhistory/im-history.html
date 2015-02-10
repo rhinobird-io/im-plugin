@@ -16,17 +16,13 @@
 <link rel="import" href="/platform/elements/app-globals/app-globals.html">
 
 <!--
-Element providing infinite scroll to track the parentNode on reaching bottom and end.
-It will raise event when it reaches.
-##### Example
 
-    <event-infinite-scroll  on-reach-bottom="{{reachBottom}}" on-reach-top="{{reachTop}}"></event-infinite-scroll>
+channel is useful
+unread now is used for deleting, when I see it, I delete it, but this logic should be impl in imChannels
+latestChannelMessage is to tell which msg I have seen, this should also be impl by imChannels
 
-@element event-infinite-scroll
-@blurb Element providing infinite scroll to track the parentNode on reaching bottom and end.
-@status alpha
-@homepage http://chadliu23.github.io/event-infinite-scroll
 -->
+
 <polymer-element name="im-history" extends="div" attributes="channel unread latestChannelMessage">
 
     <template>
@@ -62,6 +58,55 @@ It will raise event when it reaches.
         </div>
     </template>
     <script>
+
+        Polymer('im-history', {
+            messages: [],
+            newMessage: false,
+            ready: function () {
+                this.reachedTop = _reachedTop;
+                this.loadHistory = _loadHistory;
+                this.isHideMemberElement = _isHideMemberElement;
+                this.messageReady = _messageReady;
+                this.messageLoaded = _messageLoaded;
+                this.sendMessage = _sendMessage;
+                this.receiveMessage = _receiveMessage;
+                this.confirmSended = _confirmSended;
+                this.getLastSeenMessages = _getLastSeenMessages;
+                this.scrollToBottom = _scrollToBottom;
+                this.atBottom = _atBottom;
+                this.init = _initImHistory;
+            }
+
+        });
+
+        function _initImHistory(callback) {
+            var self = this;
+            async.waterfall([
+                function(callback){
+                    $.get(serverUrl + '/api/channels/' + self.channel.id + '/messages/lastSeen')
+                            .done(function (lastSeenMessage) {
+                                callback(null, lastSeenMessage);
+                            });
+                },
+                function(lastSeenMessage, callback) {
+                    if (!lastSeenMessage) {
+                        callback();
+                    } else {
+                        _getLastSeenMessages.call(self, lastSeenMessage.messageId).done(function(){
+                            callback();
+                        })
+                    }
+                },
+                    function(callback){
+                        _loadHistory.call(self).done(function(){
+                            callback();
+                        })
+                    }
+
+            ], function(err) {
+                callback(err);
+            });
+        }
 
         var historyLimit = 10;
         var noMoreHistory = false;
@@ -192,10 +237,10 @@ It will raise event when it reaches.
         }
 
         function _sendMessage(msg) {
-            if (this.newMessage){
+            if (this.newMessage) {
                 for (var i = this.messages.length - 1; i >= 0; i--) {
-                    if (!this.messages[i].userId && this.messages[i].text === 'NEW MESSAGES'){
-                        this.messages.splice(i,1);
+                    if (!this.messages[i].userId && this.messages[i].text === 'NEW MESSAGES') {
+                        this.messages.splice(i, 1);
                         this.newMessage = false;
                         break;
                     }
@@ -224,6 +269,7 @@ It will raise event when it reaches.
 
         function _getLastSeenMessages(lastSeenMessageId) {
             var self = this;
+
             return $.get(serverUrl + '/api/channels/' + this.channel.id + '/messages?sinceId=' + lastSeenMessageId)
                     .done(function (messages) {
                         _insertFrontMessages.call(self, messages, false);
@@ -235,8 +281,8 @@ It will raise event when it reaches.
                             self.messages.splice(0, 0, message);
                             self.newMessage = true;
                             self.fire('message-seen', {
-                                channel : self.channel,
-                                message : self.messages[self.messages.length - 1]
+                                channel: self.channel,
+                                message: self.messages[self.messages.length - 1]
                             })
                         }
                     });
@@ -278,34 +324,11 @@ It will raise event when it reaches.
             self.messages.push(message);
 
             self.fire('message-seen', {
-                channel : self.channel,
-                message : self.messages[self.messages.length - 1]
+                channel: self.channel,
+                message: self.messages[self.messages.length - 1]
             })
         }
 
-
-        Polymer('im-history', {
-            messages: [],
-            newMessage: false,
-            ready: function () {
-                this.reachedTop = _reachedTop;
-                this.loadHistory = _loadHistory;
-                this.isHideMemberElement = _isHideMemberElement;
-                this.messageReady = _messageReady;
-                this.messageLoaded = _messageLoaded;
-                this.sendMessage = _sendMessage;
-                this.receiveMessage = _receiveMessage;
-                this.confirmSended = _confirmSended;
-                this.getLastSeenMessages = _getLastSeenMessages;
-                this.scrollToBottom = _scrollToBottom;
-                this.atBottom = _atBottom;
-            },
-
-            latestChannelMessageChanged: function (oldValue, newValue) {
-                this.fire('core-signal', {name:'sort', data:newValue});
-            }
-
-        });
     </script>
 
 </polymer-element>

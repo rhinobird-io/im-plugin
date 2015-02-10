@@ -66,6 +66,6 @@ h3 {
     display: none;
 }
 
-[unsorted] {
-    /*opacity: 0;*/
+#imChannels {
+    height: 100%;
 }
