@@ -58,277 +58,277 @@ latestChannelMessage is to tell which msg I have seen, this should also be impl 
         </div>
     </template>
     <script>
+        (function(){
+            Polymer('im-history', {
+                messages: [],
+                newMessage: false,
+                ready: function () {
+                    this.reachedTop = _reachedTop;
+                    this.loadHistory = _loadHistory;
+                    this.isHideMemberElement = _isHideMemberElement;
+                    this.messageReady = _messageReady;
+                    this.messageLoaded = _messageLoaded;
+                    this.sendMessage = _sendMessage;
+                    this.receiveMessage = _receiveMessage;
+                    this.confirmSended = _confirmSended;
+                    this.getLastSeenMessages = _getLastSeenMessages;
+                    this.scrollToBottom = _scrollToBottom;
+                    this.atBottom = _atBottom;
+                    this.init = _initImHistory;
+                }
 
-        Polymer('im-history', {
-            messages: [],
-            newMessage: false,
-            ready: function () {
-                this.reachedTop = _reachedTop;
-                this.loadHistory = _loadHistory;
-                this.isHideMemberElement = _isHideMemberElement;
-                this.messageReady = _messageReady;
-                this.messageLoaded = _messageLoaded;
-                this.sendMessage = _sendMessage;
-                this.receiveMessage = _receiveMessage;
-                this.confirmSended = _confirmSended;
-                this.getLastSeenMessages = _getLastSeenMessages;
-                this.scrollToBottom = _scrollToBottom;
-                this.atBottom = _atBottom;
-                this.init = _initImHistory;
-            }
+            });
 
-        });
-
-        function _initImHistory(callback) {
-            var self = this;
-            async.waterfall([
-                function(callback){
-                    $.get(serverUrl + '/api/channels/' + self.channel.id + '/messages/lastSeen')
-                            .done(function (lastSeenMessage) {
-                                callback(null, lastSeenMessage);
-                            });
-                },
-                function(lastSeenMessage, callback) {
-                    if (!lastSeenMessage) {
-                        callback();
-                    } else {
-                        _getLastSeenMessages.call(self, lastSeenMessage.messageId).done(function(){
+            function _initImHistory(callback) {
+                var self = this;
+                async.waterfall([
+                    function(callback){
+                        $.get(serverUrl + '/api/channels/' + self.channel.id + '/messages/lastSeen')
+                                .done(function (lastSeenMessage) {
+                                    callback(null, lastSeenMessage);
+                                });
+                    },
+                    function(lastSeenMessage, callback) {
+                        if (!lastSeenMessage) {
                             callback();
-                        })
-                    }
-                },
+                        } else {
+                            _getLastSeenMessages.call(self, lastSeenMessage.messageId).done(function(){
+                                callback();
+                            })
+                        }
+                    },
                     function(callback){
                         _loadHistory.call(self).done(function(){
                             callback();
                         })
                     }
 
-            ], function(err) {
-                callback(err);
-            });
-        }
-
-        var historyLimit = 10;
-        var noMoreHistory = false;
-
-        function _reachedTop(event) {
-            if (this.noMoreHistory) {
-                return;
-            }
-            if (this.messages.length < 1) {
-                return;
-            }
-            if (this.messages[0].id == null) {
-                return;
-            }
-            var self = this;
-            return $.get(serverUrl + '/api/channels/' + self.channel.id +
-            '/messages?beforeId=' + this.messages[0].id +
-            '&limit=' + this.historyLimit).done(function (messages) {
-                self.historyOffset += self.historyLimit;
-                if (messages.length < self.historyLimit) {
-                    self.noMoreHistory = true;
-                    _insertFrontMessages.call(self, messages, true);
-                }
-            });
-        }
-
-        function _loadHistory(roomId) {
-            var self = this;
-            var unseenMessageId = 0;
-            var beforeOption = '';
-            if (this.messages.length > 0) {
-                var id = undefined;
-                this.messages.every(function (msg) {
-                    if (msg.id) {
-                        id = msg.id;
-                        return false;
-                    }
-                    return true;
+                ], function(err) {
+                    callback(err);
                 });
-                if (id) {
-                    beforeOption = '&beforeId=' + id;
+            }
+
+            var historyLimit = 10;
+            var noMoreHistory = false;
+
+            function _reachedTop(event) {
+                if (this.noMoreHistory) {
+                    return;
                 }
-            }
-
-            return $.get(serverUrl + '/api/channels/' + self.channel.id + '/messages?limit=20' + beforeOption).done(function (messages) {
-                _insertFrontMessages.call(self, messages, false);
-                delete self.unread[self.channel.id];
-                _scrollToBottom.call(self, 100);
-            }).done(function () {
-                setTimeout(function () {
-                    self.$.infiniteScroll.startObserve();
-                }, 1000);
-            });
-        }
-
-        function _insertFrontMessages(messages, diableEvent) {
-            var temp = [];
-            var self = this;
-            var lastMessage = null;
-            messages.forEach(function (message) {
-                message.hideMemberElement = _isHideMemberElement(lastMessage, message);
-                message.disableEvent = diableEvent;
-                message.displayPreview = 'previewHidden';
-                temp.push(message);
-                lastMessage = message;
-            });
-            this.messages = temp.concat(this.messages);
-        }
-
-        function _scrollToBottom(delay) {
-            var self = this;
-
-            setTimeout(function () {
-                self.scrollTop = self.scrollHeight - self.clientHeight;
-            }, delay);
-        }
-
-        function _isHideMemberElement(lastMessage, newMessage) {
-            if (!lastMessage || !newMessage) {
-                return false;
-            }
-            var lastUserId = lastMessage.UserId;
-            if (!lastUserId) {
-                lastUserId = lastMessage.userId;
-            }
-            var newUserId = newMessage.UserId;
-            if (!newUserId) {
-                newUserId = newMessage.userId;
-            }
-            if (!lastMessage || !lastUserId || !newUserId || !newMessage.updatedAt || !lastMessage.updatedAt) {
-                return false;
-            }
-            if (lastUserId === newUserId &&
-                    new Date(newMessage.updatedAt).getTime() - new Date(lastMessage.updatedAt).getTime() < 60 * 1000) {
-                return true;
-            }
-            return false;
-        }
-
-        function _messageReady(event) {
-            _scrollToBottom.call(this, 100);
-        }
-
-        function _atBottom() {
-            return this.scrollTop === (this.scrollHeight - this.clientHeight);
-        }
-
-        function _messageLoaded(event) {
-            if (this.scrollTop === (this.scrollHeight - this.clientHeight)) {
-                // at the bottom
-                for (var i = this.messages.length - 1; i >= 0; i--) {
-                    if (this.messages[i].guid === event.detail.messageGuid) {
-                        this.messages[i].displayPreview = '';
-                        break;
+                if (this.messages.length < 1) {
+                    return;
+                }
+                if (this.messages[0].id == null) {
+                    return;
+                }
+                var self = this;
+                return $.get(serverUrl + '/api/channels/' + self.channel.id +
+                '/messages?beforeId=' + this.messages[0].id +
+                '&limit=' + this.historyLimit).done(function (messages) {
+                    self.historyOffset += self.historyLimit;
+                    if (messages.length < self.historyLimit) {
+                        self.noMoreHistory = true;
+                        _insertFrontMessages.call(self, messages, true);
                     }
-                }
-                _scrollToBottom.call(this, 0);
-            } else {
-                // not at bottom
-                for (var i = this.messages.length - 1; i >= 0; i--) {
-                    if (this.messages[i].guid === event.detail.messageGuid) {
-                        this.messages[i].displayPreview = '';
-                        break;
-                    }
-                }
+                });
             }
-            //this.scrollToBottom(0);
-        }
 
-        function _sendMessage(msg) {
-            if (this.newMessage) {
-                for (var i = this.messages.length - 1; i >= 0; i--) {
-                    if (!this.messages[i].userId && this.messages[i].text === 'NEW MESSAGES') {
-                        this.messages.splice(i, 1);
-                        this.newMessage = false;
-                        break;
-                    }
-                }
-            }
-            this.messages.push(msg);
-            _scrollToBottom.call(this, 100);
-        }
-
-        function _confirmSended(message) {
-            var self = this;
-            for (var i = self.messages.length - 1; i >= 0; i--) {
-                if (self.messages[i].guid === message.guid) {
-                    self.messages[i] = message;
-                    if (i - 1 >= 0) {
-                        self.messages[i].hideMemberElement =
-                                self.isHideMemberElement(self.messages[i - 1], message);
-                    }
-                    break;
-                }
-            }
-            self.latestChannelMessage[message.channelId] = message.id;
-            // too violence, to trigger latestChannelMessageChanged
-            self.latestChannelMessage = _.clone(self.latestChannelMessage);
-        }
-
-        function _getLastSeenMessages(lastSeenMessageId) {
-            var self = this;
-
-            return $.get(serverUrl + '/api/channels/' + this.channel.id + '/messages?sinceId=' + lastSeenMessageId)
-                    .done(function (messages) {
-                        _insertFrontMessages.call(self, messages, false);
-                        delete self.unread[self.channel.id];
-                    })
-                    .done(function () {
-                        if (self.messages.length > 0) {
-                            var message = {text: 'NEW MESSAGES'};
-                            self.messages.splice(0, 0, message);
-                            self.newMessage = true;
-                            self.fire('message-seen', {
-                                channel: self.channel,
-                                message: self.messages[self.messages.length - 1]
-                            })
+            function _loadHistory(roomId) {
+                var self = this;
+                var unseenMessageId = 0;
+                var beforeOption = '';
+                if (this.messages.length > 0) {
+                    var id = undefined;
+                    this.messages.every(function (msg) {
+                        if (msg.id) {
+                            id = msg.id;
+                            return false;
                         }
+                        return true;
                     });
-        }
+                    if (id) {
+                        beforeOption = '&beforeId=' + id;
+                    }
+                }
 
-        function _receiveMessage(message) {
-            var self = this;
-            if (message.channelId !== '' + self.channel.id) {
-                self.unread[message.channelId] = self.unread[message.channelId] || [];
-                self.unread[message.channelId].push(message.text);
+                return $.get(serverUrl + '/api/channels/' + self.channel.id + '/messages?limit=20' + beforeOption).done(function (messages) {
+                    _insertFrontMessages.call(self, messages, false);
+                    delete self.unread[self.channel.id];
+                    _scrollToBottom.call(self, 100);
+                }).done(function () {
+                    setTimeout(function () {
+                        self.$.infiniteScroll.startObserve();
+                    }, 1000);
+                });
+            }
 
+            function _insertFrontMessages(messages, diableEvent) {
+                var temp = [];
+                var self = this;
+                var lastMessage = null;
+                messages.forEach(function (message) {
+                    message.hideMemberElement = _isHideMemberElement(lastMessage, message);
+                    message.disableEvent = diableEvent;
+                    message.displayPreview = 'previewHidden';
+                    temp.push(message);
+                    lastMessage = message;
+                });
+                this.messages = temp.concat(this.messages);
+            }
+
+            function _scrollToBottom(delay) {
+                var self = this;
+
+                setTimeout(function () {
+                    self.scrollTop = self.scrollHeight - self.clientHeight;
+                }, delay);
+            }
+
+            function _isHideMemberElement(lastMessage, newMessage) {
+                if (!lastMessage || !newMessage) {
+                    return false;
+                }
+                var lastUserId = lastMessage.UserId;
+                if (!lastUserId) {
+                    lastUserId = lastMessage.userId;
+                }
+                var newUserId = newMessage.UserId;
+                if (!newUserId) {
+                    newUserId = newMessage.userId;
+                }
+                if (!lastMessage || !lastUserId || !newUserId || !newMessage.updatedAt || !lastMessage.updatedAt) {
+                    return false;
+                }
+                if (lastUserId === newUserId &&
+                        new Date(newMessage.updatedAt).getTime() - new Date(lastMessage.updatedAt).getTime() < 60 * 1000) {
+                    return true;
+                }
+                return false;
+            }
+
+            function _messageReady(event) {
+                _scrollToBottom.call(this, 100);
+            }
+
+            function _atBottom() {
+                return this.scrollTop === (this.scrollHeight - this.clientHeight);
+            }
+
+            function _messageLoaded(event) {
+                if (this.scrollTop === (this.scrollHeight - this.clientHeight)) {
+                    // at the bottom
+                    for (var i = this.messages.length - 1; i >= 0; i--) {
+                        if (this.messages[i].guid === event.detail.messageGuid) {
+                            this.messages[i].displayPreview = '';
+                            break;
+                        }
+                    }
+                    _scrollToBottom.call(this, 0);
+                } else {
+                    // not at bottom
+                    for (var i = this.messages.length - 1; i >= 0; i--) {
+                        if (this.messages[i].guid === event.detail.messageGuid) {
+                            this.messages[i].displayPreview = '';
+                            break;
+                        }
+                    }
+                }
+                //this.scrollToBottom(0);
+            }
+
+            function _sendMessage(msg) {
+                if (this.newMessage) {
+                    for (var i = this.messages.length - 1; i >= 0; i--) {
+                        if (!this.messages[i].userId && this.messages[i].text === 'NEW MESSAGES') {
+                            this.messages.splice(i, 1);
+                            this.newMessage = false;
+                            break;
+                        }
+                    }
+                }
+                this.messages.push(msg);
+                _scrollToBottom.call(this, 100);
+            }
+
+            function _confirmSended(message) {
+                var self = this;
+                for (var i = self.messages.length - 1; i >= 0; i--) {
+                    if (self.messages[i].guid === message.guid) {
+                        self.messages[i] = message;
+                        if (i - 1 >= 0) {
+                            self.messages[i].hideMemberElement =
+                                    self.isHideMemberElement(self.messages[i - 1], message);
+                        }
+                        break;
+                    }
+                }
                 self.latestChannelMessage[message.channelId] = message.id;
                 // too violence, to trigger latestChannelMessageChanged
                 self.latestChannelMessage = _.clone(self.latestChannelMessage);
-
-                self.fire('message-notify', message);
-                return;
             }
 
-            if (!document.hasFocus()) {
-                self.fire('message-notify', message);
+            function _getLastSeenMessages(lastSeenMessageId) {
+                var self = this;
+
+                return $.get(serverUrl + '/api/channels/' + this.channel.id + '/messages?sinceId=' + lastSeenMessageId)
+                        .done(function (messages) {
+                            _insertFrontMessages.call(self, messages, false);
+                            delete self.unread[self.channel.id];
+                        })
+                        .done(function () {
+                            if (self.messages.length > 0) {
+                                var message = {text: 'NEW MESSAGES'};
+                                self.messages.splice(0, 0, message);
+                                self.newMessage = true;
+                                self.fire('message-seen', {
+                                    channel: self.channel,
+                                    message: self.messages[self.messages.length - 1]
+                                })
+                            }
+                        });
             }
 
-            if (self.messages.length > 0) {
-                message.hideMemberElement =
-                        _isHideMemberElement.call(self, self.messages[self.messages.length - 1], message);
-            }
-            if (self.scrollTop + self.clientHeight === self.scrollHeight) {
-                message.disableEvent = false;
-            } else {
-                self.comingMessage = {
-                    userId: message.userId,
-                    text: message.text
+            function _receiveMessage(message) {
+                var self = this;
+                if (message.channelId !== '' + self.channel.id) {
+                    self.unread[message.channelId] = self.unread[message.channelId] || [];
+                    self.unread[message.channelId].push(message.text);
+
+                    self.latestChannelMessage[message.channelId] = message.id;
+                    // too violence, to trigger latestChannelMessageChanged
+                    self.latestChannelMessage = _.clone(self.latestChannelMessage);
+
+                    self.fire('message-notify', message);
+                    return;
                 }
-                message.disableEvent = true;
-                self.$.comingMessageToast.show();
+
+                if (!document.hasFocus()) {
+                    self.fire('message-notify', message);
+                }
+
+                if (self.messages.length > 0) {
+                    message.hideMemberElement =
+                            _isHideMemberElement.call(self, self.messages[self.messages.length - 1], message);
+                }
+                if (self.scrollTop + self.clientHeight === self.scrollHeight) {
+                    message.disableEvent = false;
+                } else {
+                    self.comingMessage = {
+                        userId: message.userId,
+                        text: message.text
+                    }
+                    message.disableEvent = true;
+                    self.$.comingMessageToast.show();
+                }
+                message.displayPreview = 'previewHidden';
+                self.messages.push(message);
+
+                self.fire('message-seen', {
+                    channel: self.channel,
+                    message: self.messages[self.messages.length - 1]
+                })
             }
-            message.displayPreview = 'previewHidden';
-            self.messages.push(message);
-
-            self.fire('message-seen', {
-                channel: self.channel,
-                message: self.messages[self.messages.length - 1]
-            })
-        }
-
+        })();
     </script>
 
 </polymer-element>

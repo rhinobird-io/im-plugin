@@ -76,77 +76,79 @@
     </template>
     <script>
 
+        (function(){
+            Polymer('im-channels', {
+                publish : {
+                    showMemberList : false,
+                    removable: false
+                },
 
-        Polymer('im-channels', {
-            publish : {
-                showMemberList : false,
-                removable: false
-            },
+                memberDialogStyle: {
+                    width: '300px'
+                },
 
-            memberDialogStyle: {
-                width: '300px'
-            },
+                ready: function() {
 
-            ready: function() {
+                },
 
-            },
+                domReady: function() {
+                },
 
-            domReady: function() {
-            },
-
-            showTeamMemberDialog: function (event, detail, target) {
-                target.querySelector('paper-dialog') && target.querySelector('paper-dialog').open();
-            }
-            ,
-
-            hideTeamMemberDialog: function (event, detail, target) {
-                if (event.relatedTarget && event.relatedTarget.parentElement !== target) {
-                    target.close();
+                showTeamMemberDialog: function (event, detail, target) {
+                    target.querySelector('paper-dialog') && target.querySelector('paper-dialog').open();
                 }
-            }
-            ,
+                ,
 
-            positionTeamMemberDialog: function (event, detail, target) {
-                target.dimensions.position = {v: 'top', h: 'left'};
-
-                var rect = target.parentElement.getBoundingClientRect();
-                target.style.top = '' + rect.top + 'px';
-                target.style.left = '' + (rect.left - parseInt(this.memberDialogStyle.width) - 20 ) + 'px';
-            }
-            ,
-
-            handleChannelSelect : function(event, detail, target) {
-                this.fire('channel-select', target.templateInstance.model.g);
-            }
-            ,
-
-            talkDirect: function(event, detail, target) {
-                // use blur instead?
-                target.parentElement.close();
-                this.fire('channel-select', target.templateInstance.model.directMessageChannel);
-            },
-
-            sort: function (event) {
-                var latestChannelMessages = event.detail;
-                function _sort(channels) {
-                    return _.sortBy(channels, function (channel) {
-                        var latestChannelMessage = latestChannelMessages['' + channel.id];
-                        if (latestChannelMessage) {
-                            return ''+((1<<30) - latestChannelMessages['' + channel.id]);
-                        } else {
-                            return channel.name;
-                        }
-                    });
+                hideTeamMemberDialog: function (event, detail, target) {
+                    if (event.relatedTarget && event.relatedTarget.parentElement !== target) {
+                        target.close();
+                    }
                 }
-                this.channels = _sort(this.channels);
-                this.$.groupChannel.removeAttribute('unsorted');
-            },
+                ,
 
-            fireChannelRemoveEvent: function(event, detail, target){
-                this.fire('channel-remove', target.templateInstance.model.g);
-            }
+                positionTeamMemberDialog: function (event, detail, target) {
+                    target.dimensions.position = {v: 'top', h: 'left'};
 
-        });
+                    var rect = target.parentElement.getBoundingClientRect();
+                    target.style.top = '' + rect.top + 'px';
+                    target.style.left = '' + (rect.left - parseInt(this.memberDialogStyle.width) - 20 ) + 'px';
+                }
+                ,
+
+                handleChannelSelect : function(event, detail, target) {
+                    this.fire('channel-select', target.templateInstance.model.g);
+                }
+                ,
+
+                talkDirect: function(event, detail, target) {
+                    // use blur instead?
+                    target.parentElement.close();
+                    this.fire('channel-select', target.templateInstance.model.directMessageChannel);
+                },
+
+                sort: function (event) {
+                    var latestChannelMessages = event.detail;
+                    function _sort(channels) {
+                        return _.sortBy(channels, function (channel) {
+                            var latestChannelMessage = latestChannelMessages['' + channel.id];
+                            if (latestChannelMessage) {
+                                return ''+((1<<30) - latestChannelMessages['' + channel.id]);
+                            } else {
+                                return channel.name;
+                            }
+                        });
+                    }
+                    this.channels = _sort(this.channels);
+                    this.$.groupChannel.removeAttribute('unsorted');
+                },
+
+                fireChannelRemoveEvent: function(event, detail, target){
+                    this.fire('channel-remove', target.templateInstance.model.g);
+                }
+
+            });
+        })();
+
     </script>
 
 </polymer-element>
