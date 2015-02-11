@@ -1,5 +1,6 @@
 <link rel="import" href="/platform/bower_components/polymer/polymer.html">
 <link rel="import" href="/platform/bower_components/core-style/core-style.html">
+<link rel="import" href="/platform/bower_components/paper-toast/paper-toast.html">
 <link rel="import" href="/platform/elements/member-select/member-element.html">
 <link rel="import" href="/platform/elements/app-globals/app-globals.html">
 
@@ -15,7 +16,6 @@
 channel is useful
 
 -->
-
 <polymer-element name="im-history" extends="div" attributes="channel">
 
     <template>
@@ -151,8 +151,6 @@ channel is useful
 
                 return $.get(serverUrl + '/api/channels/' + self.channel.id + '/messages?limit=20' + beforeOption).done(function (messages) {
                     _insertFrontMessages.call(self, messages, false);
-//                    delete self.unread[self.channel.id];
-//                    this.fire('core-signal', {})
                     _scrollToBottom.call(self, 100);
                 }).done(function () {
                     setTimeout(function () {
@@ -209,7 +207,7 @@ channel is useful
 
             function _messageReady(event) {
                 var self = this;
-                if (this.scrollTop === (this.scrollHeight - this.clientHeight)) {
+                if (_atBottom.call(self)) {
                     _scrollToBottom.call(self, 100);
                 }
             }
@@ -219,7 +217,7 @@ channel is useful
             }
 
             function _messageLoaded(event) {
-                if (this.scrollTop === (this.scrollHeight - this.clientHeight)) {
+                if (_atBottom.call(this)) {
                     // at the bottom
                     for (var i = this.messages.length - 1; i >= 0; i--) {
                         if (this.messages[i].guid === event.detail.messageGuid) {
@@ -273,7 +271,6 @@ channel is useful
                 return $.get(serverUrl + '/api/channels/' + this.channel.id + '/messages?sinceId=' + lastSeenMessageId)
                         .done(function (messages) {
                             _insertFrontMessages.call(self, messages, false);
-                            //delete self.unread[self.channel.id];
                         })
                         .done(function () {
                             if (self.messages.length > 0) {
@@ -295,13 +292,13 @@ channel is useful
                     message.hideMemberElement =
                             _isHideMemberElement.call(self, self.messages[self.messages.length - 1], message);
                 }
-                if (self.scrollTop + self.clientHeight === self.scrollHeight) {
+                if (_atBottom.call(self)) {
                     message.disableEvent = false;
                 } else {
                     self.comingMessage = {
                         userId: message.userId,
                         text: message.text
-                    }
+                    };
                     message.disableEvent = true;
                     self.$.comingMessageToast.show();
                 }

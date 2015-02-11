@@ -1,6 +1,9 @@
 <link rel="import" href="/platform/bower_components/polymer/polymer.html">
 <link rel="import" href="/platform/bower_components/core-style/core-style.html">
-<link rel="import" href="/platform/bower_components/core-signals/core-signals.html">
+<link rel="import" href="/platform/bower_components/paper-dialog/paper-action-dialog.html">
+<link rel="import" href="/platform/bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="/platform/bower_components/paper-item/paper-item.html">
+
 <link rel="import" href="/platform/elements/member-select/member-select.html">
 <link rel="import" href="/platform/elements/app-globals/app-globals.html">
 <link rel="import" href="im-channnels.html">
@@ -543,28 +546,6 @@ channelName, current channel name , it is useful
                 }
 
                 // tell the imHistory that: it's yours
-//
-//                if (self.messages.length > 0) {
-//                    message.hideMemberElement =
-//                            _isHideMemberElement.call(self, self.messages[self.messages.length - 1], message);
-//                }
-//                if (self.scrollTop + self.clientHeight === self.scrollHeight) {
-//                    message.disableEvent = false;
-//                } else {
-//                    self.comingMessage = {
-//                        userId: message.userId,
-//                        text: message.text
-//                    }
-//                    message.disableEvent = true;
-//                    self.$.comingMessageToast.show();
-//                }
-//                message.displayPreview = 'previewHidden';
-//                self.messages.push(message);
-//
-//                self.fire('message-seen', {
-//                    channel: self.channel,
-//                    message: self.messages[self.messages.length - 1]
-//                })
             }
 
             function _confirmedSendMessage(message) {
