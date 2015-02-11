@@ -28,7 +28,7 @@ channel is useful
             }
 
         </style>
-        <div>
+        <div flex>
             <event-infinite-scroll id="infiniteScroll" readyOnStart="false" scrollDenominator="2"
                                    loadingDelay="50"
                                    on-reach-top="{{reachedTop}}"></event-infinite-scroll>
@@ -113,6 +113,7 @@ channel is useful
 
             function _reachedTop(event) {
                 var historyLimit = 10;
+
                 if (this.noMoreHistory) {
                     return;
                 }
@@ -126,11 +127,10 @@ channel is useful
                 return $.get(serverUrl + '/api/channels/' + self.channel.id +
                 '/messages?beforeId=' + this.messages[0].id +
                 '&limit=' + historyLimit).done(function (messages) {
-                    self.historyOffset += historyLimit;
                     if (messages.length < historyLimit) {
                         self.noMoreHistory = true;
                     }
-                    _insertFrontMessages.call(self, messages, true);
+                    _insertFrontMessages.call(self, messages, false);
                 });
             }
 
@@ -187,6 +187,7 @@ channel is useful
             }
 
             function _isHideMemberElement(lastMessage, newMessage) {
+
                 if (!lastMessage || !newMessage) {
                     return false;
                 }
@@ -206,6 +207,7 @@ channel is useful
                     return true;
                 }
                 return false;
+
             }
 
             function _messageReady(event) {
