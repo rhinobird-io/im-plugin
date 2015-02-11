@@ -30,6 +30,7 @@
 <link rel="import" href="../event-infinite-scroll/event-infinite-scroll.html">
 <link rel="import" href="../imchannels/im-channels-mixed.html">
 <link rel="import" href="../imhistory/im-history.html">
+<link rel="import" href="../imforbidden/im-forbidden.html">
 
 <polymer-element name="instant-message" attributes="channelName">
     <template>
@@ -54,11 +55,8 @@
                         <p>{{connectinStatus}}</p>
                     </paper-action-dialog>
 
-                    <div id="forbiddenDiv" hidden main four flex horizontal layout center center-justified>
-                        <div style="font-size: 3em; font-weight: bold;">
-                            You are not allowed to access this channel
-                        </div>
-                    </div>
+                    <div id="imForbidden" is="im-forbidden" hidden main four flex horizontal layout center center-justified></div>
+
                     <div id="historyAndInput" main four flex vertical layout class="mainBgColor">
 
                         <div id="imHistory" is="im-history" flex channel="{{$.imChannels.channel}}"

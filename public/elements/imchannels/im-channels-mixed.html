@@ -1,16 +1,13 @@
 <link rel="import" href="/platform/bower_components/polymer/polymer.html">
 <link rel="import" href="/platform/bower_components/core-style/core-style.html">
 <link rel="import" href="/platform/bower_components/core-signals/core-signals.html">
-<link rel="import" href="/platform/home-container.html">
-<link rel="import" href="/platform/elements/member-select/member-element.html">
 <link rel="import" href="/platform/elements/member-select/member-select.html">
 <link rel="import" href="/platform/elements/app-globals/app-globals.html">
 <link rel="import" href="im-channnels.html">
 
-
-
 <script src="../../bower_components/async/lib/async.js"></script>
 <script src="../../bower_components/lodash/dist/lodash.min.js"></script>
+<script src="../../bower_components/jquery/dist/jquery.min.js"></script>
 
 <link rel="import" href="/platform/elements/app-globals/app-globals.html">
 
@@ -293,7 +290,8 @@ channelName, current channel name , it is useful
 
             });
 
-            function _initImChannels(callback){
+            function _initImChannels(){
+                var deferred = $.Deferred();
                 var self = this;
                 self.currentUser = self.$.globals.values.currentUser;
                 async.waterfall([
@@ -301,15 +299,21 @@ channelName, current channel name , it is useful
                     _initDefaultChannel.bind(self),
                     _initTeamMemberChannels.bind(self),
                     _initPrivateChannels.bind(self),
-                    _initCurrentChannel.bind(self),
-                    _initLatestMessage.bind(self)
-
+                    _initLatestMessage.bind(self),
+                    _initCurrentChannel.bind(self)
                 ], function (err, result) {
                     if (err) {
                         console.log('Error : ' + err);
+                        deferred.resolve({
+                            status : err
+                        });
                     }
-                    callback();
+                    deferred.resolve({
+                        status : 200
+                    });
+
                 });
+                return deferred;
             }
 
 
@@ -419,7 +423,6 @@ channelName, current channel name , it is useful
 
             function _initCurrentChannel(callback) {
                 var self = this;
-                var channelNameMappedId = -1;
                 if (('' + self.channelName).indexOf('@') === 0) {
                     var name = self.channelName.substr(1);
                     self.teamMemberChannels.every(function (teamMemberChannel) {
@@ -510,6 +513,7 @@ channelName, current channel name , it is useful
                         document.querySelector('app-router').go('/' + pluginName + '/channels/' + hash);
                     }
                 }
+
                 setTimeout(function () {
                     notification.close();
                 }, 3000);

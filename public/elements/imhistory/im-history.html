@@ -63,6 +63,7 @@ latestChannelMessage is to tell which msg I have seen, this should also be impl 
                 messages: [],
                 newMessage: false,
                 ready: function () {
+                    this.init = _initImHistory;
                     this.reachedTop = _reachedTop;
                     this.loadHistory = _loadHistory;
                     this.isHideMemberElement = _isHideMemberElement;
@@ -74,12 +75,12 @@ latestChannelMessage is to tell which msg I have seen, this should also be impl 
                     this.getLastSeenMessages = _getLastSeenMessages;
                     this.scrollToBottom = _scrollToBottom;
                     this.atBottom = _atBottom;
-                    this.init = _initImHistory;
                 }
 
             });
 
-            function _initImHistory(callback) {
+            function _initImHistory() {
+                var deferred = $.Deferred();
                 var self = this;
                 async.waterfall([
                     function(callback){
@@ -104,8 +105,12 @@ latestChannelMessage is to tell which msg I have seen, this should also be impl 
                     }
 
                 ], function(err) {
-                    callback(err);
+                    deferred.resolve({
+                        status : 200,
+                        error : err
+                    })
                 });
+                return deferred;
             }
 
             var historyLimit = 10;

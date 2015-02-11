@@ -1,0 +1,27 @@
+<link rel="import" href="/platform/bower_components/polymer/polymer.html">
+
+<polymer-element name="im-forbidden" extends="div" >
+    <template>
+        <style>
+        </style>
+        <div style="font-size: 3em; font-weight: bold;">
+            You are not allowed to access this channel
+        </div>
+    </template>
+    <script>
+        (function(){
+            Polymer('im-forbidden', {
+
+                open : function(){
+                    this.hidden = false;
+                }
+                ,
+                close : function(){
+                    this.hidden = true;
+                }
+            });
+        })();
+
+    </script>
+
+</polymer-element>
