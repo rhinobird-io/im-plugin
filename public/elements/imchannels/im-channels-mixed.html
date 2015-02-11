@@ -485,7 +485,7 @@ channelName, current channel name , it is useful
                     return;
                 }
                 var notification = new Notification("New Message from " +
-                this.$.globals.values.memberCache[userId].username, {
+                this.$.globals.values.memberCache[userId].realname, {
                     body: content,
                     icon: self.$.globals.values.memberCache[userId].url + "?d=identicon"
                 });

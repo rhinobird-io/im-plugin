@@ -23,9 +23,6 @@ var validateTimeout = undefined;
         users: [], // the users in this room
 
         ready: function () {
-            // TODO why??????
-
-
             var self = this;
             if (!Notification) {
                 alert('Please use a modern version of Chrome');
@@ -206,18 +203,8 @@ var validateTimeout = undefined;
         }
         ,
 
-        keyDown: function (event, detail, target) {
-            target.atBottom = this.$.imHistory.atBottom();
-        }
-        ,
         inputChanging: function (event, detail, target) {
-            var history = this.$.imHistory;
             this.$.informationButton.style.height = this.$.textInput.clientHeight + 'px';
-
-            // if already bottom
-            if (target.atBottom) {
-                history.scrollTop = history.scrollHeight;
-            }
         }
         ,
 
@@ -258,12 +245,10 @@ var validateTimeout = undefined;
                 {userId: self.currentUser.id, messageId: message.id, channelId: channel.id});
         },
 
-
         togglePanel: function () {
             this.$.drawerPanel.togglePanel();
         },
 
-        roomId: '',
         codeSnippetExample: "```c++\nint main(){\n    printf(\"helloworld\");\n    return 0;\n}\n```"
     });
 
