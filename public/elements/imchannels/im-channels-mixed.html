@@ -23,6 +23,7 @@ channelName, current channel name , it is useful
             :host {
                 display: block;
             }
+
             h3 {
                 font-size: 20px;
                 padding: 20px;
@@ -34,7 +35,8 @@ channelName, current channel name , it is useful
         <core-style ref="theme"></core-style>
 
         <paper-action-dialog id="addPrivateChannelDialog" heading="Add Private Channel" backdrop autoCloseDisabled
-                             closeSelector="#cancelBtn" style="width: 70%; height: 70%;"  on-core-overlay-position="{{ positionCenter }}">
+                             closeSelector="#cancelBtn" style="width: 70%; height: 70%;"
+                             on-core-overlay-position="{{ positionCenter }}">
             <paper-input-decorator id="privateChannelNameInput" label="Channel Name" floatingLabel autoValidate
                                    style="width: 100%;" error="{{newPrivateChannel.error.msg}}">
                 <input is="core-input" required value="{{newPrivateChannel.name}}">
@@ -54,7 +56,7 @@ channelName, current channel name , it is useful
         </paper-action-dialog>
 
         <div id="groupImChannels" is="im-channels" channels="{{publicChannels}}" unread="{{unread}}"
-             currentChannel="{{channel}}" showMemberList >
+             currentChannel="{{channel}}" showMemberList>
             <div class="title">
                 <h3 class="secondColor">Group Channel</h3>
             </div>
@@ -82,7 +84,7 @@ channelName, current channel name , it is useful
         </div>
     </template>
     <script>
-        (function(){
+        (function () {
             Polymer('im-channels-mixed', {
                 /**
                  * from platform, get all teams the current user belongs to
@@ -108,7 +110,7 @@ channelName, current channel name , it is useful
 
                 latestChannelMessage: {},
 
-                unread : {},
+                unread: {},
 
                 newPrivateChannel: {
                     init: function () {
@@ -122,7 +124,7 @@ channelName, current channel name , it is useful
                     teams: []
                 },
 
-                domReady : function(){
+                domReady: function () {
                     this.router = document.querySelector('app-router');
                     this.imGlobal = this.$.globals.values.im;
                     this.receiveMessage = _receiveMessage;
@@ -130,13 +132,13 @@ channelName, current channel name , it is useful
                     this.init = _initImChannels;
                 },
 
-                latestChannelMessageChanged : function(oldValue, newValue) {
+                latestChannelMessageChanged: function (oldValue, newValue) {
                     if (oldValue) {
-                        this.fire('core-signal', {name:'sort', data:newValue});
+                        this.fire('core-signal', {name: 'sort', data: newValue});
                     }
                 },
 
-                handleChannelRemove : function(event) {
+                handleChannelRemove: function (event) {
                     this.removedPrivateChannel = event.detail;
                     this.$.removePrivateChannelDialog.open();
                 },
@@ -182,7 +184,7 @@ channelName, current channel name , it is useful
                         },
 
                         function (cb) {
-                            self.newPrivateChannel.id = self.guid();
+                            self.newPrivateChannel.id = _guid.call(self);
                             $.post(serverUrl + '/api/channels', self.newPrivateChannel).done(function (channel) {
                                 cb(null, channel);
                             }).fail(function (err) {
@@ -200,7 +202,7 @@ channelName, current channel name , it is useful
                          * @param cb
                          * @param channel
                          */
-                         function (channel, cb) {
+                                function (channel, cb) {
                             $.get(serverUrl + '/api/channels/' + channel.id + '/users').done(function (users) {
                                 cb(null, channel, users);
                             })
@@ -213,19 +215,19 @@ channelName, current channel name , it is useful
                          * @param users the users in this channel
                          */
                                 function (channel, users, cb) {
-                            self.socket.emit('channel:created', {
+                            self.fire('channel-created', {
                                 channel: channel,
                                 users: users,
                                 userId: self.currentUser.id
-                            }, function () {
-                                cb(null, channel);
                             });
+                            cb(null, channel);
                         }
                     ], function (err, channel) {
                         if (!err) {
                             self.$.addPrivateChannelDialog.close();
                             self.newPrivateChannel.init();
-                            self.router.go('/' + self.pluginName + '/channels/' + channel.name);
+                            var pluginName = self.imGlobal.pluginName;
+                            self.router.go('/' + pluginName + '/channels/' + channel.name);
                         } else {
                             console.log('error during creating private channel : ' + err);
                         }
@@ -264,11 +266,18 @@ channelName, current channel name , it is useful
                     'newPrivateChannel.name': 'validatePrivateChannelName'
                 },
 
-                positionCenter : function(event) {
+                positionCenter: function (event) {
                     debugger;
                 }
 
             });
+
+            function _guid() {
+                return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                    return v.toString(16);
+                });
+            }
 
             function _getUniqueTeamMemberChannel(array) {
                 var u = {}, uArray = [];
@@ -289,9 +298,9 @@ channelName, current channel name , it is useful
                 var minId = id1 < id2 ? id1 : id2;
                 var maxId = id1 < id2 ? id2 : id1;
                 return '' + minId + ':' + maxId;
-            },
+            }
 
-            function _initImChannels(){
+            function _initImChannels() {
                 var deferred = $.Deferred();
                 var self = this;
                 self.currentUser = self.$.globals.values.currentUser;
@@ -306,11 +315,11 @@ channelName, current channel name , it is useful
                     if (err) {
                         console.log('Error : ' + err);
                         deferred.resolve({
-                            status : err
+                            status: err
                         });
                     }
                     deferred.resolve({
-                        status : 200
+                        status: 200
                     });
 
                 });
@@ -367,7 +376,7 @@ channelName, current channel name , it is useful
                                         users.forEach(function (user) {
                                             if (user.id !== self.currentUser.id) {
                                                 var channel = {
-                                                    id: _getTeamMemberChannelId.call(self,self.currentUser.id, user.id),
+                                                    id: _getTeamMemberChannelId.call(self, self.currentUser.id, user.id),
                                                     name: user.realname,
                                                     hash: '@' + user.realname,
                                                     isPrivate: true,
@@ -492,19 +501,19 @@ channelName, current channel name , it is useful
                 });
 
                 var hash = "";
-                this.publicChannels.every(function(channel) {
+                this.publicChannels.every(function (channel) {
                     if (('' + channel.id) === channelId) {
                         hash = channel.hash;
                         return false;
                     }
                     return true;
-                }) || this.privateChannels.every(function(channel) {
+                }) || this.privateChannels.every(function (channel) {
                     if (('' + channel.id) === channelId) {
                         hash = channel.hash;
                         return false;
                     }
                     return true;
-                }) || this.teamMemberChannels.every(function(channel) {
+                }) || this.teamMemberChannels.every(function (channel) {
                     if (('' + channel.id) === channelId) {
                         hash = channel.hash;
                         return false;

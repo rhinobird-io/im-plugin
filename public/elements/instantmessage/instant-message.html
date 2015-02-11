@@ -74,7 +74,8 @@
                     </div>
 
                     <div id='imPanel' drawer>
-                        <div id="imChannels" is="im-channels-mixed" channelName="{{channelName}}" vertical layout></div>
+                        <div id="imChannels" is="im-channels-mixed" channelName="{{channelName}}"
+                             on-channel-created="{{handleChannelCreated}}"vertical layout></div>
                     </div>
 
                 </core-drawer-panel>

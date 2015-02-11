@@ -152,8 +152,9 @@ var validateTimeout = undefined;
             });
 
             this.socket.on('channel:created', function (channel) {
-                (self.loadPrivateChannels.bind(self))(function () {
-                });
+                self.$.imChannels.init();
+                //(self.loadPrivateChannels.bind(self))(function () {
+                //});
             });
 
             this.socket.on('user:dead', function (data) {
@@ -243,6 +244,16 @@ var validateTimeout = undefined;
             var message = event.detail.message;
             this.socket.emit('message:seen',
                 {userId: self.currentUser.id, messageId: message.id, channelId: channel.id});
+        },
+
+        handleChannelCreated: function (event) {
+            var self = this;
+            var channel = event.detail.channel;
+            self.socket.emit('channel:created', {
+                channel: event.detail.channel,
+                users: event.detail.users,
+                userId: event.detail.userId
+            });
         },
 
         togglePanel: function () {
