@@ -125,32 +125,9 @@ channelName, current channel name , it is useful
                 domReady : function(){
                     this.router = document.querySelector('app-router');
                     this.imGlobal = this.$.globals.values.im;
-
-                    this.showNotification = _showNotification;
                     this.receiveMessage = _receiveMessage;
                     this.confirmSended = _confirmedSendMessage;
                     this.init = _initImChannels;
-                },
-
-                getTeamMemberChannelId: function (id1, id2) {
-                    if (!(id1 && id2)) {
-                        throw 'both id1 and id2 should not be empty';
-                    }
-                    var minId = id1 < id2 ? id1 : id2;
-                    var maxId = id1 < id2 ? id2 : id1;
-                    return '' + minId + ':' + maxId;
-                },
-
-                getUniqueTeamMemberChannel: function (array) {
-                    var u = {}, uArray = [];
-                    for (var i = array.length - 1; i >= 0; i--) {
-                        if (u.hasOwnProperty(array[i].id)) {
-                            continue;
-                        }
-                        uArray.push(array[i]);
-                        u[array[i].id] = 1;
-                    }
-                    return uArray;
                 },
 
                 latestChannelMessageChanged : function(oldValue, newValue) {
@@ -293,6 +270,27 @@ channelName, current channel name , it is useful
 
             });
 
+            function _getUniqueTeamMemberChannel(array) {
+                var u = {}, uArray = [];
+                for (var i = array.length - 1; i >= 0; i--) {
+                    if (u.hasOwnProperty(array[i].id)) {
+                        continue;
+                    }
+                    uArray.push(array[i]);
+                    u[array[i].id] = 1;
+                }
+                return uArray;
+            }
+
+            function _getTeamMemberChannelId(id1, id2) {
+                if (!(id1 && id2)) {
+                    throw 'both id1 and id2 should not be empty';
+                }
+                var minId = id1 < id2 ? id1 : id2;
+                var maxId = id1 < id2 ? id2 : id1;
+                return '' + minId + ':' + maxId;
+            },
+
             function _initImChannels(){
                 var deferred = $.Deferred();
                 var self = this;
@@ -369,7 +367,7 @@ channelName, current channel name , it is useful
                                         users.forEach(function (user) {
                                             if (user.id !== self.currentUser.id) {
                                                 var channel = {
-                                                    id: self.getTeamMemberChannelId(self.currentUser.id, user.id),
+                                                    id: _getTeamMemberChannelId.call(self,self.currentUser.id, user.id),
                                                     name: user.realname,
                                                     hash: '@' + user.realname,
                                                     isPrivate: true,
@@ -383,7 +381,7 @@ channelName, current channel name , it is useful
                                     });
                         }, function (err) {
                             if (!err) {
-                                self.teamMemberChannels = self.getUniqueTeamMemberChannel(teamMemberChannels);
+                                self.teamMemberChannels = _getUniqueTeamMemberChannel.call(self, teamMemberChannels);
                                 callback(null);
                             }
                         });
