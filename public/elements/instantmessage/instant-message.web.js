@@ -24,7 +24,7 @@ var validateTimeout = undefined;
 
         ready: function () {
             // TODO why??????
-            this.$.imHistory.scrollToBottom(100);
+
 
             var self = this;
             if (!Notification) {

@@ -64,15 +64,11 @@ channel is useful
                     this.init = _initImHistory;
                     this.reachedTop = _reachedTop;
                     this.loadHistory = _loadHistory;
-                    this.isHideMemberElement = _isHideMemberElement;
                     this.messageReady = _messageReady;
                     this.messageLoaded = _messageLoaded;
                     this.sendMessage = _sendMessage;
                     this.receiveMyMessage = _receiveMyMessage;
                     this.confirmSended = _confirmSended;
-                    this.getLastSeenMessages = _getLastSeenMessages;
-                    this.scrollToBottom = _scrollToBottom;
-                    this.atBottom = _atBottom;
                 }
 
             });
@@ -80,6 +76,7 @@ channel is useful
             function _initImHistory() {
                 var deferred = $.Deferred();
                 var self = this;
+                _scrollToBottom.call(self, 100);
                 async.waterfall([
                     function (callback) {
                         $.get(serverUrl + '/api/channels/' + self.channel.id + '/messages/lastSeen')
@@ -211,9 +208,9 @@ channel is useful
             }
 
             function _messageReady(event) {
-                //_scrollToBottom.call(this, 100);
+                var self = this;
                 if (this.scrollTop === (this.scrollHeight - this.clientHeight)) {
-                    this.scrollToBottom(100);
+                    _scrollToBottom.call(self, 100);
                 }
             }
 
@@ -240,7 +237,6 @@ channel is useful
                         }
                     }
                 }
-                //this.scrollToBottom(0);
             }
 
             function _sendMessage(msg) {
@@ -264,7 +260,7 @@ channel is useful
                         self.messages[i] = message;
                         if (i - 1 >= 0) {
                             self.messages[i].hideMemberElement =
-                                    self.isHideMemberElement(self.messages[i - 1], message);
+                                    _isHideMemberElement.call(self, self.messages[i - 1], message);
                         }
                         break;
                     }
