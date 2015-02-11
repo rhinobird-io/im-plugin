@@ -9,8 +9,6 @@
 <script src="../../bower_components/lodash/dist/lodash.min.js"></script>
 <script src="../../bower_components/jquery/dist/jquery.min.js"></script>
 
-<link rel="import" href="/platform/elements/app-globals/app-globals.html">
-
 <!--
 channelName, current channel name , it is useful
 -->
@@ -126,6 +124,8 @@ channelName, current channel name , it is useful
                     this.imGlobal = this.$.globals.values.im;
 
                     this.showNotification = _showNotification;
+                    this.receiveMessage = _receiveMessage;
+                    this.confirmSended = _confirmedSendMessage;
                     this.init = _initImChannels;
                 },
 
@@ -220,7 +220,7 @@ channelName, current channel name , it is useful
                          * @param cb
                          * @param channel
                          */
-                                function (channel, cb) {
+                         function (channel, cb) {
                             $.get(serverUrl + '/api/channels/' + channel.id + '/users').done(function (users) {
                                 cb(null, channel, users);
                             })
@@ -453,8 +453,13 @@ channelName, current channel name , it is useful
                     callback(403);
                 } else {
                     self.$.globals.values.currentChannel = self.channel;
+                    _clearUnread.call(self, self.channel.id);
                     callback();
                 }
+            }
+
+            function _clearUnread(channelId) {
+                delete this.unread[channelId];
             }
 
 
@@ -517,6 +522,56 @@ channelName, current channel name , it is useful
                 setTimeout(function () {
                     notification.close();
                 }, 3000);
+            }
+
+            function _receiveMessage(message) {
+                var self = this;
+                if (message.channelId !== '' + self.channel.id) {
+                    self.unread[message.channelId] = self.unread[message.channelId] || [];
+                    self.unread[message.channelId].push(message.text);
+
+                    self.latestChannelMessage[message.channelId] = message.id;
+                    // too violence, to trigger latestChannelMessageChanged
+                    self.latestChannelMessage = _.clone(self.latestChannelMessage);
+
+                    _showNotification.call(self, message.userId, message.text, message.channelId);
+                    return;
+                }
+
+                if (!document.hasFocus()) {
+                    _showNotification.call(self, message.userId, message.text, message.channelId);
+                }
+
+                // tell the imHistory that: it's yours
+//
+//                if (self.messages.length > 0) {
+//                    message.hideMemberElement =
+//                            _isHideMemberElement.call(self, self.messages[self.messages.length - 1], message);
+//                }
+//                if (self.scrollTop + self.clientHeight === self.scrollHeight) {
+//                    message.disableEvent = false;
+//                } else {
+//                    self.comingMessage = {
+//                        userId: message.userId,
+//                        text: message.text
+//                    }
+//                    message.disableEvent = true;
+//                    self.$.comingMessageToast.show();
+//                }
+//                message.displayPreview = 'previewHidden';
+//                self.messages.push(message);
+//
+//                self.fire('message-seen', {
+//                    channel: self.channel,
+//                    message: self.messages[self.messages.length - 1]
+//                })
+            }
+
+            function _confirmedSendMessage(message) {
+                var self = this;
+                self.latestChannelMessage[message.channelId] = message.id;
+                // too violence, to trigger latestChannelMessageChanged
+                self.latestChannelMessage = _.clone(self.latestChannelMessage);
             }
         })();
 

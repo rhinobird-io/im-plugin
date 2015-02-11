@@ -1,9 +1,6 @@
 <link rel="import" href="/platform/bower_components/polymer/polymer.html">
 <link rel="import" href="/platform/bower_components/core-style/core-style.html">
-<link rel="import" href="/platform/bower_components/core-signals/core-signals.html">
-<link rel="import" href="/platform/home-container.html">
 <link rel="import" href="/platform/elements/member-select/member-element.html">
-<link rel="import" href="/platform/elements/member-select/member-select.html">
 <link rel="import" href="/platform/elements/app-globals/app-globals.html">
 
 
@@ -13,17 +10,13 @@
 <script src="../../bower_components/async/lib/async.js"></script>
 <script src="../../bower_components/lodash/dist/lodash.min.js"></script>
 
-<link rel="import" href="/platform/elements/app-globals/app-globals.html">
-
 <!--
 
 channel is useful
-unread now is used for deleting, when I see it, I delete it, but this logic should be impl in imChannels
-latestChannelMessage is to tell which msg I have seen, this should also be impl by imChannels
 
 -->
 
-<polymer-element name="im-history" extends="div" attributes="channel unread latestChannelMessage">
+<polymer-element name="im-history" extends="div" attributes="channel">
 
     <template>
         <app-globals id="globals"></app-globals>
@@ -35,20 +28,23 @@ latestChannelMessage is to tell which msg I have seen, this should also be impl 
             }
 
         </style>
-        <event-infinite-scroll id="infiniteScroll" readyOnStart="false" scrollDenominator="2"
-                               loadingDelay="50"
-                               on-reach-top="{{reachedTop}}"></event-infinite-scroll>
-        <template repeat="{{m in messages}}">
-            <display-message user="{{m.userId}}" text="{{m.text}}"
-                             on-messageloaded="{{messageLoaded}}"
-                             messageStatus="{{m.messageStatus}}"
-                             updatedAt="{{m.updatedAt}}"
-                             disableEvent="{{m.disableEvent}}"
-                             hideMemberElement="{{m.hideMemberElement}}"
-                             messageGuid="{{m.guid}}"
-                             previewHidden="{{m.displayPreview}}"
-                             on-ready="{{messageReady}}"></display-message>
-        </template>
+        <div>
+            <event-infinite-scroll id="infiniteScroll" readyOnStart="false" scrollDenominator="2"
+                                   loadingDelay="50"
+                                   on-reach-top="{{reachedTop}}"></event-infinite-scroll>
+            <template repeat="{{m in messages}}">
+                <display-message user="{{m.userId}}" text="{{m.text}}"
+                                 on-messageloaded="{{messageLoaded}}"
+                                 messageStatus="{{m.messageStatus}}"
+                                 updatedAt="{{m.updatedAt}}"
+                                 disableEvent="{{m.disableEvent}}"
+                                 hideMemberElement="{{m.hideMemberElement}}"
+                                 messageGuid="{{m.guid}}"
+                                 previewHidden="{{m.displayPreview}}"
+                                 on-ready="{{messageReady}}"></display-message>
+            </template>
+        </div>
+
 
         <div>
             <paper-toast id="comingMessageToast" text="New Message">
@@ -58,10 +54,12 @@ latestChannelMessage is to tell which msg I have seen, this should also be impl 
         </div>
     </template>
     <script>
-        (function(){
+        (function () {
             Polymer('im-history', {
                 messages: [],
                 newMessage: false,
+                noMoreHistory: false,
+
                 ready: function () {
                     this.init = _initImHistory;
                     this.reachedTop = _reachedTop;
@@ -70,7 +68,7 @@ latestChannelMessage is to tell which msg I have seen, this should also be impl 
                     this.messageReady = _messageReady;
                     this.messageLoaded = _messageLoaded;
                     this.sendMessage = _sendMessage;
-                    this.receiveMessage = _receiveMessage;
+                    this.receiveMyMessage = _receiveMyMessage;
                     this.confirmSended = _confirmSended;
                     this.getLastSeenMessages = _getLastSeenMessages;
                     this.scrollToBottom = _scrollToBottom;
@@ -83,40 +81,38 @@ latestChannelMessage is to tell which msg I have seen, this should also be impl 
                 var deferred = $.Deferred();
                 var self = this;
                 async.waterfall([
-                    function(callback){
+                    function (callback) {
                         $.get(serverUrl + '/api/channels/' + self.channel.id + '/messages/lastSeen')
                                 .done(function (lastSeenMessage) {
                                     callback(null, lastSeenMessage);
                                 });
                     },
-                    function(lastSeenMessage, callback) {
+                    function (lastSeenMessage, callback) {
                         if (!lastSeenMessage) {
                             callback();
                         } else {
-                            _getLastSeenMessages.call(self, lastSeenMessage.messageId).done(function(){
+                            _getLastSeenMessages.call(self, lastSeenMessage.messageId).done(function () {
                                 callback();
                             })
                         }
                     },
-                    function(callback){
-                        _loadHistory.call(self).done(function(){
+                    function (callback) {
+                        _loadHistory.call(self).done(function () {
                             callback();
                         })
                     }
 
-                ], function(err) {
+                ], function (err) {
                     deferred.resolve({
-                        status : 200,
-                        error : err
+                        status: 200,
+                        error: err
                     })
                 });
                 return deferred;
             }
 
-            var historyLimit = 10;
-            var noMoreHistory = false;
-
             function _reachedTop(event) {
+                var historyLimit = 10;
                 if (this.noMoreHistory) {
                     return;
                 }
@@ -129,12 +125,12 @@ latestChannelMessage is to tell which msg I have seen, this should also be impl 
                 var self = this;
                 return $.get(serverUrl + '/api/channels/' + self.channel.id +
                 '/messages?beforeId=' + this.messages[0].id +
-                '&limit=' + this.historyLimit).done(function (messages) {
-                    self.historyOffset += self.historyLimit;
-                    if (messages.length < self.historyLimit) {
+                '&limit=' + historyLimit).done(function (messages) {
+                    self.historyOffset += historyLimit;
+                    if (messages.length < historyLimit) {
                         self.noMoreHistory = true;
-                        _insertFrontMessages.call(self, messages, true);
                     }
+                    _insertFrontMessages.call(self, messages, true);
                 });
             }
 
@@ -158,7 +154,8 @@ latestChannelMessage is to tell which msg I have seen, this should also be impl 
 
                 return $.get(serverUrl + '/api/channels/' + self.channel.id + '/messages?limit=20' + beforeOption).done(function (messages) {
                     _insertFrontMessages.call(self, messages, false);
-                    delete self.unread[self.channel.id];
+//                    delete self.unread[self.channel.id];
+//                    this.fire('core-signal', {})
                     _scrollToBottom.call(self, 100);
                 }).done(function () {
                     setTimeout(function () {
@@ -267,9 +264,6 @@ latestChannelMessage is to tell which msg I have seen, this should also be impl 
                         break;
                     }
                 }
-                self.latestChannelMessage[message.channelId] = message.id;
-                // too violence, to trigger latestChannelMessageChanged
-                self.latestChannelMessage = _.clone(self.latestChannelMessage);
             }
 
             function _getLastSeenMessages(lastSeenMessageId) {
@@ -278,7 +272,7 @@ latestChannelMessage is to tell which msg I have seen, this should also be impl 
                 return $.get(serverUrl + '/api/channels/' + this.channel.id + '/messages?sinceId=' + lastSeenMessageId)
                         .done(function (messages) {
                             _insertFrontMessages.call(self, messages, false);
-                            delete self.unread[self.channel.id];
+                            //delete self.unread[self.channel.id];
                         })
                         .done(function () {
                             if (self.messages.length > 0) {
@@ -293,23 +287,8 @@ latestChannelMessage is to tell which msg I have seen, this should also be impl 
                         });
             }
 
-            function _receiveMessage(message) {
+            function _receiveMyMessage(message) {
                 var self = this;
-                if (message.channelId !== '' + self.channel.id) {
-                    self.unread[message.channelId] = self.unread[message.channelId] || [];
-                    self.unread[message.channelId].push(message.text);
-
-                    self.latestChannelMessage[message.channelId] = message.id;
-                    // too violence, to trigger latestChannelMessageChanged
-                    self.latestChannelMessage = _.clone(self.latestChannelMessage);
-
-                    self.fire('message-notify', message);
-                    return;
-                }
-
-                if (!document.hasFocus()) {
-                    self.fire('message-notify', message);
-                }
 
                 if (self.messages.length > 0) {
                     message.hideMemberElement =

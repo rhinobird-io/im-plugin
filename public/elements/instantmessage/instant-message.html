@@ -60,10 +60,7 @@
                     <div id="historyAndInput" main four flex vertical layout class="mainBgColor">
 
                         <div id="imHistory" is="im-history" flex channel="{{$.imChannels.channel}}"
-                             unread="{{$.imChannels.unread}}"
-                             latestChannelMessage="{{$.imChannels.latestChannelMessage}}"
-                             on-message-seen="{{ handleMessageSeen }}"
-                             on-message-notify="{{ handleMessageNotify}}"></div>
+                             on-message-seen="{{ handleMessageSeen }}"></div>
 
                         <div layout horizontal center>
                             <div id="inputbox" on-tap="{{boxTapped}}" flex>

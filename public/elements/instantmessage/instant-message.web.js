@@ -146,7 +146,11 @@ Polymer({
         });
 
         this.socket.on('message:send', function (message) {
-            self.$.imHistory.receiveMessage(message);
+            self.$.imChannels.receiveMessage(message);
+            if (message.channelId === self.$.imChannels.channel.id) {
+                self.$.imHistory.receiveMyMessage(message);
+            }
+
             self.$.messageInput.update();
         });
 
@@ -234,6 +238,7 @@ Polymer({
 
         this.socket.emit('message:send', msg, function (message) {
             self.$.imHistory.confirmSended(message);
+            self.$.imChannels.confirmSended(message);
         });
         this.message = '';
         this.$.messageInput.update();
@@ -245,18 +250,12 @@ Polymer({
         this.$.informationDialog.open();
     },
 
-
     handleMessageSeen: function (event) {
         var self = this;
         var channel = event.detail.channel;
         var message = event.detail.message;
         this.socket.emit('message:seen',
             {userId: self.currentUser.id, messageId: message.id, channelId: channel.id});
-    },
-
-    handleMessageNotify: function (event) {
-        var message = event.detail;
-        this.$.imChannels.showNotification(message.userId, message.text, message.channelId);
     },
 
 
