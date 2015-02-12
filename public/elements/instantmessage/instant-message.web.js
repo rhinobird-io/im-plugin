@@ -153,8 +153,6 @@ var validateTimeout = undefined;
 
             this.socket.on('channel:created', function (channel) {
                 self.$.imChannels.init();
-                //(self.loadPrivateChannels.bind(self))(function () {
-                //});
             });
 
             this.socket.on('user:dead', function (data) {

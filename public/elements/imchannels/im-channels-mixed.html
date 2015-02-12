@@ -36,10 +36,11 @@ channelName, current channel name , it is useful
 
         <paper-action-dialog id="addPrivateChannelDialog" heading="Add Private Channel" backdrop autoCloseDisabled
                              closeSelector="#cancelBtn" style="width: 70%; height: 70%;"
-                             on-core-overlay-position="{{ positionCenter }}">
-            <paper-input-decorator id="privateChannelNameInput" label="Channel Name" floatingLabel autoValidate
-                                   style="width: 100%;" error="{{newPrivateChannel.error.msg}}">
-                <input is="core-input" required value="{{newPrivateChannel.name}}">
+                             on-core-overlay-open-completed="{{ positionCenter }}"
+                             >
+            <paper-input-decorator id="privateChannelNameInput1" label="Channel Name" floatingLabel autoValidate
+                                    error="{{newPrivateChannel.error.msg}}">
+                <input id="privateChannelNameInput" is="core-input" required value="{{newPrivateChannel.name}}" >
             </paper-input-decorator>
             <member-select type="user" selected="{{newPrivateChannel}}" width="100%;"></member-select>
             <paper-button id="cancelBtn" dismissive>Cancel</paper-button>
@@ -48,7 +49,8 @@ channelName, current channel name , it is useful
         </paper-action-dialog>
 
         <paper-action-dialog id="removePrivateChannelDialog" heading="Leaving {{ removedPrivateChannel.name }}" backdrop
-                             autoCloseDisabled closeSelector="#cancelBtn" style="width: 30%; height: 30%;">
+                             autoCloseDisabled closeSelector="#cancelBtn" style="width: 30%; height: 30%;"
+                             on-core-overlay-open-completed="{{ positionCenter }}">
             <p>Are you sure</p>
             <paper-button id="cancelBtn" dismissive>Close</paper-button>
             <paper-button affirmative channelId="{{removedPrivateChannel.id}}" on-click="{{removePrivateChannel}}">Yes
@@ -143,25 +145,7 @@ channelName, current channel name , it is useful
                     this.$.removePrivateChannelDialog.open();
                 },
 
-                removePrivateChannel: function (event, detail, target) {
-                    var self = this;
-                    var channelId = target.attributes.channelId.value;
-                    var dlg = target.parentElement;
-                    $.ajax({
-                        url: serverUrl + '/api/channels/' + channelId,
-                        type: 'DELETE',
-                        success: function (result) {
-                            dlg.close();
-                            if (self.channel.id === channelId) {
-                                delete self.imGlobals.currentChannel;
-                                self.router.go('/' + self.pluginName + '/channels/' + defaultChannel);
-                            } else {
-                                _initPrivateChannels.call(self, function () {
-                                });
-                            }
-                        }
-                    });
-                },
+                removePrivateChannel: _removePrivateChannel,
 
                 showAddPrivateChannelDialog: function (event, detail, target) {
                     this.newPrivateChannel.users = [this.currentUser.id];
@@ -169,71 +153,7 @@ channelName, current channel name , it is useful
                 }
                 ,
 
-                addPrivateChannel: function (event, detail, target) {
-                    var self = this;
-                    async.waterfall([
-                        function (cb) {
-                            $.get(serverUrl + '/api/channels?name=' + self.newPrivateChannel.name).done(function (channels) {
-                                self.$.privateChannelNameInput.isInvalid = channels.length > 0;
-                                if (!self.$.privateChannelNameInput.isInvalid) {
-                                    cb();
-                                } else {
-                                    cb('Private channel name duplicated');
-                                }
-                            })
-                        },
-
-                        function (cb) {
-                            self.newPrivateChannel.id = _guid.call(self);
-                            $.post(serverUrl + '/api/channels', self.newPrivateChannel).done(function (channel) {
-                                cb(null, channel);
-                            }).fail(function (err) {
-                                if (err.status === 409) {
-                                    // highlight the input
-                                    cb(409)
-                                } else {
-                                    cb('cannot create private channel');
-                                }
-                            })
-                        },
-
-                        /**
-                         * get the users of this channel
-                         * @param cb
-                         * @param channel
-                         */
-                                function (channel, cb) {
-                            $.get(serverUrl + '/api/channels/' + channel.id + '/users').done(function (users) {
-                                cb(null, channel, users);
-                            })
-                        },
-
-                        /**
-                         * notify other users he is joined in this channel
-                         * @param cb
-                         * @param channel the channel newly created
-                         * @param users the users in this channel
-                         */
-                                function (channel, users, cb) {
-                            self.fire('channel-created', {
-                                channel: channel,
-                                users: users,
-                                userId: self.currentUser.id
-                            });
-                            cb(null, channel);
-                        }
-                    ], function (err, channel) {
-                        if (!err) {
-                            self.$.addPrivateChannelDialog.close();
-                            self.newPrivateChannel.init();
-                            var pluginName = self.imGlobal.pluginName;
-                            self.router.go('/' + pluginName + '/channels/' + channel.name);
-                        } else {
-                            console.log('error during creating private channel : ' + err);
-                        }
-                    });
-                }
-                ,
+                addPrivateChannel: _addPrivateChannel,
 
                 validatePrivateChannelName: function (oldValue, newValue) {
                     var self = this;
@@ -266,8 +186,17 @@ channelName, current channel name , it is useful
                     'newPrivateChannel.name': 'validatePrivateChannelName'
                 },
 
-                positionCenter: function (event) {
-                    debugger;
+                /**
+                 * this function is critical for position center
+                 * even the order is very important
+                 *
+                 * resizeHandler need to be called, like trigger a windows resize event
+                 *
+                 * max-width of sizing target will not be override, so please call it after resizeHandler
+                 **/
+                positionCenter: function(event) {
+                    event.target.resizeHandler();
+                    event.target.sizingTarget.style['max-width'] = '100%';
                 }
 
             });
@@ -560,6 +489,91 @@ channelName, current channel name , it is useful
                 self.latestChannelMessage[message.channelId] = message.id;
                 // too violence, to trigger latestChannelMessageChanged
                 self.latestChannelMessage = _.clone(self.latestChannelMessage);
+            }
+
+            function _addPrivateChannel(event, detail, target) {
+                var self = this;
+                async.waterfall([
+                    function (cb) {
+                        $.get(serverUrl + '/api/channels?name=' + self.newPrivateChannel.name).done(function (channels) {
+                            self.$.privateChannelNameInput.isInvalid = channels.length > 0;
+                            if (!self.$.privateChannelNameInput.isInvalid) {
+                                cb();
+                            } else {
+                                cb('Private channel name duplicated');
+                            }
+                        })
+                    },
+
+                    function (cb) {
+                        self.newPrivateChannel.id = _guid.call(self);
+                        $.post(serverUrl + '/api/channels', self.newPrivateChannel).done(function (channel) {
+                            cb(null, channel);
+                        }).fail(function (err) {
+                            if (err.status === 409) {
+                                // highlight the input
+                                cb(409)
+                            } else {
+                                cb('cannot create private channel');
+                            }
+                        })
+                    },
+
+                    /**
+                     * get the users of this channel
+                     * @param cb
+                     * @param channel
+                     */
+                            function (channel, cb) {
+                        $.get(serverUrl + '/api/channels/' + channel.id + '/users').done(function (users) {
+                            cb(null, channel, users);
+                        })
+                    },
+
+                    /**
+                     * notify other users he is joined in this channel
+                     * @param cb
+                     * @param channel the channel newly created
+                     * @param users the users in this channel
+                     */
+                            function (channel, users, cb) {
+                        self.fire('channel-created', {
+                            channel: channel,
+                            users: users,
+                            userId: self.currentUser.id
+                        });
+                        cb(null, channel);
+                    }
+                ], function (err, channel) {
+                    if (!err) {
+                        self.$.addPrivateChannelDialog.close();
+                        self.newPrivateChannel.init();
+                        var pluginName = self.imGlobal.pluginName;
+                        self.router.go('/' + pluginName + '/channels/' + channel.name);
+                    } else {
+                        console.log('error during creating private channel : ' + err);
+                    }
+                });
+            }
+
+            function _removePrivateChannel(event, detail, target) {
+                var self = this;
+                var channelId = target.attributes.channelId.value;
+                var dlg = target.parentElement;
+                $.ajax({
+                    url: serverUrl + '/api/channels/' + channelId,
+                    type: 'DELETE',
+                    success: function (result) {
+                        dlg.close();
+                        if (self.channel.id === channelId) {
+                            delete self.imGlobals.currentChannel;
+                            self.router.go('/' + self.pluginName + '/channels/' + defaultChannel);
+                        } else {
+                            _initPrivateChannels.call(self, function () {
+                            });
+                        }
+                    }
+                });
             }
         })();
 
