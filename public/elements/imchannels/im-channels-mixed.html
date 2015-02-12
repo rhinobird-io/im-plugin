@@ -87,6 +87,10 @@ channelName, current channel name , it is useful
     </template>
     <script>
         (function () {
+            var defaultChannel = 'default';
+            var validateTimeout = undefined;
+            var serverUrl = 'undefined';
+
             Polymer('im-channels-mixed', {
                 /**
                  * from platform, get all teams the current user belongs to
@@ -132,6 +136,9 @@ channelName, current channel name , it is useful
                     this.receiveMessage = _receiveMessage;
                     this.confirmSended = _confirmedSendMessage;
                     this.init = _initImChannels;
+
+                    this.imGlobals = this.$.globals.values.im;
+                    serverUrl = this.imGlobals.serverUrl;
                 },
 
                 latestChannelMessageChanged: function (oldValue, newValue) {
@@ -172,7 +179,6 @@ channelName, current channel name , it is useful
                             };
                         }
                         $.get(serverUrl + '/api/channels?name=' + newValue).done(function (channels) {
-                            console.log('called validation for ' + newValue);
                             self.$.privateChannelNameInput.isInvalid = channels.length > 0;
                             self.newPrivateChannel.error = {
                                 msg: 'Name duplicated'

@@ -55,6 +55,8 @@ channel is useful
     </template>
     <script>
         (function () {
+            var serverUrl = 'undefined';
+
             Polymer('im-history', {
                 messages: [],
                 newMessage: false,
@@ -69,8 +71,12 @@ channel is useful
                     this.sendMessage = _sendMessage;
                     this.receiveMyMessage = _receiveMyMessage;
                     this.confirmSended = _confirmSended;
-                }
+                },
 
+                domReady : function(){
+                    this.imGlobals = this.$.globals.values.im;
+                    serverUrl = this.imGlobals.serverUrl;
+                }
             });
 
             function _initImHistory() {

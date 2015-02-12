@@ -1,10 +1,8 @@
-var hostname = window.location.hostname + ':' + window.location.port;
-var serverUrl = 'http://' + hostname + '/im';
-var defaultChannel = 'default';
 
-var validateTimeout = undefined;
 
 (function () {
+    var hostname = window.location.hostname + ':' + window.location.port;
+    var serverUrl = 'http://' + hostname + '/im';
 
     Polymer({
         boxTapped: function () {
@@ -60,6 +58,7 @@ var validateTimeout = undefined;
             });
 
             self.imGlobals = self.$.globals.values.im = self.$.globals.values.im || {};
+            self.imGlobals.serverUrl = serverUrl;
             self.imGlobals.pluginName = this.pluginName;
         },
 
