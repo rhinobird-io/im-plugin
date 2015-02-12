@@ -69,3 +69,9 @@ h3 {
 #imChannels {
     height: 100%;
 }
+
+#menuButton {
+    padding : 0px;
+    margin : 0px;
+    margin-left : 5px;
+}
