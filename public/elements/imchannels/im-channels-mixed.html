@@ -51,7 +51,7 @@ channelName, current channel name , it is useful
         <paper-action-dialog id="removePrivateChannelDialog" heading="Leaving {{ removedPrivateChannel.name }}" backdrop
                              autoCloseDisabled closeSelector="#cancelBtn" style="width: 30%; height: 30%;"
                              on-core-overlay-open-completed="{{ positionCenter }}">
-            <p>Are you sure</p>
+            <p>Are you sure?</p>
             <paper-button id="cancelBtn" dismissive>Close</paper-button>
             <paper-button affirmative channelId="{{removedPrivateChannel.id}}" on-click="{{removePrivateChannel}}">Yes
             </paper-button>
