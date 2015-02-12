@@ -9,9 +9,6 @@
 <link rel="import" href="/platform/bower_components/paper-item/paper-item.html">
 <link rel="import" href="/platform/bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="/platform/bower_components/core-icon/core-icon.html">
-<link rel="import" href="/platform/bower_components/paper-input/paper-autogrow-textarea.html">
-<link rel="import" href="/platform/bower_components/paper-input/paper-input.html">
-<link rel="import" href="/platform/bower_components/paper-input/paper-input-decorator.html">
 <link rel="import" href="/platform/bower_components/core-drawer-panel/core-drawer-panel.html">
 <link rel="import" href="/platform/bower_components/paper-toast/paper-toast.html">
 <link rel="import" href="/platform/bower_components/core-header-panel/core-header-panel.html">
@@ -20,6 +17,7 @@
 <link rel="import" href="/platform/elements/member-select/member-element.html">
 <link rel="import" href="/platform/elements/member-select/member-select.html">
 <link rel="import" href="/platform/elements/app-globals/app-globals.html">
+<link rel="import" href="/platform/elements/smart-editor/smart-editor.html">
 
 <link rel="import" href="../display-message/display-message.html">
 <link rel="import" href="../event-infinite-scroll/event-infinite-scroll.html">
@@ -57,20 +55,8 @@
                         <div id="imHistory" is="im-history" flex vertical layout channel="{{$.imChannels.channel}}"
                              on-message-seen="{{ handleMessageSeen }}"></div>
 
-                        <div layout horizontal center>
-                            <div id="inputbox" on-tap="{{boxTapped}}" flex>
-                                <div layout horizontal>
-                                    <paper-autogrow-textarea id="messageInput" maxRows="6" on-keydown="{{keyDown}}"
-                                                             on-input="{{inputChanging}}" flex>
-                                        <textarea row="1" id="textInput" value="{{message}}"></textarea>
-                                    </paper-autogrow-textarea>
-                                </div>
-                            </div>
-                            <div layout horizontal center>
-                                <span id='informationButton' class="input-group-addon "
-                                      on-tap="{{onClickInfomation}}">!</span>
-                            </div>
-                        </div>
+                        <smart-editor id="messageInput" value="{{message}}" maxRows="5">
+                        </smart-editor>
                     </div>
 
                     <div id='imPanel' drawer>
@@ -80,28 +66,6 @@
 
                 </core-drawer-panel>
             </div>
-
-            <paper-dialog id="informationDialog" transition="core-transition-center" heading="Manual">
-                <p>1. ENTER to send</p>
-
-                <p>2. SHIFT + ENTER to have newline</p>
-
-                <p>3. Code Snippet
-
-                <div layout horizontal center>
-                    <div>
-                        Input:
-                        <pre>{{codeSnippetExample}}</pre>
-                    </div>
-                    <div>
-                        Display:
-                        <display-code-snippet-message text="{{codeSnippetExample}}"></display-code-snippet-message>
-                    </div>
-                </div>
-                </p>
-            </paper-dialog>
-
-
         </home-container>
     </template>
 

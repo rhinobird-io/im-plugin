@@ -47,9 +47,6 @@
                     event.preventDefault();
                     return;
                 }
-                if (!self.$.imChannels.$.addPrivateChannelDialog.opened) {
-                    self.$.textInput.focus();
-                }
             };
 
             this.addEventListener('channel-select', function (event) {
@@ -107,7 +104,6 @@
                 }
             });
 
-            this.$.informationButton.style.height = this.$.textInput.clientHeight + 'px';
         },
 
         computed: {
@@ -201,11 +197,6 @@
         }
         ,
 
-        inputChanging: function (event, detail, target) {
-            this.$.informationButton.style.height = this.$.textInput.clientHeight + 'px';
-        }
-        ,
-
         sendMessage: function () {
             var self = this;
             var uuid = _guid.call(self);
@@ -226,14 +217,9 @@
                 self.$.imChannels.confirmSended(message);
             });
             this.message = '';
-            this.$.messageInput.update();
-            this.$.informationButton.style.height = this.$.textInput.clientHeight + 'px';
         }
         ,
 
-        onClickInfomation: function () {
-            this.$.informationDialog.open();
-        },
 
         handleMessageSeen: function (event) {
             var self = this;
@@ -255,9 +241,7 @@
 
         togglePanel: function () {
             this.$.drawerPanel.togglePanel();
-        },
-
-        codeSnippetExample: "```c++\nint main(){\n    printf(\"helloworld\");\n    return 0;\n}\n```"
+        }
     });
 
     function _guid() {
