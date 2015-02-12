@@ -40,6 +40,13 @@
                 color: grey;
             }
 
+            .unread {
+                /**
+                Not good
+                **/
+                color : #3F51B5;
+            }
+
             [unsorted] {
                 opacity: 0;
             }
@@ -62,10 +69,10 @@
                         </paper-dialog>
                     </paper-icon-button>
                     <div flex horizontal layout center>
-                        <paper-item on-click="{{ handleChannelSelect }}" hash="{{g.name}}"
+                        <paper-item on-click="{{ handleChannelSelect }}" hash="{{g.name}}" flex
                                     class="{{ {highlight : g.id === ''+currentChannel.id, offline: g.isPrivate && $.globals.values.onlineList[g.user.id] !== 1 } | tokenList }}"> {{ g.name }}
                         </paper-item>
-                        <paper-icon-button icon="markunread" style="color :red;" hidden?="{{ !(unread[g.id] && unread[g.id].length > 0)}}"></paper-icon-button>
+                        <paper-icon-button class="unread" icon="markunread" hidden?="{{ !(unread[g.id] && unread[g.id].length > 0)}}"></paper-icon-button>
                     </div>
                     <paper-icon-button icon="clear" on-click="{{ fireChannelRemoveEvent }}" hidden?="{{!removable}}">
 
