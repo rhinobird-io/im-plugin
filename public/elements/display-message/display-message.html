@@ -51,7 +51,7 @@
 		<div vertical layout class="box" flex>
 			<div horizontal layout >
 				<template if="{{!hideMemberElement}}">
-					<div class='username'>{{$.globals.values.memberCache[user].username}}</div>
+					<div class='username'>{{$.globals.values.memberCache[user].realname}}</div>
 					<template if="{{updatedAt}}">
 						<span class="time">{{updatedAt | date('hh:mm')}}</span>
 					</template>
