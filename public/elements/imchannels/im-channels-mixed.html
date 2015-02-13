@@ -39,13 +39,13 @@ channelName, current channel name , it is useful
                              closeSelector="#cancelBtn" style="width: 70%; height: 70%;"
                              on-core-overlay-open-completed="{{ positionCenter }}"
                              >
-            <paper-input-decorator id="privateChannelNameInput1" label="Channel Name" floatingLabel autoValidate
+            <paper-input-decorator id="privateChannelNameInput" label="Channel Name" floatingLabel autoValidate
                                     error="{{newPrivateChannel.error.msg}}">
-                <input id="privateChannelNameInput" is="core-input" required value="{{newPrivateChannel.name}}" >
+                <input is="core-input" required value="{{newPrivateChannel.name}}" >
             </paper-input-decorator>
             <member-select type="user" selected="{{newPrivateChannel}}" width="100%;"></member-select>
             <paper-button id="cancelBtn" dismissive>Cancel</paper-button>
-            <paper-button affirmative on-click="{{addPrivateChannel}}" disabled="{{newPrivateChannelUsersInvalid}}">OK
+            <paper-button affirmative on-click="{{addPrivateChannel}}" disabled="{{channelNameInvalid}}">OK
             </paper-button>
         </paper-action-dialog>
 
@@ -131,6 +131,10 @@ channelName, current channel name , it is useful
                     name: '',
                     users: [],
                     teams: []
+                },
+
+                computed : {
+                    'channelNameInvalid' : '$.privateChannelNameInput.isInvalid'
                 },
 
                 domReady: function () {

@@ -82,7 +82,7 @@
                     </paper-icon-button>
                 </div>
             </template>
-            <div hidden?="{{channels.length < limited }}" >
+            <div hidden?="{{channels.length <= limited }}" >
                 <paper-item flex horizontal layout center-justified on-click="{{showMoreDialog}}">+More</paper-item>
             </div>
             <paper-dialog id="moreDialog" heading="Channels" on-core-overlay-position="{{positionMoreDialog}}" on-blur="{{hideMoreDialog}}" style="{{ moreDialogStyle | styleObject}}">
