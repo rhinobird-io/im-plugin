@@ -7,11 +7,12 @@
 <link rel="import" href="/platform/elements/member-select/member-element.html">
 <link rel="import" href="/platform/elements/member-select/member-select.html">
 <link rel="import" href="/platform/elements/app-globals/app-globals.html">
-
+<link rel="import" href="../html-echo/html-echo.html">
 
 <script src="../../bower_components/async/lib/async.js"></script>
 <script src="../../bower_components/lodash/dist/lodash.min.js"></script>
 <script src="../../bower_components/polymer-filters/filter-contains.js"></script>
+
 
 <link rel="import" href="/platform/elements/app-globals/app-globals.html">
 
@@ -100,7 +101,8 @@
                 <paper-input value="{{ channelNamePrefix }}" label="Talk to..." style="width: 100%"></paper-input>
                 <template repeat="{{ g in channels | contains('name',channelNamePrefix) }}">
                     <paper-item on-click="{{ handleChannelSelect }}" hash="{{g.name}}" flex
-                                class="{{ {highlight : g.id === ''+currentChannel.id, offline: g.isPrivate && $.globals.values.onlineList[g.user.id] !== 1 } | tokenList }}"> {{ g.name }}
+                                class="{{ {highlight : g.id === ''+currentChannel.id, offline: g.isPrivate && $.globals.values.onlineList[g.user.id] !== 1 } | tokenList }}">
+                        <html-echo html="{{ g.name | highlight(channelNamePrefix) }}"></html-echo>
                     </paper-item>
                 </template>
             </paper-dialog>
@@ -205,6 +207,12 @@
 
                 fireChannelRemoveEvent: function(event, detail, target){
                     this.fire('channel-remove', target.templateInstance.model.g);
+                },
+
+                highlight : function(string, letter) {
+                    var idxStart = string.toLowerCase().indexOf(letter.toLowerCase());
+                    var temp = string.substr(idxStart, letter.length);
+                    return string.replace(temp, '<span style="font-weight: bold;">' + temp + '</span>');
                 }
 
             });
