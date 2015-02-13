@@ -6,7 +6,8 @@
 
 
 <link rel="import" href="../display-message/display-message.html">
-<link rel="import" href="../event-infinite-scroll/event-infinite-scroll.html">
+<!--<link rel="import" href="../event-infinite-scroll/event-infinite-scroll.html">-->
+<link rel="import" href="/platform/bower_components/event-infinite-scroll/event-infinite-scroll.html">
 
 <script src="../../bower_components/async/lib/async.js"></script>
 <script src="../../bower_components/lodash/dist/lodash.min.js"></script>
@@ -28,21 +29,21 @@ channel is useful
             }
 
         </style>
-        <div flex>
-            <event-infinite-scroll id="infiniteScroll" readyOnStart="false" scrollDenominator="2"
-                                   loadingDelay="50"
-                                   on-reach-top="{{reachedTop}}"></event-infinite-scroll>
-            <template repeat="{{m in messages}}">
-                <display-message user="{{m.userId}}" text="{{m.text}}"
-                                 on-messageloaded="{{messageLoaded}}"
-                                 messageStatus="{{m.messageStatus}}"
-                                 updatedAt="{{m.updatedAt}}"
-                                 disableEvent="{{m.disableEvent}}"
-                                 hideMemberElement="{{m.hideMemberElement}}"
-                                 messageGuid="{{m.guid}}"
-                                 previewHidden="{{m.displayPreview}}"
-                                 on-ready="{{messageReady}}"></display-message>
-            </template>
+        <div flex style="overflow: auto;">
+            <event-infinite-scroll id="infiniteScroll" data="{{messages}}">
+                <template>
+                    <display-message user="{{model.userId}}" text="{{model.text}}"
+                                     on-messageloaded="{{messageLoaded}}"
+                                     messageStatus="{{model.messageStatus}}"
+                                     updatedAt="{{model.updatedAt}}"
+                                     disableEvent="{{model.disableEvent}}"
+                                     hideMemberElement="{{model.hideMemberElement}}"
+                                     messageGuid="{{model.guid}}"
+                                     previewHidden="{{model.displayPreview}}"
+                                     on-ready="{{messageReady}}"></display-message>
+                </template>
+            </event-infinite-scroll>
+            </div>
         </div>
 
 
