@@ -183,6 +183,9 @@ channelName, current channel name , it is useful
                 addPrivateChannel: _addPrivateChannel,
 
                 validatePrivateChannelName: function (oldValue, newValue) {
+                    if (!newValue) {
+                        return;
+                    }
                     var self = this;
                     clearTimeout(validateTimeout);
                     validateTimeout = setTimeout(function () {
