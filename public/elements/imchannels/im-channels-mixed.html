@@ -45,7 +45,7 @@ channelName, current channel name , it is useful
             </paper-input-decorator>
             <member-select type="user" selected="{{newPrivateChannel}}" width="100%;"></member-select>
             <paper-button id="cancelBtn" dismissive>Cancel</paper-button>
-            <paper-button affirmative on-click="{{addPrivateChannel}}" disabled="{{channelNameInvalid}}">OK
+            <paper-button affirmative on-click="{{addPrivateChannel}}" disabled="{{channelNameInvalid || newPrivateChannel.users.length < 2}}">OK
             </paper-button>
         </paper-action-dialog>
 
