@@ -33,7 +33,7 @@ channelName, current channel name , it is useful
         </style>
         <app-globals id="globals"></app-globals>
         <core-style ref="theme"></core-style>
-        <core-localstorage id="unreadStorage" name="unread" value="{{unread}}" on-core-localstorage-load="{{initUnread}}"></core-localstorage>
+        <core-localstorage id="unreadStorage" name="unread" value="{{unread}}"></core-localstorage>
 
         <paper-action-dialog id="addPrivateChannelDialog" heading="Add Private Channel" backdrop autoCloseDisabled
                              closeSelector="#cancelBtn" style="width: 70%; height: 70%;"
@@ -80,7 +80,9 @@ channelName, current channel name , it is useful
         </div>
 
         <div id="teamMemberImChannels" is="im-channels" channels="{{teamMemberChannels}}" unread="{{unread}}"
-             currentChannel="{{channel}}" vertical layout flex>
+             currentChannel="{{channel}}"
+             limited="5"
+             vertical layout flex>
             <div class="title">
                 <h3 class="secondColor">Direct Message</h3>
             </div>
@@ -204,10 +206,6 @@ channelName, current channel name , it is useful
                 positionCenter: function(event) {
                     event.target.resizeHandler();
                     event.target.sizingTarget.style['max-width'] = '100%';
-                },
-
-                initUnread: function(event){
-                    console.log(this.unread);
                 }
 
             });

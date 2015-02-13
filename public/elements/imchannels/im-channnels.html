@@ -1,18 +1,21 @@
 <link rel="import" href="/platform/bower_components/polymer/polymer.html">
 <link rel="import" href="/platform/bower_components/core-style/core-style.html">
 <link rel="import" href="/platform/bower_components/core-signals/core-signals.html">
+<link rel="import" href="/platform/bower_components/paper-item/paper-item.html">
+<link rel="import" href="/platform/bower_components/paper-input/paper-input.html">
 <link rel="import" href="/platform/home-container.html">
 <link rel="import" href="/platform/elements/member-select/member-element.html">
 <link rel="import" href="/platform/elements/member-select/member-select.html">
 <link rel="import" href="/platform/elements/app-globals/app-globals.html">
-<link rel="import" src="../../bower_components/simple-scroller/simple-scroller.html">
+
 
 <script src="../../bower_components/async/lib/async.js"></script>
 <script src="../../bower_components/lodash/dist/lodash.min.js"></script>
+<script src="../../bower_components/polymer-filters/filter-contains.js"></script>
 
 <link rel="import" href="/platform/elements/app-globals/app-globals.html">
 
-<polymer-element name="im-channels" extends="div" attributes="channels teamMemberChannelMap unread currentChannel showMemberList removable">
+<polymer-element name="im-channels" extends="div" attributes="channels teamMemberChannelMap unread currentChannel showMemberList removable limited">
 
     <template>
         <app-globals id="globals"></app-globals>
@@ -57,8 +60,8 @@
         </div>
 
         <div id="groupChannel" flex unsorted>
-            <template repeat="{{ g in channels }}">
-                <div horizontal layout center>
+            <template repeat="{{ g, idx in channels }}">
+                <div horizontal layout center hidden?="{{ idx >= limited }}">
                     <paper-icon-button icon="account-child" on-click="{{showTeamMemberDialog}}" hidden?="{{!showMemberList}}" >
                         <paper-dialog id="teamMemberDialog" heading="Members" on-core-overlay-position="{{positionTeamMemberDialog}}" on-blur="{{hideTeamMemberDialog}}" style="{{ memberDialogStyle | styleObject}}">
                             <template repeat="{{directMessageChannel in g.userChannels}}">
@@ -79,7 +82,30 @@
                     </paper-icon-button>
                 </div>
             </template>
+            <div hidden?="{{channels.length < limited }}" >
+                <paper-item flex horizontal layout center-justified on-click="{{showMoreDialog}}">+More</paper-item>
+            </div>
+            <paper-dialog id="moreDialog" heading="Channels" on-core-overlay-position="{{positionMoreDialog}}" on-blur="{{hideMoreDialog}}" style="{{ moreDialogStyle | styleObject}}">
+                <style>
+
+                    .highlight {
+                        font-weight: bold;
+                    }
+
+                    .offline {
+                        color: rgba(0,0,0, 0.26);
+                    }
+
+                </style>
+                <paper-input value="{{ channelNamePrefix }}" label="Talk to..." style="width: 100%"></paper-input>
+                <template repeat="{{ g in channels | contains('name',channelNamePrefix) }}">
+                    <paper-item on-click="{{ handleChannelSelect }}" hash="{{g.name}}" flex
+                                class="{{ {highlight : g.id === ''+currentChannel.id, offline: g.isPrivate && $.globals.values.onlineList[g.user.id] !== 1 } | tokenList }}"> {{ g.name }}
+                    </paper-item>
+                </template>
+            </paper-dialog>
         </div>
+
     </template>
     <script>
 
@@ -87,10 +113,15 @@
             Polymer('im-channels', {
                 publish : {
                     showMemberList : false,
-                    removable: false
+                    removable: false,
+                    limited : 5
                 },
 
                 memberDialogStyle: {
+                    width: '300px'
+                },
+
+                moreDialogStyle: {
                     width: '300px'
                 },
 
@@ -122,7 +153,28 @@
                 }
                 ,
 
+                showMoreDialog: function (event, detail, target) {
+                    this.$.moreDialog.open();
+                }
+                ,
+
+                hideMoreDialog: function (event, detail, target) {
+                    if (event.relatedTarget && event.relatedTarget.parentElement !== target) {
+                        target.close();
+                    }
+                }
+                ,
+
+                positionMoreDialog: function (event, detail, target) {
+                    target.dimensions.position = {v: 'bottom', h: 'right'};
+                    var rect = target.parentElement.getBoundingClientRect();
+                    target.style.bottom = '100px';
+                    target.style.right = '' + rect.width + 'px';
+                }
+                ,
+
                 handleChannelSelect : function(event, detail, target) {
+                    this.$.moreDialog.close();
                     this.fire('channel-select', target.templateInstance.model.g);
                 }
                 ,
@@ -159,3 +211,4 @@
     </script>
 
 </polymer-element>
+
