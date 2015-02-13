@@ -3,7 +3,7 @@
 <link rel="import" href="/platform/bower_components/paper-dialog/paper-action-dialog.html">
 <link rel="import" href="/platform/bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="/platform/bower_components/paper-item/paper-item.html">
-
+<link rel="import" href="/platform/bower_components/core-localstorage/core-localstorage.html">
 <link rel="import" href="/platform/elements/member-select/member-select.html">
 <link rel="import" href="/platform/elements/app-globals/app-globals.html">
 <link rel="import" href="im-channnels.html">
@@ -33,6 +33,7 @@ channelName, current channel name , it is useful
         </style>
         <app-globals id="globals"></app-globals>
         <core-style ref="theme"></core-style>
+        <core-localstorage id="unreadStorage" name="unread" value="{{unread}}" on-core-localstorage-load="{{initUnread}}"></core-localstorage>
 
         <paper-action-dialog id="addPrivateChannelDialog" heading="Add Private Channel" backdrop autoCloseDisabled
                              closeSelector="#cancelBtn" style="width: 70%; height: 70%;"
@@ -116,7 +117,7 @@ channelName, current channel name , it is useful
 
                 latestChannelMessage: {},
 
-                unread: {},
+                //unread: {},
 
                 newPrivateChannel: {
                     init: function () {
@@ -203,6 +204,10 @@ channelName, current channel name , it is useful
                 positionCenter: function(event) {
                     event.target.resizeHandler();
                     event.target.sizingTarget.style['max-width'] = '100%';
+                },
+
+                initUnread: function(event){
+                    console.log(this.unread);
                 }
 
             });
@@ -405,6 +410,15 @@ channelName, current channel name , it is useful
 
             function _clearUnread(channelId) {
                 delete this.unread[channelId];
+                this.$.unreadStorage.save();
+            }
+
+            function _insertUnread(message) {
+                var self = this;
+                self.unread[message.channelId] = self.unread[message.channelId] || [];
+                self.unread[message.channelId].push(message.text);
+
+                self.$.unreadStorage.save();
             }
 
 
@@ -422,7 +436,6 @@ channelName, current channel name , it is useful
                     callback();
                 });
             }
-
 
             function _showNotification(userId, content, channelId) {
                 var self = this;
@@ -472,11 +485,11 @@ channelName, current channel name , it is useful
             function _receiveMessage(message) {
                 var self = this;
                 if (message.channelId !== '' + self.channel.id) {
-                    self.unread[message.channelId] = self.unread[message.channelId] || [];
-                    self.unread[message.channelId].push(message.text);
+                    _insertUnread.call(self, message);
 
                     self.latestChannelMessage[message.channelId] = message.id;
                     // too violence, to trigger latestChannelMessageChanged
+                    // [core-localstorage automatically saves the value to localStorage when value is changed. Note that if value is an object auto-save will be triggered only when value is a different instance]
                     self.latestChannelMessage = _.clone(self.latestChannelMessage);
 
                     _showNotification.call(self, message.userId, message.text, message.channelId);

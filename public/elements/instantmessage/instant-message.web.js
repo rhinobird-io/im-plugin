@@ -142,8 +142,6 @@
                 if (message.channelId === self.$.imChannels.channel.id) {
                     self.$.imHistory.receiveMyMessage(message);
                 }
-
-                self.$.messageInput.update();
             });
 
             this.socket.on('channel:created', function (channel) {
