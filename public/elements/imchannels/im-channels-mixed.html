@@ -16,8 +16,11 @@
 channelName, current channel name , it is useful
 -->
 <polymer-element name="im-channels-mixed" extends="div" attributes="channelName">
-
-
+    <core-style id="icon">
+        paper-icon-button[icon="add-circle-outline"] /deep/ core-icon {
+            color: {{g.theme.mainBgColor}};
+        }
+    </core-style>
     <template>
         <style>
             :host {
@@ -25,14 +28,24 @@ channelName, current channel name , it is useful
             }
 
             h3 {
-                font-size: 20px;
-                padding: 20px;
-                margin: 0px;
+                font-size: 1rem;
+                height: 48px;
+                line-height: 48px;
+                margin: 0;
+                padding: 0;
+                padding-left: 24px;
+                padding-right: 24px;
+            }
+
+            .bottomBorder {
+                border-bottom-width: 1px;
+                border-bottom-style: solid;
             }
 
         </style>
         <app-globals id="globals"></app-globals>
         <core-style ref="theme"></core-style>
+        <core-style ref="icon"></core-style>
         <core-localstorage id="unreadStorage" name="unread" value="{{unread}}"></core-localstorage>
 
         <paper-action-dialog id="addPrivateChannelDialog" heading="Add Private Channel" backdrop autoCloseDisabled
@@ -59,17 +72,17 @@ channelName, current channel name , it is useful
         </paper-action-dialog>
 
         <div id="groupImChannels" is="im-channels" channels="{{publicChannels}}" unread="{{unread}}"
-             currentChannel="{{channel}}" showMemberList>
+             currentChannel="{{channel}}" showMemberList class="bottomBorder divider">
             <div class="title">
-                <h3 class="secondColor">Group Channel</h3>
+                <h3 class="secondText">Group Channel</h3>
             </div>
         </div>
 
         <div id="privateImChannels" is="im-channels" channels="{{privateChannels}}" unread="{{unread}}"
-             currentChannel="{{channel}}" removable on-channel-remove="{{handleChannelRemove}}">
-            <div class="title secondColor" flex horizontal layout center>
+             currentChannel="{{channel}}" removable on-channel-remove="{{handleChannelRemove}}" class="bottomBorder divider">
+            <div class="title" flex horizontal layout center>
                 <div flex>
-                    <h3>Private Channels</h3>
+                    <h3 class="secondText">Private Channels</h3>
                 </div>
                 <div>
                     <paper-icon-button icon="add-circle-outline"
@@ -80,11 +93,11 @@ channelName, current channel name , it is useful
         </div>
 
         <div id="teamMemberImChannels" is="im-channels" channels="{{teamMemberChannels}}" unread="{{unread}}"
-             currentChannel="{{channel}}"
+             currentChannel="{{channel}}" class="bottomBorder divider"
              limited="5"
              vertical layout flex>
             <div class="title">
-                <h3 class="secondColor">Direct Message</h3>
+                <h3 class="secondText">Direct Message</h3>
             </div>
         </div>
     </template>
