@@ -18,7 +18,7 @@ channelName, current channel name , it is useful
 <polymer-element name="im-channels-mixed" extends="div" attributes="channelName">
     <core-style id="icon">
         paper-icon-button[icon="add-circle-outline"] /deep/ core-icon {
-            color: {{g.theme.mainBgColor}};
+        color: {{g.theme.mainBgColor}};
         }
     </core-style>
     <template>
@@ -51,14 +51,15 @@ channelName, current channel name , it is useful
         <paper-action-dialog id="addPrivateChannelDialog" heading="Add Private Channel" backdrop autoCloseDisabled
                              closeSelector="#cancelBtn" style="width: 70%; height: 70%;"
                              on-core-overlay-open-completed="{{ positionCenter }}"
-                             >
+                >
             <paper-input-decorator id="privateChannelNameInput" label="Channel Name" floatingLabel autoValidate
-                                    error="{{newPrivateChannel.error.msg}}">
-                <input is="core-input" required value="{{newPrivateChannel.name}}" >
+                                   error="{{newPrivateChannel.error.msg}}">
+                <input is="core-input" required value="{{newPrivateChannel.name}}">
             </paper-input-decorator>
             <member-select type="user" selected="{{newPrivateChannel}}" width="100%;"></member-select>
             <paper-button id="cancelBtn" dismissive>Cancel</paper-button>
-            <paper-button affirmative on-click="{{addPrivateChannel}}" disabled="{{channelNameInvalid || newPrivateChannel.users.length < 2}}">OK
+            <paper-button affirmative on-click="{{addPrivateChannel}}"
+                          disabled="{{channelNameInvalid || newPrivateChannel.users.length < 2}}">OK
             </paper-button>
         </paper-action-dialog>
 
@@ -79,7 +80,8 @@ channelName, current channel name , it is useful
         </div>
 
         <div id="privateImChannels" is="im-channels" channels="{{privateChannels}}" unread="{{unread}}"
-             currentChannel="{{channel}}" removable on-channel-remove="{{handleChannelRemove}}" class="bottomBorder divider">
+             currentChannel="{{channel}}" removable on-channel-remove="{{handleChannelRemove}}"
+             class="bottomBorder divider">
             <div class="title" flex horizontal layout center>
                 <div flex>
                     <h3 class="secondText">Private Channels</h3>
@@ -146,8 +148,8 @@ channelName, current channel name , it is useful
                     teams: []
                 },
 
-                computed : {
-                    'channelNameInvalid' : '$.privateChannelNameInput.isInvalid'
+                computed: {
+                    'channelNameInvalid': '$.privateChannelNameInput.isInvalid'
                 },
 
                 domReady: function () {
@@ -162,9 +164,9 @@ channelName, current channel name , it is useful
                 },
 
                 latestChannelMessageChanged: function (oldValue, newValue) {
-                    if (oldValue) {
-                        this.fire('core-signal', {name: 'sort', data: newValue});
-                    }
+                    this.$.groupImChannels.sort(newValue);
+                    this.$.privateImChannels.sort(newValue);
+                    this.$.teamMemberImChannels.sort(newValue);
                 },
 
                 handleChannelRemove: function (event) {
@@ -223,7 +225,7 @@ channelName, current channel name , it is useful
                  *
                  * max-width of sizing target will not be override, so please call it after resizeHandler
                  **/
-                positionCenter: function(event) {
+                positionCenter: function (event) {
                     event.target.resizeHandler();
                     event.target.sizingTarget.style['max-width'] = '100%';
                 }
