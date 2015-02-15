@@ -77,7 +77,7 @@
                         <paper-item on-click="{{ handleChannelSelect }}" hash="{{g.name}}" flex
                                     class="{{ {highlight : g.id === ''+currentChannel.id, offline: g.isPrivate && $.globals.values.onlineList[g.user.id] !== 1 } | tokenList }}"> {{ g.name }}
                         </paper-item>
-                        <paper-icon-button class="unread" icon="markunread" hidden?="{{ !(unread[g.id] && unread[g.id].length > 0)}}"></paper-icon-button>
+                        <paper-icon-button class="unread" icon="markunread" hidden?="{{ !(unread[g.id] && unread[g.id].length > 0)}}" on-click="{{ handleChannelSelect }}"></paper-icon-button>
                     </div>
                     <paper-icon-button icon="cancel" on-click="{{ fireChannelRemoveEvent }}" hidden?="{{!removable}}">
 
