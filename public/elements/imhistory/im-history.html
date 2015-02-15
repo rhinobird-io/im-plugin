@@ -29,8 +29,7 @@ channel is useful
             }
 
         </style>
-        <div flex style="overflow: auto;">
-            <event-infinite-scroll id="infiniteScroll" data="{{messages}}">
+            <event-infinite-scroll flex id="infiniteScroll" data="{{messages}}" on-loading-up="{{reachedTop}}" up height="30">
                 <template>
                     <display-message user="{{model.userId}}" text="{{model.text}}"
                                      on-messageloaded="{{messageLoaded}}"
@@ -43,7 +42,6 @@ channel is useful
                                      on-ready="{{messageReady}}"></display-message>
                 </template>
             </event-infinite-scroll>
-            </div>
         </div>
 
 
@@ -115,7 +113,7 @@ channel is useful
                 return deferred;
             }
 
-            function _reachedTop(event) {
+            function _reachedTop(event, detail, target) {
                 var historyLimit = 10;
 
                 if (this.noMoreHistory) {
@@ -134,7 +132,15 @@ channel is useful
                     if (messages.length < historyLimit) {
                         self.noMoreHistory = true;
                     }
-                    _insertFrontMessages.call(self, messages, false);
+                    var temp = [];
+                    var lastMessage = null;
+                    messages.forEach(function (message) {
+                        message.hideMemberElement = _isHideMemberElement(lastMessage, message);
+                        message.disableEvent = false;
+                        message.displayPreview = 'previewHidden';
+                        temp.push(message);
+                        detail.callback(temp);
+                    });
                 });
             }
 
@@ -158,11 +164,8 @@ channel is useful
 
                 return $.get(serverUrl + '/api/channels/' + self.channel.id + '/messages?limit=20' + beforeOption).done(function (messages) {
                     _insertFrontMessages.call(self, messages, false);
-                    _scrollToBottom.call(self, 100);
                 }).done(function () {
-                    setTimeout(function () {
-                        self.$.infiniteScroll.startObserve();
-                    }, 1000);
+
                 });
             }
 
@@ -184,7 +187,7 @@ channel is useful
                 var self = this;
 
                 setTimeout(function () {
-                    self.scrollTop = self.scrollHeight - self.clientHeight;
+                    self.$.infiniteScroll.scrollTop = self.$.infiniteScroll.scrollHeight;
                 }, delay);
             }
 
