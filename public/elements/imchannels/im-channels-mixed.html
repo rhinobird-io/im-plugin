@@ -6,7 +6,7 @@
 <link rel="import" href="/platform/bower_components/core-localstorage/core-localstorage.html">
 <link rel="import" href="/platform/elements/member-select/member-select.html">
 <link rel="import" href="/platform/elements/app-globals/app-globals.html">
-<link rel="import" href="im-channnels.html">
+<link rel="import" href="im-channels.html">
 
 <script src="../../bower_components/async/lib/async.js"></script>
 <script src="../../bower_components/lodash/dist/lodash.min.js"></script>
@@ -310,7 +310,7 @@ channelName, current channel name , it is useful
                     return;
                 } else if (self.channelName === defaultChannel) {
                     var pluginName = self.imGlobal.pluginName;
-                    if (self.$.globals.values.currentChannel) {
+                    if (self.imGlobals.currentChannel) {
                         self.router.go('/' + pluginName + '/channels/' + self.imGlobals.currentChannel.name);
                     } else {
                         // by default use appGlobal
@@ -420,7 +420,7 @@ channelName, current channel name , it is useful
                     // redirect to 403
                     callback(403);
                 } else {
-                    self.$.globals.values.currentChannel = self.channel;
+                    self.imGlobals.currentChannel = self.channel;
                     _clearUnread.call(self, self.channel.id);
                     callback();
                 }
