@@ -1,12 +1,9 @@
 <link rel="import" href="/platform/bower_components/polymer/polymer.html">
-<link rel="import" href="display-default-message.html">
-<link rel="import" href="display-code-snippet-message.html">
-<link rel="import" href="display-url-message.html">
-<link rel="import" href="display-system-message.html">
 <link rel="import" href="/platform/elements/member-select/avatar-image.html">
 <link rel="import" href="/platform/elements/member-select/member-element.html">
+<link rel="import" href="/platform/elements/smart-editor/smart-display.html">
 <link rel="import" href="/platform/bower_components/polymer-filters/polymer-filters.html">
-<polymer-element name="display-message" attributes="messageGuid hideMemberElement user text messageStatus updatedAt disableEvent previewHidden">
+<polymer-element name="display-message" attributes="message">
 
 <template>
 <style>
@@ -41,55 +38,39 @@
 <app-globals id="globals"></app-globals>
 <div horizontal layout class='boarder'>
 
-	<template if="{{user}}">
 	<div horizontal layout>
 		<div class='avatar'>
-			<template if="{{!hideMemberElement}}">
-				<avatar-image userid="{{user}}" size="36" borderRadius="50%"></avatar-image>
+			<template if="{{!message.hideMemberElement}}">
+				<avatar-image userid="{{message.user}}" size="36" borderRadius="50%"></avatar-image>
+
 			</template>
 		</div>
 		<div vertical layout class="box" flex>
-			<div horizontal layout >
-				<template if="{{!hideMemberElement}}">
-					<div class='username'>{{$.globals.values.memberCache[user].realname}}</div>
-					<template if="{{updatedAt}}">
-						<span class="time">{{updatedAt | date('MM-dd HH:mm')}}</span>
-					</template>
-				</template>
-			</div>
-			<div class="{{messageStatus}} msg">
-				<template repeat="{{t in processedText}}">
-					<template if="{{!t.process}}">
-						<display-default-message text="{{t.text}}"></display-default-message>
-					</template>
-					<template if="{{t.process === 'code'}}">
-						<display-code-snippet-message text="{{t.text}}"></display-code-snippet-message>
-					</template>
-					<template if="{{t.process === 'url'}}">
-						<display-url-message text="{{t.text}}" previewHidden="{{previewHidden}}" on-loaded="{{messageLoaded}}" url="{{t.url}}" ></display-url-message>
-					</template>
-				</template>
+            <template if="{{!message.hideMemberElement}}">
+                <div horizontal layout >
+                        <div class='username'>{{$.globals.values.memberCache[message.userId].realname}}</div>
+                        <template if="{{message.updatedAt}}">
+                            <span class="time">{{message.updatedAt | date('MM-dd HH:mm')}}</span>
+                        </template>
+                </div>
+            </template>
+			<div class="{{message.messageStatus}} msg">
+				<smart-display value="{{message.text}}"></smart-display>
 			</div>
 		</div>
 	</div>
-	</template>
-	<template if="{{!user}}">
-		<display-system-message text="{{text}}"></display-system-message>
-	</template>
 </div>
 </template>
 
 <script>
 	Polymer({
 		processedText : [],
-		disableEvent: false, 
-		hideMemberElement: false,
 		domReady: function(){
-			if (!this.text){
+			if (!this.message.text){
 				return;
 			}
-			var afterprocessing = this.processCodeSnippet(this.text);
-			
+			var afterprocessing = this.processCodeSnippet(this.message.text);
+
 			var processingText = afterprocessing;
 			afterprocessing = [];
 			for(t in processingText){
@@ -101,10 +82,10 @@
 			}
 
 			this.processedText = afterprocessing;
-			if (!this.disableEvent){
+			if (!this.message.disableEvent){
 				this.fire('ready', '');
 			}
-		}, 
+		},
 		processCodeSnippet: function(processingText){
 			var pattern = /(^|\n)```(.|\n)*?```($|\n)/;
 			var matched = processingText.match(pattern);
@@ -134,7 +115,7 @@
 		},
 		processHttp: function(processingText){
 			var result = [];
-			// this uri pattern is extract from URI.js 
+			// this uri pattern is extract from URI.js
 			var uri_pattern = /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/ig;
 
 			var matched = processingText.match(uri_pattern);
@@ -164,10 +145,10 @@
 				result.push(r);
 			}
 			return result;
-		}, 
+		},
 		messageLoaded: function(event){
-			if (!this.disableEvent){
-				this.fire('messageloaded', {messageGuid: this.messageGuid});
+			if (!this.message.disableEvent){
+				this.fire('messageloaded', {messageGuid: this.message.guid});
 			}
 		}
 	});

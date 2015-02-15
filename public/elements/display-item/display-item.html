@@ -1,0 +1,22 @@
+<link rel="import" href="../display-message/display-message.html">
+
+<polymer-element name="display-item" attributes="item">
+    <template>
+        <div>
+        <template if="{{item.type === 'message'}}">
+            <display-message message="{{item.value}}"
+                    ></display-message>
+        </template>
+        <template if="{{item.type === 'nomorebar'}}">
+            <div horizontal layout center-justified>
+                <div>No more history messages</div>
+            </div>
+        </template>
+        </div>
+    </template>
+    <script>
+        Polymer({
+            item:{}
+        });
+    </script>
+</polymer-element>
