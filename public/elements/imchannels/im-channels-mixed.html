@@ -313,7 +313,7 @@ channelName, current channel name , it is useful
                 } else if (self.channelName === defaultChannel) {
                     var pluginName = self.imGlobal.pluginName;
                     if (self.imGlobals.currentChannel) {
-                        self.router.go('/' + pluginName + '/channels/' + self.imGlobals.currentChannel.name);
+                        self.router.go('/' + pluginName + '/channels/' + self.imGlobals.currentChannel.hash);
                     } else {
                         // by default use appGlobal
                         self.channelName = self.publicChannels[0].name;
