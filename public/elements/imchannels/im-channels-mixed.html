@@ -17,8 +17,8 @@ channelName, current channel name , it is useful
 -->
 <polymer-element name="im-channels-mixed" extends="div" attributes="channelName">
     <core-style id="icon">
-        paper-icon-button[icon="add-circle-outline"] /deep/ core-icon {
-        color: {{g.theme.mainBgColor}};
+        paper-icon-button[icon="add-circle"] /deep/ core-icon {
+            color: {{g.theme.mainBgColor}};
         }
     </core-style>
     <template>
@@ -87,7 +87,7 @@ channelName, current channel name , it is useful
                     <h3 class="secondText">Private Channels</h3>
                 </div>
                 <div>
-                    <paper-icon-button icon="add-circle-outline"
+                    <paper-icon-button icon="add-circle"
                                        on-click="{{ showAddPrivateChannelDialog}}">
                     </paper-icon-button>
                 </div>

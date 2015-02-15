@@ -17,7 +17,7 @@
 
 <polymer-element name="im-channels" extends="div" attributes="channels teamMemberChannelMap unread currentChannel showMemberList removable limited">
     <core-style id="icon">
-        paper-icon-button[icon="clear"] /deep/ core-icon {
+        paper-icon-button[icon="cancel"] /deep/ core-icon {
             color: {{g.theme.mainBgColor}};
         }
         paper-icon-button[icon="markunread"] /deep/ core-icon {
@@ -79,7 +79,7 @@
                         </paper-item>
                         <paper-icon-button class="unread" icon="markunread" hidden?="{{ !(unread[g.id] && unread[g.id].length > 0)}}"></paper-icon-button>
                     </div>
-                    <paper-icon-button icon="clear" on-click="{{ fireChannelRemoveEvent }}" hidden?="{{!removable}}">
+                    <paper-icon-button icon="cancel" on-click="{{ fireChannelRemoveEvent }}" hidden?="{{!removable}}">
 
                     </paper-icon-button>
                 </div>
