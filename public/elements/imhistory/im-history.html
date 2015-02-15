@@ -55,7 +55,6 @@ channel is useful
                 items: [],
                 newMessage: false,
                 noMoreHistory: false,
-
                 ready: function () {
                     this.init = _initImHistory;
                     this.reachedTop = _reachedTop;
@@ -153,7 +152,7 @@ channel is useful
                     }
                 }
 
-                return $.get(serverUrl + '/api/channels/' + self.channel.id + '/messages?limit=60' + beforeOption).done(function (messages) {
+                return $.get(serverUrl + '/api/channels/' + self.channel.id + '/messages?limit=30' + beforeOption).done(function (messages) {
                     _insertFrontMessages.call(self, messages, false);
                 });
             }
