@@ -7,7 +7,7 @@
 <link rel="import" href="/platform/elements/member-select/member-element.html">
 <link rel="import" href="/platform/elements/member-select/member-select.html">
 <link rel="import" href="/platform/elements/app-globals/app-globals.html">
-<link rel="import" href="../html-echo/html-echo.html">
+<link rel="import" href="/platform/elements//html-echo/html-echo.html">
 
 <script src="../../bower_components/async/lib/async.js"></script>
 <script src="../../bower_components/lodash/dist/lodash.min.js"></script>
@@ -19,6 +19,9 @@
 <polymer-element name="im-channels" extends="div" attributes="channels teamMemberChannelMap unread currentChannel showMemberList removable limited">
     <core-style id="icon">
         paper-icon-button[icon="clear"] /deep/ core-icon {
+            color: {{g.theme.mainBgColor}};
+        }
+        paper-icon-button[icon="markunread"] /deep/ core-icon {
             color: {{g.theme.mainBgColor}};
         }
     </core-style>
@@ -47,13 +50,6 @@
 
             .offline {
                 color: rgba(0,0,0, 0.26);
-            }
-
-            .unread {
-                /**
-                Not good
-                **/
-                color : #3F51B5;
             }
 
             [unsorted] {
