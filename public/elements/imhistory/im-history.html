@@ -182,6 +182,7 @@ channel is useful
             function _insertFrontMessages(messages, diableEvent) {
                 var temp = _wrapMessages(messages, diableEvent);
                 this.items = temp.concat(this.items);
+                _scrollToBottom.call(this, 1000);
             }
 
             function _scrollToBottom(delay) {
