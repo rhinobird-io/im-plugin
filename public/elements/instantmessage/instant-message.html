@@ -55,7 +55,7 @@
                         <div id="imHistory" is="im-history" flex vertical layout channel="{{$.imChannels.channel}}"
                              on-message-seen="{{ handleMessageSeen }}"></div>
 
-                        <smart-editor id="messageInput" value="{{message}}" maxRows="5">
+                        <smart-editor id="messageInput" value="{{message}}" maxRows="5" on-flush="{{sendMessage}}">
                         </smart-editor>
                     </div>
 

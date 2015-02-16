@@ -4,6 +4,8 @@
     var hostname = window.location.hostname + ':' + window.location.port;
     var serverUrl = 'http://' + hostname + '/im';
 
+    var _self;
+
     Polymer({
         boxTapped: function () {
             this.$.textInput.focus();
@@ -43,7 +45,7 @@
                     return;
                 }
                 if (!event.shiftKey && event.keyCode === 13) {
-                    self.sendMessage();
+                    //self.sendMessage();
                     event.preventDefault();
                     return;
                 }
@@ -64,7 +66,7 @@
          */
         domReady: function () {
             this.router = document.querySelector('app-router');
-            var _self = this;
+            _self = this;
             async.waterfall([
                 _initCurrentUser.bind(_self),
                 _initSocketIO.bind(_self),
@@ -196,7 +198,7 @@
         ,
 
         sendMessage: function () {
-            var self = this;
+            var self = _self;
             var uuid = _guid.call(self);
             var msg = {
                 userId: self.currentUser.id,
@@ -210,11 +212,11 @@
 
             self.$.imHistory.sendMessage(msg);
 
-            this.socket.emit('message:send', msg, function (message) {
+          self.socket.emit('message:send', msg, function (message) {
                 self.$.imHistory.confirmSended(message);
                 self.$.imChannels.confirmSended(message);
             });
-            this.message = '';
+          self.message = '';
         }
         ,
 

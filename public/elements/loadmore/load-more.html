@@ -1,0 +1,56 @@
+<link rel="import" href="/platform/bower_components/polymer/polymer.html">
+<link rel="import" href="/platform/bower_components/paper-item/paper-item.html">
+<link rel="import" href="/platform/bower_components/paper-spinner/paper-spinner.html">
+
+<polymer-element name="load-more" extends="paper-item" attributes="load">
+
+    <template>
+        <style>
+            :host {
+                padding: 20px;
+            }
+        </style>
+        <div horizontal layout center-justified hidden?="{{loading || !hasMore}}">
+            Load more
+        </div>
+
+        <div horizontal layout center-justified hidden?="{{loading || hasMore}}">
+            No more
+        </div>
+
+        <div horizontal layout center-justified hidden?="{{!loading}}">
+            <paper-spinner class="blue" active></paper-spinner>
+        </div>
+    </template>
+    <script>
+        Polymer('load-more', {
+            loading : false,
+
+            hasMore : true,
+
+            domReady : function(){
+                var self = this;
+                this.addEventListener('click', function(event) {
+                    console.log('start load');
+                    if (self.load) {
+                        self.load(_finishLoad.bind(self));
+                    }
+                })
+            }
+        });
+
+        function _finishLoad(hasMore){
+            this.hasMore  = hasMore;
+            this.loading = false;
+        }
+
+        function _startLoad(){
+            var self = this;
+            if (!this.loading) {
+                this.loading = true;
+                this.fire('load');
+            }
+        }
+    </script>
+
+</polymer-element>
