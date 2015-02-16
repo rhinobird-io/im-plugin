@@ -1,0 +1,1 @@
+docker run -p 35432:5432 -e POSTGRES_PASSWORD=123456 -d postgres:9.3
