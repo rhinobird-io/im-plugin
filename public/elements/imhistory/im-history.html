@@ -258,7 +258,8 @@ channel is useful
                 if (lastMsg.value.userId && lastMsg.value.text === 'NEW MESSAGES') {
                     lastMsg = this.items[this.items.length - 2];
                 }
-                msg.hideMemberElement = _isHideMemberElement(lastMsg, msg);
+                msg.updatedAt = new Date();
+                msg.hideMemberElement = _isHideMemberElement(lastMsg.value, msg);
                 this.items.push({type: 'message', value: msg});
                 _scrollToBottom.call(this);
             }
