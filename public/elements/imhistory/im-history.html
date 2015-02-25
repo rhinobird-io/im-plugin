@@ -29,14 +29,12 @@ channel is useful
             }
 
         </style>
-            <event-infinite-scroll flex id="infiniteScroll" data="{{items}}" on-loading-up="{{reachedTop}}" up height="30">
-                <template>
-                    <div>
-                        <display-item item="{{model}}"></display-item>
-                    </div>
-                </template>
+        <event-infinite-scroll flex id="infiniteScroll" data="{{items}}" on-loading-up="{{reachedTop}}" up>
+            <template repeat="{{item in items}}">
+                <display-item item="{{item}}"></display-item>
+            </template>
 
-            </event-infinite-scroll>
+        </event-infinite-scroll>
         </div>
 
 
@@ -66,7 +64,7 @@ channel is useful
                     this.confirmSended = _confirmSended;
                 },
 
-                domReady : function(){
+                domReady: function () {
                     this.imGlobals = this.$.globals.values.im;
                     serverUrl = this.imGlobals.serverUrl;
                 }
@@ -75,7 +73,7 @@ channel is useful
             function _initImHistory() {
                 var deferred = $.Deferred();
                 var self = this;
-                _scrollToBottom.call(self, 100);
+                _scrollToBottom.call(self);
                 async.waterfall([
                     function (callback) {
                         $.get(serverUrl + '/api/channels/' + self.channel.id + '/messages/lastSeen')
@@ -127,7 +125,7 @@ channel is useful
                     var temp = _wrapMessages(messages, false);
                     if (messages.length < historyLimit) {
                         self.noMoreHistory = true;
-                        temp.unshift({type:'nomorebar'});
+                        temp.unshift({type: 'nomorebar'});
                         self.$.infiniteScroll.removeAttribute('up');
                     }
                     detail.callback(temp);
@@ -163,34 +161,31 @@ channel is useful
                 var count = 0;
                 var lastMessage = null;
                 messages.forEach(function (message) {
-                    if(count === 4) {
+                    if (count === 4) {
                         message.hideMemberElement = false;
                         count = 0;
                     } else {
                         message.hideMemberElement = _isHideMemberElement(lastMessage, message);
                     }
-                    if(message.hideMemberElement) {
-                        count ++;
+                    if (message.hideMemberElement) {
+                        count++;
                     }
                     message.disableEvent = diableEvent;
                     message.displayPreview = 'previewHidden';
-                    temp.push({type:'message', value:message});
+                    temp.push({type: 'message', value: message});
                     lastMessage = message;
                 });
                 return temp;
             }
+
             function _insertFrontMessages(messages, diableEvent) {
                 var temp = _wrapMessages(messages, diableEvent);
                 this.items = temp.concat(this.items);
-                _scrollToBottom.call(this, 1000);
+                _scrollToBottom.call(this);
             }
 
-            function _scrollToBottom(delay) {
-                var self = this;
-
-                setTimeout(function () {
-                    self.$.infiniteScroll.scrollTop = self.$.infiniteScroll.scrollHeight;
-                }, delay);
+            function _scrollToBottom() {
+                this.$.infiniteScroll.scrollToBottom();
             }
 
             function _isHideMemberElement(lastMessage, newMessage) {
@@ -220,7 +215,7 @@ channel is useful
             function _messageReady(event) {
                 var self = this;
                 if (_atBottom.call(self)) {
-                    _scrollToBottom.call(self, 100);
+                    _scrollToBottom.call(self);
                 }
             }
 
@@ -237,7 +232,7 @@ channel is useful
                             break;
                         }
                     }
-                    _scrollToBottom.call(this, 0);
+                    _scrollToBottom.call(this);
                 } else {
                     // not at bottom
                     for (var i = this.items.length - 1; i >= 0; i--) {
@@ -259,8 +254,8 @@ channel is useful
                         }
                     }
                 }
-                this.items.push({type:'message', value:msg});
-                _scrollToBottom.call(this, 100);
+                this.items.push({type: 'message', value: msg});
+                _scrollToBottom.call(this);
             }
 
             function _confirmSended(message) {
@@ -287,7 +282,7 @@ channel is useful
                         .done(function () {
                             if (self.items.length > 0) {
                                 var message = {text: 'NEW MESSAGES'};
-                                self.items.splice(0, 0, {type:'message', value: message});
+                                self.items.splice(0, 0, {type: 'message', value: message});
                                 self.newMessage = true;
                                 self.fire('message-seen', {
                                     channel: self.channel,
@@ -315,7 +310,7 @@ channel is useful
                     self.$.comingMessageToast.show();
                 }
                 message.displayPreview = 'previewHidden';
-                self.items.push({type:'message', value: message});
+                self.items.push({type: 'message', value: message});
 
                 self.fire('message-seen', {
                     channel: self.channel,

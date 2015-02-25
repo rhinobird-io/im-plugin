@@ -2,7 +2,11 @@
 
 <polymer-element name="display-item" attributes="item">
     <template>
-        <div>
+        <style>
+            :host {
+                display: block;
+            }
+        </style>
         <template if="{{item.type === 'message'}}">
             <display-message message="{{item.value}}"
                     ></display-message>
@@ -12,7 +16,6 @@
                 <div>No more history messages</div>
             </div>
         </template>
-        </div>
     </template>
     <script>
         Polymer({
