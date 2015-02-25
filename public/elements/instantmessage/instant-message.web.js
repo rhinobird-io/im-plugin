@@ -199,10 +199,12 @@
 
         sendMessage: function () {
             var self = _self;
-            if (self.message === undefined || self.message === ''){
+            if (self.message === undefined ){
                 return;
             }
-
+            if (self.message.trim() === ''){
+                return;
+            }
             var uuid = _guid.call(self);
             var msg = {
                 userId: self.currentUser.id,
