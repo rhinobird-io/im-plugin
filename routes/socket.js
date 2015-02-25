@@ -64,6 +64,9 @@ module.exports = function (socket) {
     if (!socketsMap[userId]){
       socketsMap[userId] = socket;
     }
+    if (data.text === undefined || data.text === ''){
+      return;
+    }
     Message.create({
       text: data.text,
       userId: data.userId,
