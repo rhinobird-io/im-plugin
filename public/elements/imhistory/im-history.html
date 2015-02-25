@@ -254,13 +254,11 @@ channel is useful
                         }
                     }
                 }
-                var lastMsg = this.items[this.items.length-1];
+                var lastMsg = this.items[this.items.length - 1];
                 if (lastMsg.value.userId && lastMsg.value.text === 'NEW MESSAGES') {
-                    lastMsg = this.items[this.items.length-2];
+                    lastMsg = this.items[this.items.length - 2];
                 }
-                if(lastMsg.value.userId != msg.userId) {
-                    msg.hideMemberElement = false;
-                }
+                msg.hideMemberElement = _isHideMemberElement(lastMsg, msg);
                 this.items.push({type: 'message', value: msg});
                 _scrollToBottom.call(this);
             }
