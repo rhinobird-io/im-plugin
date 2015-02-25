@@ -4,9 +4,10 @@
 <link rel="import" href="/platform/elements/member-select/member-element.html">
 <link rel="import" href="/platform/elements/app-globals/app-globals.html">
 
+<link rel="import" href="../display-item/display-item.html">
 
-<link rel="import" href="../display-message/display-message.html">
-<link rel="import" href="../event-infinite-scroll/event-infinite-scroll.html">
+<!--<link rel="import" href="../event-infinite-scroll/event-infinite-scroll.html">-->
+<link rel="import" href="/platform/bower_components/event-infinite-scroll/event-infinite-scroll.html">
 
 <script src="../../bower_components/async/lib/async.js"></script>
 <script src="../../bower_components/lodash/dist/lodash.min.js"></script>
@@ -28,21 +29,12 @@ channel is useful
             }
 
         </style>
-        <div flex>
-            <event-infinite-scroll id="infiniteScroll" readyOnStart="false" scrollDenominator="2"
-                                   loadingDelay="50"
-                                   on-reach-top="{{reachedTop}}"></event-infinite-scroll>
-            <template repeat="{{m in messages}}">
-                <display-message user="{{m.userId}}" text="{{m.text}}"
-                                 on-messageloaded="{{messageLoaded}}"
-                                 messageStatus="{{m.messageStatus}}"
-                                 updatedAt="{{m.updatedAt}}"
-                                 disableEvent="{{m.disableEvent}}"
-                                 hideMemberElement="{{m.hideMemberElement}}"
-                                 messageGuid="{{m.guid}}"
-                                 previewHidden="{{m.displayPreview}}"
-                                 on-ready="{{messageReady}}"></display-message>
+        <event-infinite-scroll flex id="infiniteScroll" data="{{items}}" on-loading-up="{{reachedTop}}" up>
+            <template repeat="{{item in items}}">
+                <display-item item="{{item}}"></display-item>
             </template>
+
+        </event-infinite-scroll>
         </div>
 
 
@@ -58,10 +50,9 @@ channel is useful
             var serverUrl = 'undefined';
 
             Polymer('im-history', {
-                messages: [],
+                items: [],
                 newMessage: false,
                 noMoreHistory: false,
-
                 ready: function () {
                     this.init = _initImHistory;
                     this.reachedTop = _reachedTop;
@@ -73,7 +64,7 @@ channel is useful
                     this.confirmSended = _confirmSended;
                 },
 
-                domReady : function(){
+                domReady: function () {
                     this.imGlobals = this.$.globals.values.im;
                     serverUrl = this.imGlobals.serverUrl;
                 }
@@ -82,7 +73,7 @@ channel is useful
             function _initImHistory() {
                 var deferred = $.Deferred();
                 var self = this;
-                _scrollToBottom.call(self, 100);
+                _scrollToBottom.call(self);
                 async.waterfall([
                     function (callback) {
                         $.get(serverUrl + '/api/channels/' + self.channel.id + '/messages/lastSeen')
@@ -114,26 +105,30 @@ channel is useful
                 return deferred;
             }
 
-            function _reachedTop(event) {
+            function _reachedTop(event, detail, target) {
                 var historyLimit = 10;
 
                 if (this.noMoreHistory) {
+                    detail.callback([]);
                     return;
                 }
-                if (this.messages.length < 1) {
+                if (this.items.length < 1) {
                     return;
                 }
-                if (this.messages[0].id == null) {
+                if (this.items[0].value.id == null) {
                     return;
                 }
                 var self = this;
                 return $.get(serverUrl + '/api/channels/' + self.channel.id +
-                '/messages?beforeId=' + this.messages[0].id +
+                '/messages?beforeId=' + this.items[0].value.id +
                 '&limit=' + historyLimit).done(function (messages) {
+                    var temp = _wrapMessages(messages, false);
                     if (messages.length < historyLimit) {
                         self.noMoreHistory = true;
+                        temp.unshift({type: 'nomorebar'});
+                        self.$.infiniteScroll.removeAttribute('up');
                     }
-                    _insertFrontMessages.call(self, messages, false);
+                    detail.callback(temp);
                 });
             }
 
@@ -141,11 +136,11 @@ channel is useful
                 var self = this;
                 var unseenMessageId = 0;
                 var beforeOption = '';
-                if (this.messages.length > 0) {
+                if (this.items.length > 0) {
                     var id = undefined;
-                    this.messages.every(function (msg) {
-                        if (msg.id) {
-                            id = msg.id;
+                    this.items.every(function (msg) {
+                        if (msg.value.id) {
+                            id = msg.value.id;
                             return false;
                         }
                         return true;
@@ -155,36 +150,42 @@ channel is useful
                     }
                 }
 
-                return $.get(serverUrl + '/api/channels/' + self.channel.id + '/messages?limit=20' + beforeOption).done(function (messages) {
+                return $.get(serverUrl + '/api/channels/' + self.channel.id + '/messages?limit=30' + beforeOption).done(function (messages) {
                     _insertFrontMessages.call(self, messages, false);
-                    _scrollToBottom.call(self, 100);
-                }).done(function () {
-                    setTimeout(function () {
-                        self.$.infiniteScroll.startObserve();
-                    }, 1000);
                 });
+            }
+
+            function _wrapMessages(messages, diableEvent) {
+                var temp = [];
+                var self = this;
+                var count = 0;
+                var lastMessage = null;
+                messages.forEach(function (message) {
+                    if (count === 4) {
+                        message.hideMemberElement = false;
+                        count = 0;
+                    } else {
+                        message.hideMemberElement = _isHideMemberElement(lastMessage, message);
+                    }
+                    if (message.hideMemberElement) {
+                        count++;
+                    }
+                    message.disableEvent = diableEvent;
+                    message.displayPreview = 'previewHidden';
+                    temp.push({type: 'message', value: message});
+                    lastMessage = message;
+                });
+                return temp;
             }
 
             function _insertFrontMessages(messages, diableEvent) {
-                var temp = [];
-                var self = this;
-                var lastMessage = null;
-                messages.forEach(function (message) {
-                    message.hideMemberElement = _isHideMemberElement(lastMessage, message);
-                    message.disableEvent = diableEvent;
-                    message.displayPreview = 'previewHidden';
-                    temp.push(message);
-                    lastMessage = message;
-                });
-                this.messages = temp.concat(this.messages);
+                var temp = _wrapMessages(messages, diableEvent);
+                this.items = temp.concat(this.items);
+                _scrollToBottom.call(this);
             }
 
-            function _scrollToBottom(delay) {
-                var self = this;
-
-                setTimeout(function () {
-                    self.scrollTop = self.scrollHeight - self.clientHeight;
-                }, delay);
+            function _scrollToBottom() {
+                this.$.infiniteScroll.scrollToBottom();
             }
 
             function _isHideMemberElement(lastMessage, newMessage) {
@@ -214,7 +215,7 @@ channel is useful
             function _messageReady(event) {
                 var self = this;
                 if (_atBottom.call(self)) {
-                    _scrollToBottom.call(self, 100);
+                    _scrollToBottom.call(self);
                 }
             }
 
@@ -225,18 +226,18 @@ channel is useful
             function _messageLoaded(event) {
                 if (_atBottom.call(this)) {
                     // at the bottom
-                    for (var i = this.messages.length - 1; i >= 0; i--) {
-                        if (this.messages[i].guid === event.detail.messageGuid) {
-                            this.messages[i].displayPreview = '';
+                    for (var i = this.items.length - 1; i >= 0; i--) {
+                        if (this.items[i].value.guid === event.detail.messageGuid) {
+                            this.items[i].value.displayPreview = '';
                             break;
                         }
                     }
-                    _scrollToBottom.call(this, 0);
+                    _scrollToBottom.call(this);
                 } else {
                     // not at bottom
-                    for (var i = this.messages.length - 1; i >= 0; i--) {
-                        if (this.messages[i].guid === event.detail.messageGuid) {
-                            this.messages[i].displayPreview = '';
+                    for (var i = this.items.length - 1; i >= 0; i--) {
+                        if (this.items[i].value.guid === event.detail.messageGuid) {
+                            this.items[i].value.displayPreview = '';
                             break;
                         }
                     }
@@ -245,26 +246,26 @@ channel is useful
 
             function _sendMessage(msg) {
                 if (this.newMessage) {
-                    for (var i = this.messages.length - 1; i >= 0; i--) {
-                        if (!this.messages[i].userId && this.messages[i].text === 'NEW MESSAGES') {
-                            this.messages.splice(i, 1);
+                    for (var i = this.items.length - 1; i >= 0; i--) {
+                        if (!this.items[i].value.userId && this.items[i].value.text === 'NEW MESSAGES') {
+                            this.items.splice(i, 1);
                             this.newMessage = false;
                             break;
                         }
                     }
                 }
-                this.messages.push(msg);
-                _scrollToBottom.call(this, 100);
+                this.items.push({type: 'message', value: msg});
+                _scrollToBottom.call(this);
             }
 
             function _confirmSended(message) {
                 var self = this;
-                for (var i = self.messages.length - 1; i >= 0; i--) {
-                    if (self.messages[i].guid === message.guid) {
-                        self.messages[i] = message;
+                for (var i = self.items.length - 1; i >= 0; i--) {
+                    if (self.items[i].value.guid === message.guid) {
+                        self.items[i].value = message;
                         if (i - 1 >= 0) {
-                            self.messages[i].hideMemberElement =
-                                    _isHideMemberElement.call(self, self.messages[i - 1], message);
+                            self.items[i].value.hideMemberElement =
+                                    _isHideMemberElement.call(self, self.items[i - 1].value, message);
                         }
                         break;
                     }
@@ -279,13 +280,13 @@ channel is useful
                             _insertFrontMessages.call(self, messages, false);
                         })
                         .done(function () {
-                            if (self.messages.length > 0) {
+                            if (self.items.length > 0) {
                                 var message = {text: 'NEW MESSAGES'};
-                                self.messages.splice(0, 0, message);
+                                self.items.splice(0, 0, {type: 'message', value: message});
                                 self.newMessage = true;
                                 self.fire('message-seen', {
                                     channel: self.channel,
-                                    message: self.messages[self.messages.length - 1]
+                                    message: self.items[self.items.length - 1].value
                                 })
                             }
                         });
@@ -294,9 +295,9 @@ channel is useful
             function _receiveMyMessage(message) {
                 var self = this;
 
-                if (self.messages.length > 0) {
+                if (self.items.length > 0) {
                     message.hideMemberElement =
-                            _isHideMemberElement.call(self, self.messages[self.messages.length - 1], message);
+                            _isHideMemberElement.call(self, self.items[self.items.length - 1].value, message);
                 }
                 if (_atBottom.call(self)) {
                     message.disableEvent = false;
@@ -309,11 +310,11 @@ channel is useful
                     self.$.comingMessageToast.show();
                 }
                 message.displayPreview = 'previewHidden';
-                self.messages.push(message);
+                self.items.push({type: 'message', value: message});
 
                 self.fire('message-seen', {
                     channel: self.channel,
-                    message: self.messages[self.messages.length - 1]
+                    message: self.items[self.items.length - 1].value
                 })
             }
         })();
