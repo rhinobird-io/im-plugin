@@ -27,6 +27,7 @@ module.exports = {
     }).done(done);
   },
   down: function(migration, DataTypes, done) {
-    migration.dropTable("UsersChannelsMessages").done(done);
+    console.log('try down of UsersChannelsMessages');
+    migration.dropTable('UsersChannelsMessages').done(done);
   }
 };
