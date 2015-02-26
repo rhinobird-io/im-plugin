@@ -125,7 +125,7 @@ channel is useful
                     var temp = _wrapMessages(messages, false);
                     if (messages.length < historyLimit) {
                         self.noMoreHistory = true;
-                        temp.unshift({type: 'nomorebar'});
+                        temp.unshift({type: 'systemMessage', value:{text: 'No more history messages'}});
                         self.$.infiniteScroll.removeAttribute('up');
                     }
                     detail.callback(temp);
@@ -288,7 +288,7 @@ channel is useful
                         .done(function () {
                             if (self.items.length > 0) {
                                 var message = {text: 'NEW MESSAGES'};
-                                self.items.splice(0, 0, {type: 'message', value: message});
+                                self.items.splice(0, 0, {type: 'systemMessage', value: message});
                                 self.newMessage = true;
                                 self.fire('message-seen', {
                                     channel: self.channel,
