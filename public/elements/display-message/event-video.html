@@ -13,7 +13,9 @@
 	        }
 	    }
 	</style>
+	<div style="height={{ajustHeight}}">
 	<iframe id="coreVideo" width="{{ajustWidth}}" height="{{ajustHeight}}" src="{{src}}"></iframe>
+	</div>
 </template>
 
 <script>
@@ -25,21 +27,22 @@
 			if (Array.isArray(this.src)){
 				this.src = this.src[0];
 			}
-		},
-		domReady: function(){
-			var self = this;
-			imagesLoaded (this.$.coreVideo, function (){ 
-					self.fire('videoloaded', '');
-			});
 			if (!this.width || this.width === 0 ){
 				this.ajustWidth = 400;
-				this.ajustHeight = 300;
+				this.ajustHeight = '';
 			}
 			if (this.width > this.ajustWidth){
 				this.ajustHeight = this.height * this.ajustWidth / this.width;
 			}else{
 				this.ajustHeight = this.height;
+				this.ajustHeight = '';
 			}
+		},
+		domReady: function(){
+			var self = this;
+			imagesLoaded (this.$.coreVideo, function (){
+					self.fire('videoloaded', '');
+			});
 		}, 
 	});
 </script>

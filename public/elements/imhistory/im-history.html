@@ -3,6 +3,7 @@
 <link rel="import" href="/platform/bower_components/paper-toast/paper-toast.html">
 <link rel="import" href="/platform/elements/member-select/member-element.html">
 <link rel="import" href="/platform/elements/app-globals/app-globals.html">
+<link rel="import" href="/platform/bower_components/core-localstorage/core-localstorage.html">
 
 <link rel="import" href="../display-item/display-item.html">
 
@@ -22,7 +23,7 @@ channel is useful
     <template>
         <app-globals id="globals"></app-globals>
         <core-style ref="theme"></core-style>
-
+        <core-localstorage id="ls" name="im.ogpMap" value="{{ogpMap}}"></core-localstorage>
         <style>
             :host {
                 overflow: auto;
@@ -53,6 +54,11 @@ channel is useful
                 items: [],
                 newMessage: false,
                 noMoreHistory: false,
+                /**
+                 * key : queryUrl
+                 * value : org meta
+                 */
+                ogpMap: {},
                 ready: function () {
                     this.init = _initImHistory;
                     this.reachedTop = _reachedTop;
@@ -119,16 +125,26 @@ channel is useful
                     return;
                 }
                 var self = this;
+
                 return $.get(serverUrl + '/api/channels/' + self.channel.id +
                 '/messages?beforeId=' + this.items[0].value.id +
                 '&limit=' + historyLimit).done(function (messages) {
-                    var temp = _wrapMessages(messages, false);
+                    var temp = _wrapMessages.call(self, messages, false);
                     if (messages.length < historyLimit) {
                         self.noMoreHistory = true;
                         temp.unshift({type: 'systemMessage', value:{text: 'No more history messages'}});
                         self.$.infiniteScroll.removeAttribute('up');
                     }
-                    detail.callback(temp);
+                    async.eachSeries(temp, function(message, callback){
+                        var deferred = _linkPreviewGetOGP.call(self, message, temp);
+                        deferred.then(function(){
+                            callback();
+                        });
+                    }, function(err){
+                        self.async(function(){
+                            detail.callback(temp);
+                        });
+                    });
                 });
             }
 
@@ -177,11 +193,78 @@ channel is useful
                 });
                 return temp;
             }
+            function _insertLinkPreview(item, guid, items){
+                var findIndex = -1;
+                items.forEach(function(element, index, array){
+                    if (element.value.guid === guid){
+                        findIndex = index;
+                    }
+                });
+                if( findIndex === -1){
+                    return;
+                }
+                items.splice(findIndex + 1, 0, item);
+            }
+
+            function _linkPreviewGetOGP(message, items){
+                var deferred = $.Deferred();
+                var self = this;
+                var uri_pattern = /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/ig;
+                if ( message.value === undefined || message.value.text === undefined){
+                    deferred.resolve();
+                    return deferred;
+                }
+                var matched = message.value.text.match(uri_pattern);
+                if(matched){
+                    if (this.ogpMap[matched[0]]) {
+                        var ogp = this.ogpMap[matched[0]].meta;
+                        _insertLinkPreview.call(this, {type:'linkPreivew', value:ogp}, message.value.guid, items);
+                        deferred.resolve();
+                    } else {
+                        $.get(serverUrl + '/api/urlMetadata?url=' + matched[0]).done(function (ogp) {
+                            self.$.ls.load();
+                            self.ogpMap[matched[0]] = {
+                                updatedAt : new Date(),
+                                meta : ogp
+                            };
+                            self.$.ls.save();
+                            _insertLinkPreview.call(self, {type:'linkPreivew', value:ogp}, message.value.guid, items);
+                            deferred.resolve();
+                        }).fail(function(err){
+                            deferred.resolve();
+                        });
+                    }
+                }else{
+                    deferred.resolve();
+                }
+                return deferred;
+            }
+
+            function _newMessagesProcessPreview(messages, items){
+                var self = this;
+                var outDeferred = $.Deferred();
+                async.eachSeries(messages, function(message, callback){
+                    var deferred = _linkPreviewGetOGP.call(self, message, items);
+                    deferred.then(function(){
+                        callback();
+                    });
+                }, function(err){
+                    self.async(function(){
+                        outDeferred.resolve();
+                    });
+                });
+                return outDeferred;
+            }
 
             function _insertFrontMessages(messages, diableEvent) {
-                var temp = _wrapMessages(messages, diableEvent);
+                var self = this;
+                var temp = _wrapMessages.call(this, messages, diableEvent);
                 this.items = temp.concat(this.items);
-                _scrollToBottom.call(this);
+                _newMessagesProcessPreview.call(this,temp, this.items).then(function(){
+                    self.async(function(){
+                        _scrollToBottom.call(self);
+                    });
+                });
             }
 
             function _scrollToBottom() {
@@ -258,10 +341,24 @@ channel is useful
                 if (lastMsg.value.userId && lastMsg.value.text === 'NEW MESSAGES') {
                     lastMsg = this.items[this.items.length - 2];
                 }
+                var self = this;
                 msg.updatedAt = new Date();
                 msg.hideMemberElement = _isHideMemberElement(lastMsg.value, msg);
-                this.items.push({type: 'message', value: msg});
-                _scrollToBottom.call(this);
+                var message = {type: 'message', value: msg};
+                var isAtbottom = _atBottom.call(this);
+                this.items.push(message);
+                this.async(function(){
+                    if(isAtbottom){
+                        _scrollToBottom.call(self);
+                    }
+                });
+                _linkPreviewGetOGP.call(this, message, this.items).then(function(){
+                    self.async(function(){
+                        if(isAtbottom){
+                            _scrollToBottom.call(self);
+                        }
+                    });
+                });
             }
 
             function _confirmSended(message) {
@@ -316,8 +413,17 @@ channel is useful
                     self.$.comingMessageToast.show();
                 }
                 message.displayPreview = 'previewHidden';
-                self.items.push({type: 'message', value: message});
 
+                var item = {type: 'message', value: message};
+                self.items.push(item);
+                this.async(function(){
+                    _scrollToBottom.call(self);
+                });
+                _linkPreviewGetOGP.call(this, item, this.items).then(function(){
+                    self.async(function(){
+                        _scrollToBottom.call(self);
+                    });
+                });
                 self.fire('message-seen', {
                     channel: self.channel,
                     message: self.items[self.items.length - 1].value

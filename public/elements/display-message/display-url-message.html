@@ -1,10 +1,8 @@
 <link rel="import" href="/platform/bower_components/polymer/polymer.html">
 <link rel="import" href="/platform/bower_components/core-ajax/core-ajax.html">
-<link rel="import" href="/platform/bower_components/core-localstorage/core-localstorage.html">
-<link rel="import" href="display-default-message.html">
 <link rel="import" href="event-image.html">
 <link rel="import" href="event-video.html">
-<polymer-element name="display-url-message" extends="display-default-message" attributes="url previewHidden">
+<polymer-element name="display-url-message" attributes="ogp previewHidden">
 
 <template>
 	<style>
@@ -18,48 +16,46 @@
 		.previewHidden {
 			display: none;
 		}
-
+        .avatar {
+            margin-top: 0.5em;
+            width: 36px;
+        }
+        .box {
+            margin-left: 1em;
+            padding-right: 1em;
+        }
 		
 	</style>
-	<core-localstorage id="ls" name="im.ogpMap" value="{{ogpMap}}"></core-localstorage>
-<core-ajax id='getOGP'
-    auto='false'
-    method="GET"
-    url="{{serverUrl}}/api/urlMetadata"
-    params="{{queryURL}}" 
-    handleAs="json"
-	on-core-response="{{handleOgp}}"
-    ></core-ajax>
-
-    <a href="{{url}}" target="{{url}}"><shadow></shadow></a>
-	
-	<div class='{{previewHidden}}' vertical layout>
-		<div>
-			<template if="{{urlSiteName}}">
-				<span class="attachment_service_name {{previewHidden}}">{{urlSiteName}}</span>
-			</template>
-		</div>
-		<div>
-			<template if="{{urlTitle}}">
-				<span class="attachment_title {{previewHidden}}"><a href="{{url}}" rel="noreferrer" target="{{url}}">{{urlTitle}}</a></span>
-			</template>
-		</div>
-		<div>
-			<template if="{{urlDescription}}">
-				<div class="attachment_contents {{previewHidden}}">{{urlDescription}}</div>
-			</template>
-		</div>
-		<div>
-			<template if="{{!videoURL && urlImage}}">
-				<event-image class='{{previewHidden}}' src="{{urlImage}}" width="400px" on-imageloaded="{{imageLoaded}}"></event-image>
-			</template>
-			<template if="{{videoURL}}">
-				<event-video class='{{previewHidden}}' src="{{videoURL}}" width="{{videoWidth}}" height="{{videoHeight}}" on-videoloaded="{{imageLoaded}}"></event-video>
-			</template>
-		</div>
-	</div>
+    <div horizontal layout>
+        <div class='avatar'>
+        </div>
+        <div class='{{previewHidden}} box' vertical layout flex>
+            <div>
+                <template if="{{urlSiteName}}">
+                    <span class="attachment_service_name {{previewHidden}}">{{urlSiteName}}</span>
+                </template>
+            </div>
+            <div>
+                <template if="{{urlTitle}}">
+                    <span class="attachment_title {{previewHidden}}"><a href="{{url}}" rel="noreferrer" target="{{url}}">{{urlTitle}}</a></span>
+                </template>
+            </div>
+            <div>
+                <template if="{{urlDescription}}">
+                    <div class="attachment_contents {{previewHidden}}">{{urlDescription}}</div>
+                </template>
+            </div>
+            <div>
+                <template if="{{!videoURL && urlImage}}">
+                    <event-image class='{{previewHidden}}' src="{{urlImage}}" width="{{urlImageWidth}}" height="{{urlImageHeight}}" on-imageloaded="{{imageLoaded}}"></event-image>
+                </template>
+                <template if="{{videoURL}}">
+                    <event-video class='{{previewHidden}}' src="{{videoURL}}" width="{{videoWidth}}" height="{{videoHeight}}" on-videoloaded="{{imageLoaded}}"></event-video>
+                </template>
+            </div>
+        </div>
+    </div>
 </template>
-<script src="../../bower_components/lodash/dist/lodash.min.js"></script>
 <script>
     (function(){
         var hostname = window.location.hostname +':'+ window.location.port;
@@ -71,34 +67,12 @@
             urlSiteName: '',
             videoWidth: 0,
             videoHeight: 0,
+            urlImageHeight: 0,
+            urlImageWidth: 0,
             disableLoadedEvent: false,
-            /**
-             * key : queryUrl
-             * value : org meta
-             */
-            ogpMap: {},
-            domReady: function(){
-                this.serverUrl = serverUrl;
-                this.queryURL = JSON.stringify({"url":this.url});
-                this.deleteOldMeta();
-                if (this.ogpMap[this.url]) {
-                    this.ogp = this.ogpMap[this.url].meta;
-                    this.renderOgp(this.ogp);
-                } else {
-                    this.$.getOGP.go();
-                }
-            },
 
-            handleOgp: function(event, detail, target) {
-                var newValue = this.ogp  = detail.response;
-                // save to cache
-                this.$.ls.load();
-                this.ogpMap[this.url] = {
-                    updatedAt : new Date(),
-                    meta : newValue
-                };
-                this.$.ls.save();
-                this.renderOgp(this.ogp);
+            ready: function(){
+               this.renderOgp(this.ogp);
             },
 
             renderOgp: function(newValue){
@@ -112,6 +86,16 @@
                 }
                 if (newValue.og.image && newValue.og.image.url){
                     this.urlImage = newValue.og.image.url;
+                }
+                if (newValue.og.image && newValue.og.image.width){
+                    try{
+                        this.urlImageWidth = parseInt(newValue.og.image.width);
+                    }catch(err){}
+                }
+                if (newValue.og.image && newValue.og.image.height){
+                    try{
+                        this.urlImageHeight = parseInt(newValue.og.image.height);
+                    }catch(err){}
                 }
                 if (newValue.og.site_name){
                     this.urlSiteName = newValue.og.site_name;
@@ -132,22 +116,6 @@
                 if (!this.urlImage && !this.videoURL ){
                     this.fire('loaded', '');
                 }
-            },
-            deleteOldMeta : function(){
-                var oldKeys = [];
-                var now = new Date();
-                var oneWeek = 86400 * 1000 * 7;
-                var self = this;
-                Object.keys(this.ogpMap).forEach(function(url) {
-                    if (now - new Date(self.ogpMap[url].updatedAt) > oneWeek) {
-                        oldKeys.push(url);
-                    }
-                });
-
-                oldKeys.forEach(function(key) {
-                    delete this.ogpMap[key];
-                }, this);
-                this.$.ls.save();
             },
             imageLoaded: function(event){
                 this.fire('loaded', '');

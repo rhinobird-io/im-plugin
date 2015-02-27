@@ -1,10 +1,7 @@
-<polymer-element name="event-image" attributes="src width">
+<polymer-element name="event-image" attributes="src width height">
 <script src="../../bower_components/imagesloaded/imagesloaded.pkgd.js"></script>
 <template>
 	<style>
-		.msg_inline_img {
-			max-width: {{width}};
-		}
 		/* iphone */
 	    @media only screen and (max-width:400px) {
 	        .msg_inline_img { 
@@ -12,12 +9,28 @@
 	        }
 	    }
 	</style>
-	<img id="coreImage" class="msg_inline_img msg_inline_child" src="{{src}}">
+	<div style="height={{ajustHeight}}">
+	<img id="coreImage" width="{{ajustWidth}}" height="{{ajustHeight}}" class="msg_inline_img msg_inline_child" src="{{src}}">
+	</div>
 </template>
 
 <script>
 	Polymer({
 		disableLoadedEvent: false,
+		ajustWidth: 400,
+		ajustHeight: 0,
+		ready: function(){
+			if (!this.width || this.width === 0 ){
+				this.ajustWidth = 400;
+				this.ajustHeight = '';
+			}
+			if (this.width > this.ajustWidth){
+				this.ajustHeight = this.height * this.ajustWidth / this.width;
+			}else{
+				this.ajustHeight = this.height;
+				this.ajustHeight = '';
+			}
+		},
 		domReady: function(){
 			var self = this;
 			imagesLoaded (this.$.coreImage, function (){ 
