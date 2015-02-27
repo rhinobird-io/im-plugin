@@ -135,16 +135,16 @@ channel is useful
                         temp.unshift({type: 'systemMessage', value:{text: 'No more history messages'}});
                         self.$.infiniteScroll.removeAttribute('up');
                     }
-                    async.eachSeries(temp, function(message, callback){
-                        var deferred = _linkPreviewGetOGP.call(self, message, temp);
-                        deferred.then(function(){
-                            callback();
+                    detail.callback(temp);
+                    setTimeout(function(){
+                        async.eachSeries(temp, function(message, callback){
+                            var deferred = _linkPreviewGetOGP.call(self, message, self.items);
+                            deferred.then(function(){
+                                callback();
+                            });
+                        }, function(err){
                         });
-                    }, function(err){
-                        self.async(function(){
-                            detail.callback(temp);
-                        });
-                    });
+                    }, 2000);
                 });
             }
 
@@ -193,6 +193,7 @@ channel is useful
                 });
                 return temp;
             }
+
             function _insertLinkPreview(item, guid, items){
                 var findIndex = -1;
                 items.forEach(function(element, index, array){
@@ -204,6 +205,8 @@ channel is useful
                     return;
                 }
                 items.splice(findIndex + 1, 0, item);
+
+                this.$.infiniteScroll.stayBottom();
             }
 
             function _linkPreviewGetOGP(message, items){
