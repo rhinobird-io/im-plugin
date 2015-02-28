@@ -221,6 +221,7 @@
             };
 
             self.$.imHistory.sendMessage(msg);
+            self.$.messageInput.clearText();
 
           self.socket.emit('message:send', msg, function (message) {
                 self.$.imHistory.confirmSended(message);
