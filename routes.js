@@ -15,14 +15,19 @@ module.exports = function (app) {
   app.get('/api/channels/:channelId/messages/lastSeen', messages.getLastSeenMessage);
 
   app.get('/api/urlMetadata', function (req, res) {
-    ogp(req.query['url'], function (error, data) {
-      if (error) {
-        res.send({});
-        return;
-      }
-      memCache.put(req.query['url'], data, 86400 * 1000);
-      res.send(data);
-    });
+    try{
+      ogp(req.query['url'], function (error, data) {
+        if (error) {
+          res.send({});
+          return;
+        }
+        memCache.put(req.query['url'], data, 86400 * 1000);
+        res.send(data);
+      });
+    }catch(ex){
+      console.log(ex);
+      res.send({});
+    }
   });
 
   app.get('*', function (req, res) {
