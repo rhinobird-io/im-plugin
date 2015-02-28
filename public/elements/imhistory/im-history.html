@@ -341,12 +341,14 @@ channel is useful
                     }
                 }
                 var lastMsg = this.items[this.items.length - 1];
-                if (lastMsg.value.userId && lastMsg.value.text === 'NEW MESSAGES') {
-                    lastMsg = this.items[this.items.length - 2];
+                if (this.newMessage && lastMsg) {
+                    if (lastMsg.value.userId && lastMsg.value.text === 'NEW MESSAGES') {
+                        lastMsg = this.items[this.items.length - 2];
+                    }
                 }
                 var self = this;
                 msg.updatedAt = new Date();
-                msg.hideMemberElement = _isHideMemberElement(lastMsg.value, msg);
+                msg.hideMemberElement = lastMsg && _isHideMemberElement(lastMsg.value, msg);
                 var message = {type: 'message', value: msg};
                 var isAtbottom = _atBottom.call(this);
                 this.items.push(message);
