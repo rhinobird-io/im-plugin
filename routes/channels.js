@@ -72,9 +72,9 @@ exports.getPrivateChannels = function(req, res) {
     });
   } else {
     PrivateChannelsUsers.findAll({where: {userId: userId}}).then(function (privateChannelsUsers) {
-      PrivateChannel.findAll({where: {id: _.pluck(privateChannelsUsers, 'privateChannelId')}}).then(function (channels) {
+      privateChannelsUsers.length > 0?PrivateChannel.findAll({where: {id: _.pluck(privateChannelsUsers, 'privateChannelId')}}).then(function (channels) {
         res.json(channels);
-      })
+      }):res.json([]);
     });
   }
 };
