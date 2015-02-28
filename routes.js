@@ -17,6 +17,7 @@ module.exports = function (app) {
   app.get('/api/urlMetadata', function (req, res) {
     ogp(req.query['url'], function (error, data) {
       if (error) {
+        res.send({});
         return;
       }
       memCache.put(req.query['url'], data, 86400 * 1000);

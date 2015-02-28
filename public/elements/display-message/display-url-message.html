@@ -76,39 +76,39 @@
             },
 
             renderOgp: function(newValue){
-                if (newValue.og.description){
+                if (newValue.og && newValue.og.description){
                     this.urlDescription = newValue.og.description;
                 }else if(newValue.description){
                     this.urlDescription = newValue.description;
                 }
-                if (newValue.og.title){
+                if (newValue.og && newValue.og.title){
                     this.urlTitle = newValue.og.title;
                 }
-                if (newValue.og.image && newValue.og.image.url){
+                if (newValue.og && newValue.og.image && newValue.og.image.url){
                     this.urlImage = newValue.og.image.url;
                 }
-                if (newValue.og.image && newValue.og.image.width){
+                if (newValue.og && newValue.og.image && newValue.og.image.width){
                     try{
                         this.urlImageWidth = parseInt(newValue.og.image.width);
                     }catch(err){}
                 }
-                if (newValue.og.image && newValue.og.image.height){
+                if (newValue.og && newValue.og.image && newValue.og.image.height){
                     try{
                         this.urlImageHeight = parseInt(newValue.og.image.height);
                     }catch(err){}
                 }
-                if (newValue.og.site_name){
+                if (newValue.og && newValue.og.site_name){
                     this.urlSiteName = newValue.og.site_name;
                 }
-                if (newValue.og.video && newValue.og.video.url){
+                if (newValue.og && newValue.og.video && newValue.og.video.url){
                     this.videoURL = newValue.og.video.url;
                 }
-                if (newValue.og.video && newValue.og.video.height){
+                if (newValue.og && newValue.og.video && newValue.og.video.height){
                     try{
                         this.videoHeight = parseInt(newValue.og.video.height);
                     }catch(err){}
                 }
-                if (newValue.og.video && newValue.og.video.width){
+                if (newValue.og && newValue.og.video && newValue.og.video.width){
                     try{
                         this.videoWidth = parseInt(newValue.og.video.width);
                     }catch(err){}
