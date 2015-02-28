@@ -20,18 +20,21 @@ module.exports = function (socket) {
     var currentChannel = data.currentChannel;
 
     socketsMap[userId] = socket;
-
-    myPublicChannels.forEach(function (channel) {
-      socket.join(channel.id);
-    });
-
-    myTeamMemberChannels.forEach(function (channel) {
-      socket.join(channel.id);
-    });
-
-    myPrivateChannels.forEach(function (channel) {
-      socket.join(channel.id);
-    });
+    if (myPublicChannels){
+      myPublicChannels.forEach(function (channel) {
+        socket.join(channel.id);
+      });
+    }
+    if (myTeamMemberChannels){
+      myTeamMemberChannels.forEach(function (channel) {
+        socket.join(channel.id);
+      });
+    }
+    if (myPrivateChannels){
+      myPrivateChannels.forEach(function (channel) {
+        socket.join(channel.id);
+      });
+    }
 
     socket.join(defaultChannel);
 
