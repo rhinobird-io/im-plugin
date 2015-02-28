@@ -223,12 +223,13 @@ channel is useful
                 }
                 var matched = message.value.text.match(uri_pattern);
                 if(matched){
+
                     if (this.ogpMap[matched[0]]) {
                         var ogp = this.ogpMap[matched[0]].meta;
                         _insertLinkPreview.call(this, {type:'linkPreivew', value:ogp}, message.value.guid, items);
                         deferred.resolve();
                     } else {
-                        $.get(serverUrl + '/api/urlMetadata?url=' + matched[0]).done(function (ogp) {
+                        $.get(serverUrl + '/api/urlMetadata', {'url':matched[0]} ).done(function (ogp) {
                             self.$.ls.load();
                             self.ogpMap[matched[0]] = {
                                 updatedAt : new Date(),
