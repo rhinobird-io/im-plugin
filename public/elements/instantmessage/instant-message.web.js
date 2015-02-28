@@ -50,6 +50,9 @@
                     return;
                 }
             };
+            window.onkeydown = function(event){
+                self.$.imHistory.stayBottom();
+            };
 
             this.addEventListener('channel-select', function (event) {
                 var channel = event.detail;

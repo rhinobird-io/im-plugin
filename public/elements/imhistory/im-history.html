@@ -68,11 +68,15 @@ channel is useful
                     this.sendMessage = _sendMessage;
                     this.receiveMyMessage = _receiveMyMessage;
                     this.confirmSended = _confirmSended;
+                    this.scrollToBottom = _scrollToBottom;
                 },
 
                 domReady: function () {
                     this.imGlobals = this.$.globals.values.im;
                     serverUrl = this.imGlobals.serverUrl;
+                },
+                stayBottom: function() {
+                    this.$.infiniteScroll.stayBottom();
                 }
             });
 
