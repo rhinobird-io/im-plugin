@@ -2,7 +2,7 @@
 <link rel="import" href="/platform/bower_components/core-ajax/core-ajax.html">
 <link rel="import" href="event-image.html">
 <link rel="import" href="event-video.html">
-<polymer-element name="display-url-message" attributes="ogp previewHidden">
+<polymer-element name="display-url-message" attributes="url ogp previewHidden">
 
 <template>
 	<style>
@@ -61,6 +61,7 @@
         var hostname = window.location.hostname +':'+ window.location.port;
         var serverUrl = 'http://' + hostname + '/im';
         Polymer({
+            url: '',
             urlTitle: '',
             urlDescription: '',
             urlImage: '',
@@ -76,6 +77,9 @@
             },
 
             renderOgp: function(newValue){
+                if (newValue.og && newValue.og.url){
+                    this.url = newValue.og.url;
+                }
                 if (newValue.og && newValue.og.description){
                     this.urlDescription = newValue.og.description;
                 }else if(newValue.description){

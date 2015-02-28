@@ -226,7 +226,7 @@ channel is useful
 
                     if (this.ogpMap[matched[0]]) {
                         var ogp = this.ogpMap[matched[0]].meta;
-                        _insertLinkPreview.call(this, {type:'linkPreivew', value:ogp}, message.value.guid, items);
+                        _insertLinkPreview.call(this, {type:'linkPreivew', value:ogp, url:matched[0]}, message.value.guid, items);
                         deferred.resolve();
                     } else {
                         $.get(serverUrl + '/api/urlMetadata', {'url':matched[0]} ).done(function (ogp) {
@@ -236,7 +236,7 @@ channel is useful
                                 meta : ogp
                             };
                             self.$.ls.save();
-                            _insertLinkPreview.call(self, {type:'linkPreivew', value:ogp}, message.value.guid, items);
+                            _insertLinkPreview.call(self, {type:'linkPreivew', value:ogp, url:matched[0]}, message.value.guid, items);
                             deferred.resolve();
                         }).fail(function(err){
                             deferred.resolve();
