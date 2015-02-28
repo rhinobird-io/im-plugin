@@ -134,33 +134,37 @@ channelName, current channel name , it is useful
 
                 latestChannelMessage: {},
 
-                //unread: {},
-
-                newPrivateChannel: {
-                    init: function () {
-                        this.name = '';
-                        this.users = [];
-                        this.teams = [];
-                    },
-
-                    name: '',
-                    users: [],
-                    teams: []
-                },
-
                 computed: {
                     'channelNameInvalid': '$.privateChannelNameInput.isInvalid'
                 },
 
                 domReady: function () {
-                    this.router = document.querySelector('app-router');
+                    var self = this;
                     this.imGlobal = this.$.globals.values.im;
                     this.receiveMessage = _receiveMessage;
                     this.confirmSended = _confirmedSendMessage;
                     this.init = _initImChannels;
 
+                    this.addEventListener('channel-select', function (event) {
+                        var channel = event.detail;
+                        self.channelName = channel.hash;
+                        _initCurrentChannel.call(self, function cb(){});
+                    });
+
                     this.imGlobals = this.$.globals.values.im;
                     serverUrl = this.imGlobals.serverUrl;
+
+                    this.newPrivateChannel = {
+                        init: function () {
+                            this.name = '';
+                            this.users = [];
+                            this.teams = [];
+                        },
+
+                        name: '',
+                        users: [],
+                        teams: []
+                    };
                 },
 
                 latestChannelMessageChanged: function (oldValue, newValue) {
@@ -310,14 +314,17 @@ channelName, current channel name , it is useful
                     self.$.noGroupDlg.open();
                     callback('no groups found for current user');
                     return;
-                } else if (self.channelName === defaultChannel) {
+                } else if (self.channelName === defaultChannel) { // This will cause flush on the screen, use history API instead
                     var pluginName = self.imGlobal.pluginName;
                     if (self.imGlobals.currentChannel) {
-                        self.router.go('/' + pluginName + '/channels/' + self.imGlobals.currentChannel.hash);
+                        self.channelName = self.imGlobals.currentChannel.hash;
+                        _initCurrentChannel.call(self, function cb(){
+                            self.fire('channel-select', self.channel);
+                            callback();
+                        });
                     } else {
-                        // by default use appGlobal
-                        self.channelName = self.publicChannels[0].name;
-                        self.router.go('/' + pluginName + '/channels/' + self.channelName);
+                        self.fire('channel-default');
+                        callback();
                     }
                     return;
                 } else {
@@ -360,15 +367,16 @@ channelName, current channel name , it is useful
                 var self = this;
                 $.get(serverUrl + '/api/channels').done(
                         function (channels) {
-                            self.privateChannels = [];
+                            var temp = [];
                             channels.forEach(function (channel) {
-                                self.privateChannels.push({
+                                temp.push({
                                     id: '' + channel.id,
                                     name: channel.name,
                                     hash: channel.name,
                                     userChannels: []
                                 });
-                            })
+                            });
+                            self.privateChannels = temp;
                         }).done(function (channels) {
                             async.each(self.privateChannels,
                                     function (team, cb) {
@@ -393,38 +401,43 @@ channelName, current channel name , it is useful
 
             function _initCurrentChannel(callback) {
                 var self = this;
-                if (('' + self.channelName).indexOf('@') === 0) {
-                    var name = self.channelName.substr(1);
-                    self.teamMemberChannels.every(function (teamMemberChannel) {
-                        if (teamMemberChannel.name === name) {
-                            self.channel = teamMemberChannel;
-                            return false;
-                        }
-                        return true;
-                    });
+                if (self.channelName === defaultChannel) {
+                    self.channel = undefined;
+                    callback(301);
                 } else {
-                    self.publicChannels.every(function (publicChannel) {
-                        if (publicChannel.name === self.channelName) {
-                            self.channel = publicChannel;
-                            return false;
-                        }
-                        return true;
-                    });
-                    self.privateChannels.every(function (privateChannel) {
-                        if (privateChannel.name === self.channelName) {
-                            self.channel = privateChannel;
-                            return false;
-                        }
-                        return true;
-                    });
-                }
-                if (!self.channel) {
-                    // redirect to 403
-                    callback(403);
-                } else {
-                    self.imGlobals.currentChannel = self.channel;
-                    _clearUnread.call(self, self.channel.id);
-                    callback();
+                    if (('' + self.channelName).indexOf('@') === 0) {
+                        var name = self.channelName.substr(1);
+                        self.teamMemberChannels.every(function (teamMemberChannel) {
+                            if (teamMemberChannel.name === name) {
+                                self.channel = teamMemberChannel;
+                                return false;
+                            }
+                            return true;
+                        });
+                    } else {
+                        self.publicChannels.every(function (publicChannel) {
+                            if (publicChannel.name === self.channelName) {
+                                self.channel = publicChannel;
+                                return false;
+                            }
+                            return true;
+                        });
+                        self.privateChannels.every(function (privateChannel) {
+                            if (privateChannel.name === self.channelName) {
+                                self.channel = privateChannel;
+                                return false;
+                            }
+                            return true;
+                        });
+                    }
+                    if (!self.channel) {
+                        // redirect to 403
+                        callback(403);
+                    } else {
+                        self.imGlobals.currentChannel = self.channel;
+                        _clearUnread.call(self, self.channel.id);
+                        callback();
+                    }
                 }
             }
 
@@ -469,19 +482,19 @@ channelName, current channel name , it is useful
                 });
 
                 var hash = "";
-                this.publicChannels.every(function (channel) {
+                var targetChannelExists = !this.publicChannels.every(function (channel) {
                     if (('' + channel.id) === channelId) {
                         hash = channel.hash;
                         return false;
                     }
                     return true;
-                }) || this.privateChannels.every(function (channel) {
+                }) || !this.privateChannels.every(function (channel) {
                     if (('' + channel.id) === channelId) {
                         hash = channel.hash;
                         return false;
                     }
                     return true;
-                }) || this.teamMemberChannels.every(function (channel) {
+                }) || !this.teamMemberChannels.every(function (channel) {
                     if (('' + channel.id) === channelId) {
                         hash = channel.hash;
                         return false;
@@ -489,13 +502,16 @@ channelName, current channel name , it is useful
                     return true;
                 });
 
-                notification.onclick = function () {
+                notification.onclick =  targetChannelExists?function () {
                     window.focus();
                     var pluginName = self.imGlobal.pluginName;
                     if (channelId != self.channel.id) {
-                        document.querySelector('app-router').go('/' + pluginName + '/channels/' + hash);
+                        self.channelName = hash;
+                        _initCurrentChannel.call(self, function cb(){
+                            self.fire('channel-select', self.channel);
+                        });
                     }
-                }
+                }:undefined;
 
                 setTimeout(function () {
                     notification.close();
@@ -582,13 +598,30 @@ channelName, current channel name , it is useful
                             userId: self.currentUser.id
                         });
                         cb(null, channel);
-                    }
+                    },
+                    /**
+                     * reload privateChannels
+                     * @param channel
+                     * @param cb
+                     */
+                        function(channel, cb) {
+                            _initPrivateChannels.call(self, function() {
+                                var channelToGo = _.find( self.privateChannels, function(pChannel) {
+                                    return pChannel.name === channel.name;
+                                });
+                                cb(null, channelToGo);
+                            })
+                        }
                 ], function (err, channel) {
                     if (!err) {
                         self.$.addPrivateChannelDialog.close();
                         self.newPrivateChannel.init();
-                        var pluginName = self.imGlobal.pluginName;
-                        self.router.go('/' + pluginName + '/channels/' + channel.name);
+
+                        self.channelName = channel.hash;
+                        _initCurrentChannel.call(self, function cb(){
+                            self.fire('channel-select', self.channel);
+                        });
+
                     } else {
                         console.log('error during creating private channel : ' + err);
                     }
@@ -604,12 +637,16 @@ channelName, current channel name , it is useful
                     type: 'DELETE',
                     success: function (result) {
                         dlg.close();
-                        if (self.channel.id === channelId) {
+                        if (self.channel && self.channel.id === channelId) {
                             delete self.imGlobals.currentChannel;
-                            self.router.go('/' + self.pluginName + '/channels/' + defaultChannel);
-                        } else {
+
+                            self.channelName = defaultChannel;
+                            self.channel = undefined;
                             _initPrivateChannels.call(self, function () {
+                                self.fire('channel-default');
                             });
+                        } else {
+                            _initPrivateChannels.call(self, function () {});
                         }
                     }
                 });

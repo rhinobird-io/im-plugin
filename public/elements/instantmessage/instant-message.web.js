@@ -3,7 +3,7 @@
 (function () {
     var hostname = window.location.hostname + ':' + window.location.port;
     var serverUrl = 'http://' + hostname + '/im';
-
+    var defaultChannel = 'default';
     var _self;
 
     Polymer({
@@ -32,7 +32,7 @@
             if (Notification.permission !== "granted") {
                 Notification.requestPermission();
             }
-            window.addEventListener('hashchange', function () {
+            window.addEventListener('hashchange', function (event) {
                 window.onkeypress = null;
             });
 
@@ -55,9 +55,17 @@
             };
 
             this.addEventListener('channel-select', function (event) {
-                var channel = event.detail;
-                self.router.go('/' + self.pluginName + '/channels/' + channel.hash);
+                self.channel = event.detail;
+                history.pushState(null, null, '#' + '/' + self.pluginName + '/channels/' + self.channel.hash);
+                // load history
+                self.$.imHistory.init();
             });
+
+            this.addEventListener('channel-default', function (event) {
+              self.channel = undefined;
+              history.pushState(null, null, '#' + '/' + self.pluginName + '/channels/' + defaultChannel);
+            });
+
 
             self.imGlobals = self.$.globals.values.im = self.$.globals.values.im || {};
             self.imGlobals.serverUrl = serverUrl;
@@ -68,15 +76,16 @@
          * Only in domReady the userId is filled
          */
         domReady: function () {
-            this.router = document.querySelector('app-router');
             _self = this;
             async.waterfall([
                 _initCurrentUser.bind(_self),
                 _initSocketIO.bind(_self),
+                _initSocket.bind(_self),
+
                 function (callback) {
                     _self.$.imChannels.init().done(function (res) {
-                        if (res.status === 403) {
-                            callback(403);
+                        if (res.status !== 200) {
+                            callback(res.status);
                         } else {
                             callback();
                         }
@@ -89,8 +98,6 @@
                     callback();
                 },
 
-                _initSocket.bind(_self),
-
                 function (callback) {
                     _self.$.imHistory.init().done(function (res) {
                         callback();
@@ -98,12 +105,6 @@
                 }
 
             ], function (err, result) {
-                if (err === 403) {
-                    _self.$.imForbidden.open();
-                } else {
-                    _self.$.imForbidden.close();
-                }
-
                 if (err) {
                     console.log('Error : ' + err);
                 }
@@ -245,6 +246,8 @@
                 channel: event.detail.channel,
                 users: event.detail.users,
                 userId: event.detail.userId
+            }, function(){
+
             });
         },
 

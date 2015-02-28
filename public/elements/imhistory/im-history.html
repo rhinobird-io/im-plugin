@@ -72,6 +72,13 @@ channel is useful
                 },
 
                 domReady: function () {
+                    var self = this;
+
+                    this.addEventListener('channel-select', function (event) {
+                        debugger;
+                        self.channel = event.detail;
+                    });
+
                     this.imGlobals = this.$.globals.values.im;
                     serverUrl = this.imGlobals.serverUrl;
                 },
@@ -83,7 +90,8 @@ channel is useful
             function _initImHistory() {
                 var deferred = $.Deferred();
                 var self = this;
-                _scrollToBottom.call(self);
+                self.items = [];
+                //_scrollToBottom.call(self);
                 async.waterfall([
                     function (callback) {
                         $.get(serverUrl + '/api/channels/' + self.channel.id + '/messages/lastSeen')

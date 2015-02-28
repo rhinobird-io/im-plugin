@@ -5,15 +5,16 @@
         <style>
         </style>
         <div style="font-size: 3em; font-weight: bold;">
-            You are not allowed to access this channel
+            {{message}}
         </div>
     </template>
     <script>
         (function(){
             Polymer('im-forbidden', {
-
-                open : function(){
+                message : "Choose channels from the right",
+                open : function(msg){
                     this.hidden = false;
+                    this.message = msg || "Choose channels from the right";
                 }
                 ,
                 close : function(){
