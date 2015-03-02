@@ -80,7 +80,6 @@
             async.waterfall([
                 _initCurrentUser.bind(_self),
                 _initSocketIO.bind(_self),
-                _initSocket.bind(_self),
 
                 function (callback) {
                     _self.$.imChannels.init().done(function (res) {
@@ -92,6 +91,8 @@
 
                     });
                 },
+
+                _initSocket.bind(_self),
 
                 function (callback) {
                     _self.channel = _self.$.imChannels.channel;
@@ -136,8 +137,7 @@
                     userId: self.currentUser.id,
                     publicChannels: self.$.imChannels.publicChannels,
                     privateChannels: self.$.imChannels.privateChannels,
-                    teamMemberChannels: self.$.imChannels.teamMemberChannels,
-                    currentChannel: self.channel
+                    teamMemberChannels: self.$.imChannels.teamMemberChannels
                 }, function (onlineList) {
                     self.$.globals.values.onlineList = onlineList;
                 });

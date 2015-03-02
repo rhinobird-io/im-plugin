@@ -482,9 +482,9 @@ channelName, current channel name , it is useful
                     return;
                 }
                 var notification = new Notification("New Message from " +
-                this.$.globals.values.memberCache[userId].realname, {
+                this.$.globals.values.memberCacheId[userId].realname, {
                     body: content,
-                    icon: self.$.globals.values.memberCache[userId].url + "?d=identicon"
+                    icon: self.$.globals.values.memberCacheId[userId].url + "?d=identicon"
                 });
 
                 var hash = "";

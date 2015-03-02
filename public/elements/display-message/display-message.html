@@ -53,7 +53,7 @@
 		<div vertical layout class="box" flex>
             <template if="{{!message.hideMemberElement}}">
                 <div horizontal layout >
-                        <div class='username'>{{$.globals.values.memberCache[message.userId].realname}}</div>
+                        <div class='username'>{{$.globals.values.memberCacheId[message.userId].realname}}</div>
                         <template if="{{message.updatedAt}}">
                             <span class="time">{{message.updatedAt | date('MM-dd HH:mm')}}</span>
                         </template>
