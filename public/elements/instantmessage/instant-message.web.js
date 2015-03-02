@@ -83,16 +83,16 @@
 
                 function (callback) {
                     _self.$.imChannels.init().done(function (res) {
+                        _initSocket.call(_self, function(){});
                         if (res.status !== 200) {
                             callback(res.status);
+                            // callback();
                         } else {
                             callback();
                         }
 
                     });
                 },
-
-                _initSocket.bind(_self),
 
                 function (callback) {
                     _self.channel = _self.$.imChannels.channel;
