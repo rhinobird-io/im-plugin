@@ -201,7 +201,13 @@ channelName, current channel name , it is useful
                                 msg: 'Name should be start with alphabets'
                             };
                             return;
-                        } else {
+                        }else if ( newValue === 'default'){
+                            self.$.privateChannelNameInput.isInvalid = true;
+                            self.newPrivateChannel.error = {
+                                msg: 'Name should be default'
+                            };
+                            return;
+                        }else {
                             self.$.privateChannelNameInput.isInvalid = false;
                             self.newPrivateChannel.error = {
                                 msg: ''

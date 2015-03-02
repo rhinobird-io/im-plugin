@@ -21,6 +21,9 @@ exports.addPrivateChannel = function (req, res) {
   if (!validateUsers(users)) {
     res.sendStatus(500);
   }
+  if (name === 'default'){
+    res.sendStatus(500);
+  }
 
   Sequelize.transaction(function(t){
     return PrivateChannel.create({
