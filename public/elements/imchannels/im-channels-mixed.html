@@ -5,6 +5,7 @@
 <link rel="import" href="/platform/bower_components/paper-item/paper-item.html">
 <link rel="import" href="/platform/bower_components/core-localstorage/core-localstorage.html">
 <link rel="import" href="/platform/elements/member-select/member-select.html">
+<link rel="import" href="/platform/elements/member-select/x-select.html">
 <link rel="import" href="/platform/elements/app-globals/app-globals.html">
 <link rel="import" href="im-channels.html">
 
@@ -22,25 +23,9 @@ channelName, current channel name , it is useful
         }
     </core-style>
     <template>
+        <link rel="stylesheet" type="text/css" href="channels.css" />
         <style>
-            :host {
-                display: block;
-            }
 
-            h3 {
-                font-size: 1rem;
-                height: 48px;
-                line-height: 48px;
-                margin: 0;
-                padding: 0;
-                padding-left: 24px;
-                padding-right: 24px;
-            }
-
-            .bottomBorder {
-                border-bottom-width: 1px;
-                border-bottom-style: solid;
-            }
 
         </style>
         <app-globals id="globals"></app-globals>
@@ -71,6 +56,8 @@ channelName, current channel name , it is useful
             <paper-button affirmative channelId="{{removedPrivateChannel.id}}" on-click="{{removePrivateChannel}}">Yes
             </paper-button>
         </paper-action-dialog>
+
+        <x-select id="xSelect" selected="{{ selectedChannels }}" label="Channels" fields="{{fields}}" width="100%;" maxLen="1" ></x-select>
 
         <div id="groupImChannels" is="im-channels" channels="{{publicChannels}}" unread="{{unread}}"
              currentChannel="{{channel}}" showMemberList class="bottomBorder divider">
@@ -276,10 +263,11 @@ channelName, current channel name , it is useful
                 self.currentUser = self.$.globals.values.currentUser;
                 async.waterfall([
                     _initPublicChannels.bind(self),
-                    _initDefaultChannel.bind(self),
                     _initTeamMemberChannels.bind(self),
                     _initPrivateChannels.bind(self),
+                    _initXSelect.bind(self),
                     _initLatestMessage.bind(self),
+                    _initDefaultChannel.bind(self),
                     _initCurrentChannel.bind(self)
                 ], function (err, result) {
                     if (err) {
@@ -316,18 +304,10 @@ channelName, current channel name , it is useful
 
             function _initDefaultChannel(callback) {
                 var self = this;
-                if (self.publicChannels.length === 0) {
-                    self.$.noGroupDlg.open();
-                    callback('no groups found for current user');
-                    return;
-                } else if (self.channelName === defaultChannel) { // This will cause flush on the screen, use history API instead
-                    var pluginName = self.imGlobal.pluginName;
+                if (self.channelName === defaultChannel) {
                     if (self.imGlobals.currentChannel) {
-                        self.channelName = self.imGlobals.currentChannel.hash;
-                        _initCurrentChannel.call(self, function cb(){
-                            self.fire('channel-select', self.channel);
-                            callback();
-                        });
+                        self.fire('channel-select', self.imGlobals.currentChannel);
+                        callback(301);
                     } else {
                         self.fire('channel-default');
                         callback();
@@ -445,6 +425,38 @@ channelName, current channel name , it is useful
                         callback();
                     }
                 }
+            }
+
+            function _initXSelect(callback) {
+                var self = this;
+                this.fields = [
+                    {
+                        "name": "Group Channels",
+                        "data" : self.publicChannels,
+                        "nameKey": "name"
+                    }
+                    ,
+                    {
+                        "name": "Private Channels",
+                        "data" : self.privateChannels,
+                        "nameKey": "name"
+                    }
+                    ,
+                    {
+                        "name": "Direct Message",
+                        "data" : self.teamMemberChannels,
+                        "nameKey": "name",
+                        "icon": "avatar"
+                    }
+                ];
+
+                this.$.xSelect.addEventListener("element-select", function(event, detail, target){
+                    self.$.xSelect.hideMenu();
+                    self.selectedChannels = [];
+                    self.fire('channel-select', event.detail);
+                });
+
+                callback();
             }
 
             function _clearUnread(channelId) {

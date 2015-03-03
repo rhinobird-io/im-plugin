@@ -107,7 +107,7 @@
 
             ], function (err, result) {
                 if (err) {
-                    console.log('Error : ' + err);
+                    console.log('Status : ' + err);
                 }
             });
 

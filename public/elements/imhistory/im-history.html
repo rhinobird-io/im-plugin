@@ -91,35 +91,42 @@ channel is useful
                 var deferred = $.Deferred();
                 var self = this;
                 self.items = [];
-                //_scrollToBottom.call(self);
-                async.waterfall([
-                    function (callback) {
-                        $.get(serverUrl + '/api/channels/' + self.channel.id + '/messages/lastSeen')
-                                .done(function (lastSeenMessage) {
-                                    callback(null, lastSeenMessage);
-                                });
-                    },
-                    function (lastSeenMessage, callback) {
-                        if (!lastSeenMessage) {
-                            callback();
-                        } else {
-                            _getLastSeenMessages.call(self, lastSeenMessage.messageId).done(function () {
+                if (self.channel) {
+                    async.waterfall([
+                        function (callback) {
+                            $.get(serverUrl + '/api/channels/' + self.channel.id + '/messages/lastSeen')
+                                    .done(function (lastSeenMessage) {
+                                        callback(null, lastSeenMessage);
+                                    });
+                        },
+                        function (lastSeenMessage, callback) {
+                            if (!lastSeenMessage) {
+                                callback();
+                            } else {
+                                _getLastSeenMessages.call(self, lastSeenMessage.messageId).done(function () {
+                                    callback();
+                                })
+                            }
+                        },
+                        function (callback) {
+                            _loadHistory.call(self).done(function () {
                                 callback();
                             })
                         }
-                    },
-                    function (callback) {
-                        _loadHistory.call(self).done(function () {
-                            callback();
-                        })
-                    }
 
-                ], function (err) {
+                    ], function (err) {
+                        deferred.resolve({
+                            status: 200,
+                            error: err
+                        })
+                    });
+                } else {
                     deferred.resolve({
-                        status: 200,
-                        error: err
+                        status: 404,
+                        error: "Current channel not set"
                     })
-                });
+                }
+
                 return deferred;
             }
 

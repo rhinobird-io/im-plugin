@@ -1,0 +1,22 @@
+:host {
+    display: block;
+}
+
+h3 {
+    font-size: 1rem;
+    height: 48px;
+    line-height: 48px;
+    margin: 0;
+    padding: 0;
+    padding-left: 24px;
+    padding-right: 24px;
+}
+
+.bottomBorder {
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+}
+
+#xSelect {
+    padding: 0 24px;
+}

@@ -5,7 +5,6 @@
 <link rel="import" href="/platform/home-container.html">
 <link rel="import" href="/platform/elements/member-select/member-element.html">
 <link rel="import" href="/platform/elements/member-select/member-select.html">
-<link rel="import" href="/platform/elements/member-select/x-select.html">
 <link rel="import" href="/platform/elements/app-globals/app-globals.html">
 <link rel="import" href="/platform/elements/html-echo/html-echo.html">
 
@@ -84,30 +83,6 @@
                     </paper-icon-button>
                 </div>
             </template>
-            <div hidden?="{{channels.length <= limited }}" >
-                <!--<paper-item flex horizontal layout center-justified on-click="{{showMoreDialog}}">+More</paper-item>-->
-                <x-select id="xSelect" selected="{{ selectedChannels }}" label="More Channels" fields="{{fields}}" width="100%;" maxLen="1" ></x-select>
-            </div>
-            <paper-dialog id="moreDialog" heading="Channels" on-core-overlay-position="{{positionMoreDialog}}" on-blur="{{hideMoreDialog}}" style="{{ moreDialogStyle | styleObject}}">
-                <style>
-
-                    .highlight {
-                        font-weight: bold;
-                    }
-
-                    .offline {
-                        color: rgba(0,0,0, 0.26);
-                    }
-
-                </style>
-                <paper-input value="{{ channelNamePrefix }}" label="Talk to..." style="width: 100%"></paper-input>
-                <template repeat="{{ g in channels | contains('name',channelNamePrefix) }}">
-                    <paper-item on-click="{{ handleChannelSelect }}" hash="{{g.name}}" flex
-                                class="{{ {highlight : g.id === ''+currentChannel.id, offline: g.isPrivate && $.globals.values.onlineList[g.user.id] !== 1 } | tokenList }}">
-                        <html-echo html="{{ g.name | highlight(channelNamePrefix) }}"></html-echo>
-                    </paper-item>
-                </template>
-            </paper-dialog>
         </div>
 
     </template>
@@ -127,30 +102,12 @@
                     width: '300px'
                 },
 
-                moreDialogStyle: {
-                    width: '300px'
-                },
-
                 ready: function() {
 
                 },
 
                 domReady: function() {
-                    this.$.xSelect.addEventListener("core-select", function(event, detail, target){
-                        debugger;
-                        this.fire('channel-select', target.templateInstance.model.g);
-                    });
-                },
 
-                channelsChanged : function(oldV, newV) {
-                    this.fields = [
-                        {
-                            "name": "channels",
-                            "data" : newV,
-                            "nameKey": "name",
-                            "icon": "avatar"
-                        }
-                    ];
                 },
 
                 showTeamMemberDialog: function (event, detail, target) {
@@ -174,35 +131,8 @@
                 }
                 ,
 
-                showMoreDialog: function (event, detail, target) {
-                    this.$.moreDialog.open();
-                }
-                ,
-
-                hideMoreDialog: function (event, detail, target) {
-                    if (event.relatedTarget && event.relatedTarget.parentElement !== target) {
-                        target.close();
-                    }
-                }
-                ,
-
-                positionMoreDialog: function (event, detail, target) {
-                    target.dimensions.position = {v: 'bottom', h: 'right'};
-                    var rect = target.parentElement.getBoundingClientRect();
-                    target.style.bottom = '100px';
-                    target.style.right = '' + rect.width + 'px';
-                }
-                ,
-
                 handleChannelSelect : function(event, detail, target) {
-                    this.$.moreDialog.close();
                     this.fire('channel-select', target.templateInstance.model.g);
-                }
-                ,
-
-                handleMoreChannelSelect : function(event, detail, target) {
-                    debugger;
-                    this.fire('channel-select', this.selectedChannels[0]);
                 }
                 ,
 
