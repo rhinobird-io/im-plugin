@@ -24,10 +24,6 @@ channelName, current channel name , it is useful
     </core-style>
     <template>
         <link rel="stylesheet" type="text/css" href="channels.css" />
-        <style>
-
-
-        </style>
         <app-globals id="globals"></app-globals>
         <core-style ref="theme"></core-style>
         <core-style ref="icon"></core-style>
@@ -123,6 +119,19 @@ channelName, current channel name , it is useful
 
                 computed: {
                     'channelNameInvalid': '$.privateChannelNameInput.isInvalid'
+                },
+
+                ready: function(){
+                    var self = this;
+                    this.$.xSelect.addEventListener("element-select", function(event, detail, target){
+                        self.$.xSelect.hideMenu();
+                        self.selectedChannels = [];
+                        self.fire('channel-select', event.detail);
+                    });
+
+                    this.addEventListener("channel-add-or-remove", function(event) {
+                        _initXSelect.call(self, function(){});
+                    });
                 },
 
                 domReady: function () {
@@ -450,12 +459,6 @@ channelName, current channel name , it is useful
                     }
                 ];
 
-                this.$.xSelect.addEventListener("element-select", function(event, detail, target){
-                    self.$.xSelect.hideMenu();
-                    self.selectedChannels = [];
-                    self.fire('channel-select', event.detail);
-                });
-
                 callback();
             }
 
@@ -627,6 +630,7 @@ channelName, current channel name , it is useful
                                 var channelToGo = _.find( self.privateChannels, function(pChannel) {
                                     return pChannel.name === channel.name;
                                 });
+                                self.fire('channel-add-or-remove');
                                 cb(null, channelToGo);
                             })
                         }
@@ -660,14 +664,18 @@ channelName, current channel name , it is useful
 
                             self.channelName = defaultChannel;
                             self.channel = undefined;
-                            _initPrivateChannels.call(self, function () {
-                                self.fire('channel-default');
-                            });
-                        } else {
-                            _initPrivateChannels.call(self, function () {});
                         }
+
+                        _initPrivateChannels.call(self, function () {
+                            if (self.channelName === defaultChannel) {
+                                self.fire('channel-default');
+                            }
+
+                            self.fire('channel-add-or-remove');
+                        });
                     }
                 });
+
             }
         })();
 
