@@ -1,6 +1,7 @@
 <link rel="import" href="../display-message/display-message.html">
 <link rel="import" href="../display-message/display-system-message.html">
 <link rel="import" href="../display-message/display-url-message.html">
+<link rel="import" href="../display-message/display-image.html">
 <polymer-element name="display-item" attributes="item">
     <template>
         <style>
@@ -15,6 +16,10 @@
         <template if="{{item.type === 'systemMessage'}}">
             <display-system-message text="{{item.value.text}}">
             </display-system-message>
+        </template>
+        <template if="{{item.type === 'image'}}">
+            <display-image url="{{item.value}}" width="{{item.width}}" height="{{item.height}}">
+            </display-image>
         </template>
         <template if="{{item.type === 'linkPreivew'}}">
             <display-url-message ogp="{{item.value}}" url="{{item.url}}">

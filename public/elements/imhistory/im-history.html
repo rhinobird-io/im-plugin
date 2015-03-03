@@ -236,9 +236,30 @@ channel is useful
                     return deferred;
                 }
                 var matched = message.value.text.match(uri_pattern);
-                if(matched){
 
-                    if (this.ogpMap[matched[0]]) {
+                if(matched){
+                    if (matched[0].match(/.*\.(jpg|png|ico|bmp|apng|svg)/i)){
+                        var findIndex = -1;
+                        items.forEach(function(element, index, array){
+                            if (element.value.guid === message.value.guid){
+                                findIndex = index;
+                            }
+                        });
+                        if( findIndex === -1){
+                            deferred.resolve();
+                            return;
+                        }
+                        var img = new Image();
+                        img.onload = function() {
+                            items.splice(findIndex + 1, 0, {type:'image', value:matched[0], width:this.width, height:this.height});
+                            self.$.infiniteScroll.stayBottom();
+                            deferred.resolve();
+                        };
+                        img.onerror = function(){
+                            deferred.resolve();
+                        }
+                        img.src = matched[0];
+                    }else if (this.ogpMap[matched[0]]) {
                         var ogp = this.ogpMap[matched[0]].meta;
                         _insertLinkPreview.call(this, {type:'linkPreivew', value:ogp, url:matched[0]}, message.value.guid, items);
                         deferred.resolve();

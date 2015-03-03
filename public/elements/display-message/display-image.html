@@ -1,0 +1,49 @@
+<link rel="import" href="/platform/bower_components/polymer/polymer.html">
+<polymer-element name="display-image" attributes="url width height">
+
+<template>
+	<style>
+        .avatar {
+            margin-top: 0.5em;
+            width: 36px;
+        }
+        .box {
+            margin-left: 1em;
+            padding-right: 1em;
+        }
+        img{
+            width:100%;
+            max-width:400px;
+        }
+		
+	</style>
+    <div horizontal layout>
+        <div class='avatar'>
+        </div>
+        <div class="box" >
+            <img id="coreImage"  src="{{url}}" width="{{ajustWidth}}" height="{{ajustHeight}}">
+        </div>
+    </div>
+</template>
+<script>
+    (function(){
+        Polymer({ 
+            ajustWidth: 400,
+            ajustHeight: 0,
+            ready: function(){
+                if (!this.width || this.width === 0 ){
+                    this.ajustWidth = 400;
+                    this.ajustHeight = '';
+                }
+                if (this.width > this.ajustWidth){
+                    this.ajustHeight = this.height * this.ajustWidth / this.width;
+                }else{
+                    this.ajustHeight = this.height;
+                    this.ajustHeight = '';
+                }
+            },
+        });
+    })();
+
+</script>
+</polymer-element>
