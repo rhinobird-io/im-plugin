@@ -239,19 +239,9 @@ channel is useful
 
                 if(matched){
                     if (matched[0].match(/.*\.(jpg|png|ico|bmp|apng|svg)/i)){
-                        var findIndex = -1;
-                        items.forEach(function(element, index, array){
-                            if (element.value.guid === message.value.guid){
-                                findIndex = index;
-                            }
-                        });
-                        if( findIndex === -1){
-                            deferred.resolve();
-                            return;
-                        }
                         var img = new Image();
                         img.onload = function() {
-                            items.splice(findIndex + 1, 0, {type:'image', value:matched[0], width:this.width, height:this.height});
+                            _insertLinkPreview.call(this, {type:'image', value:matched[0], width:this.width, height:this.height}, message.value.guid, items);
                             self.$.infiniteScroll.stayBottom();
                             deferred.resolve();
                         };
