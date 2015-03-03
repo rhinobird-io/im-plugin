@@ -226,6 +226,29 @@ channel is useful
 
                 this.$.infiniteScroll.stayBottom();
             }
+            function _getOGP(url, message, items){
+                var deferred = $.Deferred();
+                var self = this;
+                if (this.ogpMap[url]){
+                    var ogp = this.ogpMap[url].meta;
+                    _insertLinkPreview.call(this, {type:'linkPreivew', value:ogp, url:url}, message.value.guid, items);
+                    deferred.resolve();
+                }else{
+                   $.get(serverUrl + '/api/urlMetadata', {'url':url} ).done(function (ogp) {
+                        self.$.ls.load();
+                        self.ogpMap[url] = {
+                            updatedAt : new Date(),
+                            meta : ogp
+                        };
+                        self.$.ls.save();
+                        _insertLinkPreview.call(self, {type:'linkPreivew', value:ogp, url:url}, message.value.guid, items);
+                        deferred.resolve();
+                    }).fail(function(err){
+                        deferred.resolve();
+                    });
+                }
+                return deferred;
+            }
 
             function _linkPreviewGetOGP(message, items){
                 var deferred = $.Deferred();
@@ -237,36 +260,22 @@ channel is useful
                 }
                 var matched = message.value.text.match(uri_pattern);
 
-                if(matched){
-                    if (matched[0].match(/.*\.(jpg|png|ico|bmp|apng|svg)/i)){
-                        var img = new Image();
-                        img.onload = function() {
-                            _insertLinkPreview.call(this, {type:'image', value:matched[0], width:this.width, height:this.height}, message.value.guid, items);
-                            self.$.infiniteScroll.stayBottom();
-                            deferred.resolve();
-                        };
-                        img.onerror = function(){
-                            deferred.resolve();
-                        }
-                        img.src = matched[0];
-                    }else if (this.ogpMap[matched[0]]) {
-                        var ogp = this.ogpMap[matched[0]].meta;
-                        _insertLinkPreview.call(this, {type:'linkPreivew', value:ogp, url:matched[0]}, message.value.guid, items);
+                if(matched && matched[0].match(/.*\.(jpg|png|ico|bmp|apng|svg)/i)){
+                    var img = new Image();
+                    img.onload = function() {
+                        _insertLinkPreview.call(self, {type:'image', value:matched[0], width:this.width, height:this.height}, message.value.guid, items);
                         deferred.resolve();
-                    } else {
-                        $.get(serverUrl + '/api/urlMetadata', {'url':matched[0]} ).done(function (ogp) {
-                            self.$.ls.load();
-                            self.ogpMap[matched[0]] = {
-                                updatedAt : new Date(),
-                                meta : ogp
-                            };
-                            self.$.ls.save();
-                            _insertLinkPreview.call(self, {type:'linkPreivew', value:ogp, url:matched[0]}, message.value.guid, items);
-                            deferred.resolve();
-                        }).fail(function(err){
+                    };
+                    img.onerror = function(){
+                        _getOGP.call(self, matched[0], message, items).then(function(){
                             deferred.resolve();
                         });
                     }
+                    img.src = matched[0];
+                }else if(matched){
+                    _getOGP.call(this, matched[0], message, items).then(function(){
+                        deferred.resolve();
+                    });
                 }else{
                     deferred.resolve();
                 }
