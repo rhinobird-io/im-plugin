@@ -62,6 +62,8 @@
                 history.pushState(null, null, '#' + '/' + self.pluginName + '/channels/' + self.channel.hash);
                 // load history
                 self.$.imHistory.init();
+                // close search anyway
+                self.closeSearch();
             });
 
             this.addEventListener('channel-default', function (event) {

@@ -9,6 +9,9 @@
                 display: block;
             }
         </style>
+        <template if="{{item.type === 'channel'}}">
+
+        </template>
         <template if="{{item.type === 'message'}}">
             <display-message message="{{item.value}}"
                     ></display-message>

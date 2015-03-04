@@ -1,46 +1,60 @@
 <link rel="import" href="/platform/bower_components/polymer/polymer.html">
+<script src="../../bower_components/lodash/dist/lodash.min.js"></script>
 <script src="../../bower_components/jquery/dist/jquery.min.js"></script>
 <link rel="import" href="../display-item/display-item.html">
+<link rel="import" href="../imchannels/im-channel.html">
 
-<polymer-element name="im-search" extends="div" >
+<polymer-element name="im-search" extends="div">
     <template>
         <style>
         </style>
         <div>
-            <template repeat="{{item in items}}">
-                <display-item item="{{item}}"></display-item>
+            <template repeat="{{channelId in items | filterKeys }}">
+                <im-channel channelId="{{channelId}}"></im-channel>
+                <template repeat="{{msg in items[channelId]}}">
+                    <display-item item="{{msg}}"></display-item>
+                </template>
             </template>
         </div>
     </template>
     <script>
-        (function(){
+        (function () {
             var serverUrl = undefined;
             Polymer('im-search', {
-                items : [],
-                ready : function(){
+                items: [],
+                ready: function () {
 
                 },
 
-                initSearch : function(url) {
+                initSearch: function (url) {
                     serverUrl = url;
                 }
                 ,
 
-                searchMessageSingleChannel : function(keyword, channel){
+                searchMessageSingleChannel: function (keyword, channel) {
 
                 },
 
-                searchMessageAllChannel : function(keyword){
+                searchMessageAllChannel: function (keyword) {
                     var self = this;
                     $.get(serverUrl + '/api/messages?q=' + keyword).done(function (messages) {
-                        self.items = [];
-                        messages.forEach(function(msg) {
-                            self.items.push({
-                                type : 'message',
-                                value : msg
+                        var items = [];
+                        // { channelId : [msgs]}
+                        messages.forEach(function (msg) {
+                            items.push({
+                                type: 'message',
+                                value: msg
                             });
                         });
+
+                        self.items = _.groupBy(items, function (item) {
+                            return item.value.channelId;
+                        });
                     });
+                },
+
+                filterKeys: function(object) {
+                    return Object.keys(object);
                 }
 
             });

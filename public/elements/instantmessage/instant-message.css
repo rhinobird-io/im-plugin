@@ -12,7 +12,7 @@ h3 {
     min-height: 55px
 }
 
-#historyAndInput {
+#historyAndInput, #imSearch{
     padding: 10px 0px 20px 20px;
     box-sizing: border-box;
 }
