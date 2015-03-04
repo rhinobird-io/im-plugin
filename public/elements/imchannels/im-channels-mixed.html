@@ -130,6 +130,7 @@ channelName, current channel name , it is useful
                     this.init = _initImChannels;
 
                     this.addEventListener('channel-select', this.handleChannelSelect);
+                    this.addEventListener('channel-add-or-remove', this.handleChannelAddOrRemove);
 
                     this.imGlobals = this.$.globals.values.im;
                     serverUrl = this.imGlobals.serverUrl;
@@ -160,9 +161,16 @@ channelName, current channel name , it is useful
                     this.$.teamMemberImChannels.sort(newValue);
                 },
 
+                /**
+                 * Not real remove, just show the dialog
+                 * */
                 handleChannelRemove: function (event) {
                     this.removedPrivateChannel = event.detail;
                     this.$.removePrivateChannelDialog.open();
+                },
+
+                handleChannelAddOrRemove : function(event) {
+                    _initAppGlobalChannels.call(this);
                 },
 
                 removePrivateChannel: _removePrivateChannel,
@@ -265,6 +273,7 @@ channelName, current channel name , it is useful
                     _initPublicChannels.bind(self),
                     _initTeamMemberChannels.bind(self),
                     _initPrivateChannels.bind(self),
+                    _initAppGlobalChannels.bind(self),
                     _initLatestMessage.bind(self),
                     _initDefaultChannel.bind(self),
                     _initCurrentChannel.bind(self)
@@ -382,6 +391,14 @@ channelName, current channel name , it is useful
                                         }
                                     });
                         });
+            }
+
+            function _initAppGlobalChannels(callback) {
+                var self = this;
+                self.imGlobals.publicChannels = self.publicChannels;
+                self.imGlobals.privateChannels = self.privateChannels;
+                self.imGlobals.teamMemberChannels = self.teamMemberChannels;
+                callback && callback();
             }
 
             function _initCurrentChannel(callback) {

@@ -8,12 +8,13 @@
     <template>
         <style>
         </style>
-        <div>
+        <div flex>
             <template repeat="{{channelId in items | filterKeys }}">
                 <im-channel channelId="{{channelId}}"></im-channel>
                 <template repeat="{{msg in items[channelId]}}">
                     <display-item item="{{msg}}"></display-item>
                 </template>
+                <hr />
             </template>
         </div>
     </template>

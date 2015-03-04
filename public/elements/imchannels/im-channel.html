@@ -1,18 +1,48 @@
 <link rel="import" href="/platform/bower_components/polymer/polymer.html">
 <link rel="import" href="/platform/bower_components/paper-item/paper-item.html">
+<link rel="import" href="/platform/elements/app-globals/app-globals.html">
 
 <link rel="import" href="/platform/elements/app-globals/app-globals.html">
 
-<polymer-element name="im-channel"  attributes="channelId">
+<polymer-element name="im-channel" attributes="channelId">
 
     <template>
-        <paper-item>ChannelId : {{channelId}}</paper-item>
+        <app-globals id="globals"></app-globals>
+        <paper-item>{{ channel.name }}</paper-item>
     </template>
     <script>
 
-        (function(){
+        (function () {
             Polymer('im-channel', {
 
+                ready: function () {
+                    var imGlobals = this.$.globals.values.im;
+                    var channelId = this.channelId;
+                    var self = this;
+                    var targetChannelExists = !imGlobals.publicChannels.every(function (channel) {
+                                if (('' + channel.id) === channelId) {
+                                    self.channel = channel;
+                                    return false;
+                                }
+                                return true;
+                            }) || !imGlobals.privateChannels.every(function (channel) {
+                                if (('' + channel.id) === channelId) {
+                                    self.channel = channel;
+                                    return false;
+                                }
+                                return true;
+                            }) || !imGlobals.teamMemberChannels.every(function (channel) {
+                                if (('' + channel.id) === channelId) {
+                                    self.channel = channel;
+                                    return false;
+                                }
+                                return true;
+                            });
+                },
+
+                domReady: function () {
+
+                }
             });
         })();
 
