@@ -32,7 +32,21 @@
                 ,
 
                 searchMessageSingleChannel: function (keyword, channel) {
+                    var self = this;
+                    $.get(serverUrl + '/api/messages?channelId=' + channel.id +'&q=' + keyword).done(function (messages) {
+                        var items = [];
+                        // { channelId : [msgs]}
+                        messages.forEach(function (msg) {
+                            items.push({
+                                type: 'message',
+                                value: msg
+                            });
+                        });
 
+                        self.items = _.groupBy(items, function (item) {
+                            return item.value.channelId;
+                        });
+                    });
                 },
 
                 searchMessageAllChannel: function (keyword) {

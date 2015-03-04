@@ -117,7 +117,6 @@
                         _initXSelect.call(_self, function(){});
                         if (res.status !== 200) {
                             callback(res.status);
-                            // callback();
                         } else {
                             callback();
                         }
@@ -145,7 +144,8 @@
         },
 
         observe : {
-          '$.xSelect.searchText' : 'initXSelect'
+          '$.xSelect.searchText' : 'initXSelect',
+          '$.xSelect.isShowMenu' : 'initXSelect'
         },
 
         initXSelect : function(oldV, newV) {
@@ -341,11 +341,6 @@
         "name": "Messages",
         "data": [
           {
-            "name": "Search " + self.$.xSelect.searchText + " in this channel",
-            "event": "search-message-this-channel",
-            "keyword" : self.$.xSelect.searchText
-          },
-          {
             "name": "Search " + self.$.xSelect.searchText + " all channels",
             "event": "search-message-all-channel",
             "keyword" : self.$.xSelect.searchText
@@ -372,6 +367,14 @@
         "icon": "avatar"
       }
     ];
+    if (self.channel){
+      this.fields[0].data.unshift({
+        "name": "Search " + self.$.xSelect.searchText + " in this channel",
+        "event": "search-message-this-channel",
+        "keyword" : self.$.xSelect.searchText
+      });
+    }
+
     callback && callback();
   }
 

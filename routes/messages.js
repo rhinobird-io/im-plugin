@@ -27,7 +27,14 @@ exports.getLastSeenMessage = function (req, res){
 };
 
 exports.queryMessage = function(req, res) {
-  Message.search(req.query.q).then(function(messages){
-    res.json(messages[0]);
-  })
+  if (req.query.channelId) {
+    Message.searchSingleChannel(req.query.q, req.query.channelId).then(function(messages){
+      res.json(messages[0]);
+    });
+  } else {
+    Message.searchAllChannel(req.query.q).then(function(messages){
+      res.json(messages[0]);
+    });
+  }
+
 };
