@@ -28,6 +28,6 @@ exports.getLastSeenMessage = function (req, res){
 
 exports.queryMessage = function(req, res) {
   Message.search(req.query.q).then(function(messages){
-    res.json(messages);
+    res.json(messages[0]);
   })
 };

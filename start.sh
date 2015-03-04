@@ -1,1 +1,1 @@
-NODE_ENV=development node app.js
+NODE_ENV=docker_development93 node app.js
