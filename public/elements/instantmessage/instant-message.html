@@ -16,6 +16,7 @@
 <link rel="import" href="/platform/home-container.html">
 <link rel="import" href="/platform/elements/member-select/member-element.html">
 <link rel="import" href="/platform/elements/member-select/member-select.html">
+<link rel="import" href="/platform/elements/member-select/x-select.html">
 <link rel="import" href="/platform/elements/app-globals/app-globals.html">
 <link rel="import" href="/platform/elements/smart-editor/smart-editor.html">
 
@@ -23,6 +24,7 @@
 <link rel="import" href="../imchannels/im-channels-mixed.html">
 <link rel="import" href="../imhistory/im-history.html">
 <link rel="import" href="../imforbidden/im-forbidden.html">
+<link rel="import" href="../imsearch/im-search.html">
 
 <polymer-element name="instant-message" attributes="channelName">
     <template>
@@ -50,16 +52,17 @@
                     <div id="imForbidden" is="im-forbidden" hidden?="{{ !!channel }}" main four flex horizontal layout center center-justified>
                     </div>
 
-                    <div id="historyAndInput" main four flex vertical layout class="mainBgColor">
+                    <div id="imSearch" is="im-search" hidden?="{{ !isSearch }}" main four flex horizontal layout center center-justified>
+                    </div>
 
+                    <div id="historyAndInput" main four flex vertical layout class="mainBgColor">
                         <div id="imHistory" is="im-history" flex vertical layout channel="{{$.imChannels.channel}}"
                              on-message-seen="{{ handleMessageSeen }}"></div>
-
-                        <smart-editor id="messageInput" value="{{message}}" maxRows="5" on-flush="{{sendMessage}}" flushKey="enter">
-                        </smart-editor>
+                        <smart-editor id="messageInput" value="{{message}}" maxRows="5" on-flush="{{sendMessage}}" flushKey="enter"></smart-editor>
                     </div>
 
                     <div id='imPanel' drawer>
+                        <x-select id="xSelect" selected="{{ selectedChannels }}" label="Search" fields="{{fields}}" width="100%;" maxLen="1" ></x-select>
                         <div id="imChannels" is="im-channels-mixed" channelName="{{channelName}}"
                              on-channel-created="{{handleChannelCreated}}"vertical layout></div>
                     </div>

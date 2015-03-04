@@ -10,6 +10,9 @@
         boxTapped: function () {
             this.$.textInput.focus();
         },
+
+        isSearch : false,
+
         connectinStatus: "connecting",
 
         /**
@@ -66,6 +69,31 @@
               history.pushState(null, null, '#' + '/' + self.pluginName + '/channels/' + defaultChannel);
             });
 
+            this.$.xSelect.addEventListener("element-select", function(event, detail, target){
+              self.$.xSelect.hideMenu();
+              self.selectedChannels = [];
+              var ele = event.detail;
+              if (ele.event) {
+                self.fire(ele.event, ele);
+              } else {
+                self.fire('channel-select', ele);
+                self.$.imChannels.handleChannelSelect(event);
+              }
+            });
+
+            this.addEventListener("channel-add-or-remove", function(event) {
+              _initXSelect.call(self, function(){});
+            });
+
+            this.addEventListener("search-message-this-channel", function(event){
+              self.openSearch();
+              self.$.imSearch.searchMessageSingleChannel(event.detail.keyword, self.channel);
+            });
+
+            this.addEventListener("search-message-all-channel", function(event){
+              self.openSearch();
+              self.$.imSearch.searchMessageAllChannel(event.detail.keyword);
+            });
 
             self.imGlobals = self.$.globals.values.im = self.$.globals.values.im || {};
             self.imGlobals.serverUrl = serverUrl;
@@ -84,6 +112,7 @@
                 function (callback) {
                     _self.$.imChannels.init().done(function (res) {
                         _initSocket.call(_self, function(){});
+                        _initXSelect.call(_self, function(){});
                         if (res.status !== 200) {
                             callback(res.status);
                             // callback();
@@ -112,6 +141,17 @@
             });
 
         },
+
+        observe : {
+          '$.xSelect.searchText' : 'initXSelect'
+        },
+
+        initXSelect : function(oldV, newV) {
+            _initXSelect.call(this);
+        },
+
+        openSearch : function(){ this.isSearch = true;this.$.imSearch.initSearch(serverUrl) },
+        closeSearch : function(){ this.isSearch = false; },
 
         computed: {
             newPrivateChannelUsersInvalid: 'newPrivateChannel.users.length < 2 || $.privateChannelNameInput.isInvalid || newPrivateChannel.name.length === 0'
@@ -291,5 +331,46 @@
         self.initSocket();
         callback(null);
     }
+
+  function _initXSelect(callback) {
+    var self = this;
+    this.fields = [
+      {
+        "name": "Messages",
+        "data": [
+          {
+            "name": "Search " + self.$.xSelect.searchText + " in this channel",
+            "event": "search-message-this-channel",
+            "keyword" : self.$.xSelect.searchText
+          },
+          {
+            "name": "Search " + self.$.xSelect.searchText + " all channels",
+            "event": "search-message-all-channel",
+            "keyword" : self.$.xSelect.searchText
+          }],
+        "nameKey": "name"
+      }
+      ,
+      {
+        "name": "Group Channels",
+        "data" : self.$.imChannels.publicChannels,
+        "nameKey": "name"
+      }
+      ,
+      {
+        "name": "Private Channels",
+        "data" : self.$.imChannels.privateChannels,
+        "nameKey": "name"
+      }
+      ,
+      {
+        "name": "Direct Message",
+        "data" : self.$.imChannels.teamMemberChannels,
+        "nameKey": "name",
+        "icon": "avatar"
+      }
+    ];
+    callback && callback();
+  }
 
 })();

@@ -5,7 +5,6 @@
 <link rel="import" href="/platform/bower_components/paper-item/paper-item.html">
 <link rel="import" href="/platform/bower_components/core-localstorage/core-localstorage.html">
 <link rel="import" href="/platform/elements/member-select/member-select.html">
-<link rel="import" href="/platform/elements/member-select/x-select.html">
 <link rel="import" href="/platform/elements/app-globals/app-globals.html">
 <link rel="import" href="im-channels.html">
 
@@ -52,8 +51,6 @@ channelName, current channel name , it is useful
             <paper-button affirmative channelId="{{removedPrivateChannel.id}}" on-click="{{removePrivateChannel}}">Yes
             </paper-button>
         </paper-action-dialog>
-
-        <x-select id="xSelect" selected="{{ selectedChannels }}" label="Channels" fields="{{fields}}" width="100%;" maxLen="1" ></x-select>
 
         <div id="groupImChannels" is="im-channels" channels="{{publicChannels}}" unread="{{unread}}"
              currentChannel="{{channel}}" showMemberList class="bottomBorder divider">
@@ -122,16 +119,7 @@ channelName, current channel name , it is useful
                 },
 
                 ready: function(){
-                    var self = this;
-                    this.$.xSelect.addEventListener("element-select", function(event, detail, target){
-                        self.$.xSelect.hideMenu();
-                        self.selectedChannels = [];
-                        self.fire('channel-select', event.detail);
-                    });
 
-                    this.addEventListener("channel-add-or-remove", function(event) {
-                        _initXSelect.call(self, function(){});
-                    });
                 },
 
                 domReady: function () {
@@ -141,11 +129,7 @@ channelName, current channel name , it is useful
                     this.confirmSended = _confirmedSendMessage;
                     this.init = _initImChannels;
 
-                    this.addEventListener('channel-select', function (event) {
-                        var channel = event.detail;
-                        self.channelName = channel.hash;
-                        _initCurrentChannel.call(self, function cb(){});
-                    });
+                    this.addEventListener('channel-select', this.handleChannelSelect);
 
                     this.imGlobals = this.$.globals.values.im;
                     serverUrl = this.imGlobals.serverUrl;
@@ -161,6 +145,13 @@ channelName, current channel name , it is useful
                         users: [],
                         teams: []
                     };
+                },
+
+                handleChannelSelect : function(event) {
+                    var self = this;
+                    var channel = event.detail;
+                    self.channelName = channel.hash;
+                    _initCurrentChannel.call(self, function cb(){});
                 },
 
                 latestChannelMessageChanged: function (oldValue, newValue) {
@@ -274,7 +265,6 @@ channelName, current channel name , it is useful
                     _initPublicChannels.bind(self),
                     _initTeamMemberChannels.bind(self),
                     _initPrivateChannels.bind(self),
-                    _initXSelect.bind(self),
                     _initLatestMessage.bind(self),
                     _initDefaultChannel.bind(self),
                     _initCurrentChannel.bind(self)
@@ -434,32 +424,6 @@ channelName, current channel name , it is useful
                         callback();
                     }
                 }
-            }
-
-            function _initXSelect(callback) {
-                var self = this;
-                this.fields = [
-                    {
-                        "name": "Group Channels",
-                        "data" : self.publicChannels,
-                        "nameKey": "name"
-                    }
-                    ,
-                    {
-                        "name": "Private Channels",
-                        "data" : self.privateChannels,
-                        "nameKey": "name"
-                    }
-                    ,
-                    {
-                        "name": "Direct Message",
-                        "data" : self.teamMemberChannels,
-                        "nameKey": "name",
-                        "icon": "avatar"
-                    }
-                ];
-
-                callback();
             }
 
             function _clearUnread(channelId) {
