@@ -196,6 +196,20 @@
                 self.$.imChannels.init();
             });
 
+            this.socket.on('channel:deleted', function (event) {
+              var channel = event.channel;
+              console.log('admin delete:' + channel.id);
+              if (self.channel.id === channel.id) {
+                self.channelName = defaultChannel;
+                delete self.imGlobals.currentChannel;
+                history.pushState(null, null, '#' + '/' + self.pluginName + '/channels/' + defaultChannel);
+                self.$.imChannels.init();
+              } else {
+                self.$.imChannels.init();
+              }
+
+            });
+
             this.socket.on('user:dead', function (data) {
                 self.socket.emit('user:alive', {});
             });
@@ -292,6 +306,18 @@
             }, function(){
 
             });
+        },
+
+        handleChannelDeleted: function (event) {
+          var self = this;
+          var channel = event.detail.channel;
+          self.socket.emit('channel:deleted', {
+            channel: event.detail.channel,
+            users: event.detail.users,
+            userId: event.detail.userId
+          }, function(){
+
+          });
         },
 
         togglePanel: function () {

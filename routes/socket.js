@@ -111,6 +111,21 @@ module.exports = function (socket) {
     callback();
   });
 
+  socket.on('channel:deleted', function(data, callback) {
+    var channel = data.channel;
+    var privateChannelUsers = data.users;
+    var userId = data.userId;
+
+    privateChannelUsers.forEach(function(privateChannelUser) {
+      if (socketsMap[privateChannelUser.userId]) {
+        socketsMap[privateChannelUser.userId].leave(channel.id);
+        socket.broadcast.to(socketsMap[privateChannelUser.userId].id).emit('channel:deleted', { channel : channel});
+      }
+    });
+
+    callback();
+  });
+
   // due to sometimes it will discconect randomly (heartbeat problem) 
   //  socket.io:client client close with reason ping timeout
   //  socket.io:socket closing socket - reason ping timeout +0ms

@@ -84,6 +84,13 @@ exports.getPrivateChannels = function(req, res) {
   }
 };
 
+exports.getOnePrivateChannel = function(req, res) {
+  var channelId = req.params.channelId;
+  PrivateChannel.findAll( { where : { id : channelId }}).then(function(privateChannel) {
+    res.json(privateChannel);
+  });
+};
+
 exports.getPrivateChannelUsers = function (req, res) {
   var channelId = req.params.channelId;
   PrivateChannelsUsers.findAll({where: {privateChannelId: channelId}}).then(function (privateChannelsUsers) {
@@ -94,7 +101,22 @@ exports.getPrivateChannelUsers = function (req, res) {
 exports.deletePrivateChannel = function (req, res) {
   var userId = req.userId;
   var channelId = req.params.channelId;
-  PrivateChannelsUsers.destroy( { where : {userId : userId, privateChannelId: channelId}}).then(function(result){
-    res.sendStatus(200);
+
+  PrivateChannel.find({ where : { id: channelId, ownerUserId: userId}}).then(function(privateChannel){
+    if (privateChannel) {
+      Sequelize.transaction(function(t){
+        return PrivateChannel.destroy( {where : {id: channelId}}, {transaction : t}).then(function() {
+          return Message.destroy( {where : { "channelId" : channelId}}, {transaction : t});
+        });
+      }).then(function(result) {
+        res.sendStatus(200);
+      }).catch(function(err) {
+        res.sendStatus(500);
+      });
+    } else {
+      PrivateChannelsUsers.destroy( { where : { userId : userId, "privateChannelId": channelId }}).then(function(result){
+        res.sendStatus(200);
+      });
+    }
   });
 };

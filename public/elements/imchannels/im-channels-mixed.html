@@ -366,7 +366,8 @@ channelName, current channel name , it is useful
                                     id: '' + channel.id,
                                     name: channel.name,
                                     hash: ''+channel.id,
-                                    userChannels: []
+                                    userChannels: [],
+                                    ownerUserId : channel.ownerUserId
                                 });
                             });
                             self.privateChannels = temp;
@@ -403,7 +404,6 @@ channelName, current channel name , it is useful
             function _initCurrentChannel(callback) {
                 var self = this;
                 if (self.channelHash === defaultChannel) {
-                    debugger;
                     self.channel = undefined;
                     callback(301);
                 } else {
@@ -608,7 +608,7 @@ channelName, current channel name , it is useful
                         function(channel, cb) {
                             _initPrivateChannels.call(self, function() {
                                 var channelToGo = _.find( self.privateChannels, function(pChannel) {
-                                    return pChannel.hash === channel.hash;
+                                    return pChannel.id === channel.id;
                                 });
                                 self.fire('channel-add-or-remove');
                                 cb(null, channelToGo);
@@ -634,28 +634,64 @@ channelName, current channel name , it is useful
                 var self = this;
                 var channelId = target.attributes.channelId.value;
                 var dlg = target.parentElement;
-                $.ajax({
-                    url: serverUrl + '/api/channels/' + channelId,
-                    type: 'DELETE',
-                    success: function (result) {
-                        dlg.close();
-                        if (self.channel && self.channel.id === channelId) {
-                            delete self.imGlobals.currentChannel;
+                var channelToDelete = self.removedPrivateChannel;
+                var removedChannelUsers = undefined;
 
-                            self.channelHash = defaultChannel;
-                            self.channel = undefined;
-                        }
+                async.waterfall([
 
-                        _initPrivateChannels.call(self, function () {
-                            if (self.channelHash === defaultChannel) {
-                                self.fire('channel-default');
+                    /**
+                     * get all users of the private channel
+                     * @param cb
+                     */
+                        function(cb) {
+                            $.get(serverUrl + '/api/channels/' + channelToDelete.id + '/users').done(function(users) {
+                                removedChannelUsers = users;
+                                cb();
+                            });
+                        },
+
+                        function(cb) {
+                            $.ajax({
+                                url: serverUrl + '/api/channels/' + channelId,
+                                type: 'DELETE',
+                                success: function (result) {
+                                    dlg.close();
+                                    if (self.channel && self.channel.id === channelId) {
+                                        delete self.imGlobals.currentChannel;
+
+                                        self.channelHash = defaultChannel;
+                                        self.channel = undefined;
+                                    }
+
+                                    _initPrivateChannels.call(self, function () {
+                                        if (self.channelHash === defaultChannel) {
+                                            self.fire('channel-default');
+                                        }
+                                        self.fire('channel-add-or-remove');
+                                        cb();
+                                    });
+                                },
+                                fail : function(){
+                                    cb(500);
+                                }
+                            });
+                        },
+
+                        function(cb){
+                            if (self.currentUser.id === channelToDelete.ownerUserId) {
+                                self.fire('channel-deleted', {
+                                    channel: channelToDelete,
+                                    users: removedChannelUsers,
+                                    userId: self.currentUser.id
+                                });
                             }
-
-                            self.fire('channel-add-or-remove');
-                        });
+                            cb();
+                        }
+                ], function(err) {
+                    if (err) {
+                        console.log('Error in deleting channel');
                     }
                 });
-
             }
         })();
 

@@ -9,6 +9,7 @@ module.exports = function (app) {
   app.get('/api/channels', channels.getPrivateChannels);
   app.get('/api/channels/:channelId/users', channels.getPrivateChannelUsers);
   app.post('/api/channels', channels.addPrivateChannel);
+  app.get('/api/channels/:channelId', channels.getOnePrivateChannel);
   app.delete('/api/channels/:channelId', channels.deletePrivateChannel);
 
   app.post('/api/messages/latest', messages.getLatestMessages);
