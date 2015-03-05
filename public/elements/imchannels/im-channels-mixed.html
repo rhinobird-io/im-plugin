@@ -15,7 +15,7 @@
 <!--
 channelName, current channel name , it is useful
 -->
-<polymer-element name="im-channels-mixed" extends="div" attributes="channelName">
+<polymer-element name="im-channels-mixed" extends="div" attributes="channelHash">
     <core-style id="icon">
         paper-icon-button[icon="add-circle"] /deep/ core-icon {
             color: {{g.theme.mainBgColor}};
@@ -151,7 +151,7 @@ channelName, current channel name , it is useful
                 handleChannelSelect : function(event) {
                     var self = this;
                     var channel = event.detail;
-                    self.channelName = channel.hash;
+                    self.channelHash = channel.hash;
                     _initCurrentChannel.call(self, function cb(){});
                 },
 
@@ -279,7 +279,7 @@ channelName, current channel name , it is useful
                     _initCurrentChannel.bind(self)
                 ], function (err, result) {
                     if (err) {
-                        console.log('Error : ' + err);
+                        console.log('Error : ' + err + ' channelHash:' + self.channelHash);
                         deferred.resolve({
                             status: err
                         });
@@ -312,15 +312,14 @@ channelName, current channel name , it is useful
 
             function _initDefaultChannel(callback) {
                 var self = this;
-                if (self.channelName === defaultChannel) {
+                if (self.channelHash === defaultChannel) {
                     if (self.imGlobals.currentChannel) {
                         self.fire('channel-select', self.imGlobals.currentChannel);
                         callback(301);
                     } else {
                         self.fire('channel-default');
-                        callback();
+                        callback(301);
                     }
-                    return;
                 } else {
                     callback();
                 }
@@ -366,7 +365,7 @@ channelName, current channel name , it is useful
                                 temp.push({
                                     id: '' + channel.id,
                                     name: channel.name,
-                                    hash: channel.name,
+                                    hash: ''+channel.id,
                                     userChannels: []
                                 });
                             });
@@ -403,14 +402,14 @@ channelName, current channel name , it is useful
 
             function _initCurrentChannel(callback) {
                 var self = this;
-                if (self.channelName === defaultChannel) {
+                if (self.channelHash === defaultChannel) {
+                    debugger;
                     self.channel = undefined;
                     callback(301);
                 } else {
-                    if (('' + self.channelName).indexOf('@') === 0) {
-                        var name = self.channelName.substr(1);
+                    if (('' + self.channelHash).indexOf('@') === 0) {
                         self.teamMemberChannels.every(function (teamMemberChannel) {
-                            if (teamMemberChannel.name === name) {
+                            if (teamMemberChannel.hash === self.channelHash) {
                                 self.channel = teamMemberChannel;
                                 return false;
                             }
@@ -418,14 +417,14 @@ channelName, current channel name , it is useful
                         });
                     } else {
                         self.publicChannels.every(function (publicChannel) {
-                            if (publicChannel.name === self.channelName) {
+                            if (publicChannel.hash === self.channelHash) {
                                 self.channel = publicChannel;
                                 return false;
                             }
                             return true;
                         });
                         self.privateChannels.every(function (privateChannel) {
-                            if (privateChannel.name === self.channelName) {
+                            if (privateChannel.hash === self.channelHash) {
                                 self.channel = privateChannel;
                                 return false;
                             }
@@ -508,7 +507,7 @@ channelName, current channel name , it is useful
                     window.focus();
                     var pluginName = self.imGlobal.pluginName;
                     if (channelId != self.channel.id) {
-                        self.channelName = hash;
+                        self.channelHash = hash;
                         _initCurrentChannel.call(self, function cb(){
                             self.fire('channel-select', self.channel);
                         });
@@ -609,7 +608,7 @@ channelName, current channel name , it is useful
                         function(channel, cb) {
                             _initPrivateChannels.call(self, function() {
                                 var channelToGo = _.find( self.privateChannels, function(pChannel) {
-                                    return pChannel.name === channel.name;
+                                    return pChannel.hash === channel.hash;
                                 });
                                 self.fire('channel-add-or-remove');
                                 cb(null, channelToGo);
@@ -620,7 +619,7 @@ channelName, current channel name , it is useful
                         self.$.addPrivateChannelDialog.close();
                         self.newPrivateChannel.init();
 
-                        self.channelName = channel.hash;
+                        self.channelHash = channel.hash;
                         _initCurrentChannel.call(self, function cb(){
                             self.fire('channel-select', self.channel);
                         });
@@ -643,12 +642,12 @@ channelName, current channel name , it is useful
                         if (self.channel && self.channel.id === channelId) {
                             delete self.imGlobals.currentChannel;
 
-                            self.channelName = defaultChannel;
+                            self.channelHash = defaultChannel;
                             self.channel = undefined;
                         }
 
                         _initPrivateChannels.call(self, function () {
-                            if (self.channelName === defaultChannel) {
+                            if (self.channelHash === defaultChannel) {
                                 self.fire('channel-default');
                             }
 

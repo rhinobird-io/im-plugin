@@ -7,10 +7,11 @@ module.exports = function(sequelize, DataTypes) {
     },
     name: {
       type: DataTypes.STRING,
-      unique : true
+      unique : "PrivateChannels_name_ownerUserId_key"
     },
     ownerUserId : {
-      type: DataTypes.INTEGER
+      type: DataTypes.INTEGER,
+      unique : "PrivateChannels_name_ownerUserId_key"
     }
   }, {
     classMethods: {

@@ -35,7 +35,7 @@
         <home-container>
             <div class="title" horizontal layout center>
                 <div flex>
-                    {{ channelName }}
+                    {{ channel.name }}
                 </div>
                 <div horizontal end-justified layout>
                     <core-icon-button id="menuButton" class='{{ {narrowShow :!narrow} | tokenList }}' icon="menu"
@@ -63,7 +63,7 @@
 
                     <div id='imPanel' drawer>
                         <x-select id="xSelect" selected="{{ selectedChannels }}" label="Search" fields="{{fields}}" width="100%;" maxLen="1" ></x-select>
-                        <div id="imChannels" is="im-channels-mixed" channelName="{{channelName}}"
+                        <div id="imChannels" is="im-channels-mixed" channelHash="{{channelName}}"
                              on-channel-created="{{handleChannelCreated}}"vertical layout></div>
                     </div>
 

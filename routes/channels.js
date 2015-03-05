@@ -72,7 +72,7 @@ exports.getPrivateChannels = function(req, res) {
   var userId = req.userId;
   var channelName = req.query.name;
   if (channelName) {
-    PrivateChannel.findAll( { where : {name : channelName}}).then(function(privateChannel) {
+    PrivateChannel.findAll( { where : { ownerUserId : userId, name : channelName}}).then(function(privateChannel) {
       res.json(privateChannel);
     });
   } else {
