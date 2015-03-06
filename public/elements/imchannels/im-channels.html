@@ -1,5 +1,6 @@
 <link rel="import" href="/platform/bower_components/polymer/polymer.html">
 <link rel="import" href="/platform/bower_components/core-style/core-style.html">
+<link rel="import" href="/platform/bower_components/core-signals/core-signals.html">
 <link rel="import" href="/platform/bower_components/paper-item/paper-item.html">
 <link rel="import" href="/platform/bower_components/paper-input/paper-input.html">
 <link rel="import" href="/platform/home-container.html">
@@ -27,6 +28,7 @@
         <app-globals id="globals"></app-globals>
         <core-style ref="theme"></core-style>
         <core-style ref="icon"></core-style>
+        <core-signals on-core-signal-channel-select="{{ handleCoreSignalChannelSelect }}"></core-signals>
         <style>
             :host {
                 display: block;
@@ -135,6 +137,22 @@
                     this.fire('channel-select', target.templateInstance.model.g);
                 }
                 ,
+
+                /**
+                 * This function is asked by the parent, he want to go to some channel, but the event should be fired from the bottom
+                 * @param event
+                 * @param detail
+                 * @param target
+                 */
+                handleCoreSignalChannelSelect : function(event, detail, target) {
+                    var channel = event.detail;
+                    var self = this;
+                    self.channels.forEach(function(ch) {
+                        if (ch.hash === channel.hash) {
+                            self.fire('channel-select', ch);
+                        }
+                    })
+                },
 
                 talkDirect: function(event, detail, target) {
                     // use blur instead?

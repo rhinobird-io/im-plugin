@@ -49,20 +49,20 @@
                         <p>{{connectinStatus}}</p>
                     </paper-action-dialog>
 
-                    <div id="imForbidden" is="im-forbidden" hidden?="{{ !!channel || isSearch }}" main four flex horizontal layout center center-justified>
+                    <div id="imForbidden" is="im-forbidden" hidden?="{{  state !== states.home }}" main four flex horizontal layout center center-justified>
                     </div>
 
-                    <div id="imSearch" is="im-search" hidden?="{{ !isSearch }}" main four flex horizontal layout >
+                    <div id="imSearch" is="im-search" hidden?="{{ state !== states.search }}" main four flex horizontal layout >
                     </div>
 
-                    <div id="historyAndInput" main four flex vertical layout class="mainBgColor">
+                    <div id="historyAndInput" main four flex vertical layout class="mainBgColor" hidden?="{{ state !== states.talk }}">
                         <div id="imHistory" is="im-history" flex vertical layout channel="{{$.imChannels.channel}}"
                              on-message-seen="{{ handleMessageSeen }}"></div>
                         <smart-editor id="messageInput" value="{{message}}" maxRows="5" on-flush="{{sendMessage}}" flushKey="enter"></smart-editor>
                     </div>
 
                     <div id='imPanel' drawer>
-                        <x-select id="xSelect" selected="{{ selectedChannels }}" label="Search" fields="{{fields}}" width="100%;" maxLen="1" ></x-select>
+                        <x-select id="xSelect" selected="{{ selectedChannels }}" label="Search" fields="{{fields}}" width="100%;" maxLen="1" on-element-select="{{ handleXElementSelect}}" ></x-select>
                         <div id="imChannels" is="im-channels-mixed" channelHash="{{channelName}}"
                              on-channel-created="{{handleChannelCreated}}" on-channel-deleted="{{handleChannelDeleted}}" vertical layout></div>
                     </div>

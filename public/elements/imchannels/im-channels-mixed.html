@@ -148,11 +148,23 @@ channelName, current channel name , it is useful
                     };
                 },
 
+                /**
+                 * From the parent, told they want to switch channel
+                 * channel-select event can only be fired from the bottom
+                 * */
+                goToChannel : function(channel) {
+                    this.fire('core-signal', {
+                        name : 'channel-select',
+                        data : channel
+                    })
+                },
+
                 handleChannelSelect : function(event) {
                     var self = this;
-                    var channel = event.detail;
-                    self.channelHash = channel.hash;
-                    _initCurrentChannel.call(self, function cb(){});
+                    self.channel = event.detail;
+                    self.channelHash = self.channel.hash;
+                    self.imGlobals.currentChannel = self.channel;
+                    _clearUnread.call(self, self.channel.id);
                 },
 
                 latestChannelMessageChanged: function (oldValue, newValue) {
@@ -275,8 +287,7 @@ channelName, current channel name , it is useful
                     _initPrivateChannels.bind(self),
                     _initAppGlobalChannels.bind(self),
                     _initLatestMessage.bind(self),
-                    _initDefaultChannel.bind(self),
-                    _initCurrentChannel.bind(self)
+                    _initDefaultChannel.bind(self)
                 ], function (err, result) {
                     if (err) {
                         console.log('Error : ' + err + ' channelHash:' + self.channelHash);
@@ -314,13 +325,25 @@ channelName, current channel name , it is useful
                 var self = this;
                 if (self.channelHash === defaultChannel) {
                     if (self.imGlobals.currentChannel) {
-                        self.fire('channel-select', self.imGlobals.currentChannel);
+                        self.fire('core-signal', {
+                            name : 'channel-select',
+                            data : self.imGlobals.currentChannel
+                        });
                         callback(301);
                     } else {
+                        /**
+                         * channel-default can only be fire from this layer
+                         * */
                         self.fire('channel-default');
                         callback(301);
                     }
                 } else {
+                    self.fire('core-signal', {
+                        name : 'channel-select',
+                        data : {
+                            hash : self.channelHash
+                        }
+                    });
                     callback();
                 }
             }
@@ -401,46 +424,49 @@ channelName, current channel name , it is useful
                 callback && callback();
             }
 
-            function _initCurrentChannel(callback) {
-                var self = this;
-                if (self.channelHash === defaultChannel) {
-                    self.channel = undefined;
-                    callback(301);
-                } else {
-                    if (('' + self.channelHash).indexOf('@') === 0) {
-                        self.teamMemberChannels.every(function (teamMemberChannel) {
-                            if (teamMemberChannel.hash === self.channelHash) {
-                                self.channel = teamMemberChannel;
-                                return false;
-                            }
-                            return true;
-                        });
-                    } else {
-                        self.publicChannels.every(function (publicChannel) {
-                            if (publicChannel.hash === self.channelHash) {
-                                self.channel = publicChannel;
-                                return false;
-                            }
-                            return true;
-                        });
-                        self.privateChannels.every(function (privateChannel) {
-                            if (privateChannel.hash === self.channelHash) {
-                                self.channel = privateChannel;
-                                return false;
-                            }
-                            return true;
-                        });
-                    }
-                    if (!self.channel) {
-                        // redirect to 403
-                        callback(403);
-                    } else {
-                        self.imGlobals.currentChannel = self.channel;
-                        _clearUnread.call(self, self.channel.id);
-                        callback();
-                    }
-                }
-            }
+            /**
+             * Init Current channel should be done be listener on channel-select
+             * */
+//            function _initCurrentChannel(callback) {
+//                var self = this;
+//                if (self.channelHash === defaultChannel) {
+//                    self.channel = undefined;
+//                    callback(301);
+//                } else {
+//                    if (('' + self.channelHash).indexOf('@') === 0) {
+//                        self.teamMemberChannels.every(function (teamMemberChannel) {
+//                            if (teamMemberChannel.hash === self.channelHash) {
+//                                self.channel = teamMemberChannel;
+//                                return false;
+//                            }
+//                            return true;
+//                        });
+//                    } else {
+//                        self.publicChannels.every(function (publicChannel) {
+//                            if (publicChannel.hash === self.channelHash) {
+//                                self.channel = publicChannel;
+//                                return false;
+//                            }
+//                            return true;
+//                        });
+//                        self.privateChannels.every(function (privateChannel) {
+//                            if (privateChannel.hash === self.channelHash) {
+//                                self.channel = privateChannel;
+//                                return false;
+//                            }
+//                            return true;
+//                        });
+//                    }
+//                    if (!self.channel) {
+//                        // redirect to 403
+//                        callback(403);
+//                    } else {
+//                        self.imGlobals.currentChannel = self.channel;
+//                        _clearUnread.call(self, self.channel.id);
+//                        callback();
+//                    }
+//                }
+//            }
 
             function _clearUnread(channelId) {
                 delete this.unread[channelId];
@@ -508,8 +534,11 @@ channelName, current channel name , it is useful
                     var pluginName = self.imGlobal.pluginName;
                     if (channelId != self.channel.id) {
                         self.channelHash = hash;
-                        _initCurrentChannel.call(self, function cb(){
-                            self.fire('channel-select', self.channel);
+                        self.fire('core-signal', {
+                            name : 'channel-select',
+                            data : {
+                                hash : self.channelHash
+                            }
                         });
                     }
                 }:undefined;
@@ -620,8 +649,11 @@ channelName, current channel name , it is useful
                         self.newPrivateChannel.init();
 
                         self.channelHash = channel.hash;
-                        _initCurrentChannel.call(self, function cb(){
-                            self.fire('channel-select', self.channel);
+                        self.fire('core-signal', {
+                            name : 'channel-select',
+                            data : {
+                                hash : self.channelHash
+                            }
                         });
 
                     } else {
