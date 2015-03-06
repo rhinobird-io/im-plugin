@@ -18,7 +18,9 @@ module.exports = {
               .query('CREATE TRIGGER message_vector_update BEFORE INSERT OR UPDATE ON "'
               + Message.tableName + '" FOR EACH ROW EXECUTE PROCEDURE tsvector_update_trigger("'
               + Message.vectorName + '", \'pg_catalog.english\', ' + Message.searchFields.join(', ') + ')')
-              .done(done);
+              .done(function(){
+                migration.sequelize.query('update "Messages" set "textVector"=null').done(done);
+              });
           })
       });
   },
