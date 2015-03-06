@@ -130,7 +130,6 @@ channelName, current channel name , it is useful
                     this.init = _initImChannels;
 
                     this.addEventListener('channel-select', this.handleChannelSelect);
-                    this.addEventListener('channel-add-or-remove', this.handleChannelAddOrRemove);
 
                     this.imGlobals = this.$.globals.values.im;
                     serverUrl = this.imGlobals.serverUrl;
@@ -179,10 +178,6 @@ channelName, current channel name , it is useful
                 handleChannelRemove: function (event) {
                     this.removedPrivateChannel = event.detail;
                     this.$.removePrivateChannelDialog.open();
-                },
-
-                handleChannelAddOrRemove : function(event) {
-                    _initAppGlobalChannels.call(this);
                 },
 
                 removePrivateChannel: _removePrivateChannel,
@@ -285,7 +280,6 @@ channelName, current channel name , it is useful
                     _initPublicChannels.bind(self),
                     _initTeamMemberChannels.bind(self),
                     _initPrivateChannels.bind(self),
-                    _initAppGlobalChannels.bind(self),
                     _initLatestMessage.bind(self),
                     _initDefaultChannel.bind(self)
                 ], function (err, result) {
@@ -317,6 +311,7 @@ channelName, current channel name , it is useful
                                     userChannels: []
                                 });
                             });
+                            self.imGlobals.publicChannels = self.publicChannels;
                             callback();
                         });
             }
@@ -329,13 +324,13 @@ channelName, current channel name , it is useful
                             name : 'channel-select',
                             data : self.imGlobals.currentChannel
                         });
-                        callback(301);
+                        callback();
                     } else {
                         /**
                          * channel-default can only be fire from this layer
                          * */
                         self.fire('channel-default');
-                        callback(301);
+                        callback();
                     }
                 } else {
                     self.fire('core-signal', {
@@ -369,6 +364,7 @@ channelName, current channel name , it is useful
                                                 teamMemberChannels.push(channel);
                                             }
                                         });
+                                        self.imGlobals.teamMemberChannels = self.teamMemberChannels;
                                         cb();
                                     });
                         }, function (err) {
@@ -406,6 +402,7 @@ channelName, current channel name , it is useful
                                                             // teamMembers.push(user);
                                                         }
                                                     });
+                                                    self.imGlobals.privateChannels = self.privateChannels;
                                                     cb();
                                                 });
                                     }, function (err) {
@@ -415,58 +412,6 @@ channelName, current channel name , it is useful
                                     });
                         });
             }
-
-            function _initAppGlobalChannels(callback) {
-                var self = this;
-                self.imGlobals.publicChannels = self.publicChannels;
-                self.imGlobals.privateChannels = self.privateChannels;
-                self.imGlobals.teamMemberChannels = self.teamMemberChannels;
-                callback && callback();
-            }
-
-            /**
-             * Init Current channel should be done be listener on channel-select
-             * */
-//            function _initCurrentChannel(callback) {
-//                var self = this;
-//                if (self.channelHash === defaultChannel) {
-//                    self.channel = undefined;
-//                    callback(301);
-//                } else {
-//                    if (('' + self.channelHash).indexOf('@') === 0) {
-//                        self.teamMemberChannels.every(function (teamMemberChannel) {
-//                            if (teamMemberChannel.hash === self.channelHash) {
-//                                self.channel = teamMemberChannel;
-//                                return false;
-//                            }
-//                            return true;
-//                        });
-//                    } else {
-//                        self.publicChannels.every(function (publicChannel) {
-//                            if (publicChannel.hash === self.channelHash) {
-//                                self.channel = publicChannel;
-//                                return false;
-//                            }
-//                            return true;
-//                        });
-//                        self.privateChannels.every(function (privateChannel) {
-//                            if (privateChannel.hash === self.channelHash) {
-//                                self.channel = privateChannel;
-//                                return false;
-//                            }
-//                            return true;
-//                        });
-//                    }
-//                    if (!self.channel) {
-//                        // redirect to 403
-//                        callback(403);
-//                    } else {
-//                        self.imGlobals.currentChannel = self.channel;
-//                        _clearUnread.call(self, self.channel.id);
-//                        callback();
-//                    }
-//                }
-//            }
 
             function _clearUnread(channelId) {
                 delete this.unread[channelId];
@@ -639,7 +584,6 @@ channelName, current channel name , it is useful
                                 var channelToGo = _.find( self.privateChannels, function(pChannel) {
                                     return pChannel.id === channel.id;
                                 });
-                                self.fire('channel-add-or-remove');
                                 cb(null, channelToGo);
                             })
                         }
@@ -695,12 +639,11 @@ channelName, current channel name , it is useful
                                         self.channel = undefined;
                                     }
 
-                                    _initPrivateChannels.call(self, function () {
+                                    _initPrivateChannels.call(self, function() {
                                         if (self.channelHash === defaultChannel) {
                                             self.fire('channel-default');
                                         }
-                                        self.fire('channel-add-or-remove');
-                                        cb();
+                                        cb(null);
                                     });
                                 },
                                 fail : function(){
@@ -716,6 +659,11 @@ channelName, current channel name , it is useful
                                     users: removedChannelUsers,
                                     userId: self.currentUser.id
                                 });
+                            } else {
+                                self.fire('channel-user-left', {
+                                    channel: channelToDelete,
+                                    userId: self.currentUser.id
+                                })
                             }
                             cb();
                         }

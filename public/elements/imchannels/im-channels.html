@@ -175,6 +175,12 @@
                     this.$.groupChannel.removeAttribute('unsorted');
                 },
 
+                /**
+                 * Just click the remove button
+                 * @param event
+                 * @param detail
+                 * @param target
+                 */
                 fireChannelRemoveEvent: function(event, detail, target){
                     this.fire('channel-remove', target.templateInstance.model.g);
                 },

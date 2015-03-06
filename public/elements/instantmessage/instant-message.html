@@ -64,7 +64,9 @@
                     <div id='imPanel' drawer>
                         <x-select id="xSelect" selected="{{ selectedChannels }}" label="Search" fields="{{fields}}" width="100%;" maxLen="1" on-element-select="{{ handleXElementSelect}}" ></x-select>
                         <div id="imChannels" is="im-channels-mixed" channelHash="{{channelName}}"
-                             on-channel-created="{{handleChannelCreated}}" on-channel-deleted="{{handleChannelDeleted}}" vertical layout></div>
+                             on-channel-created="{{handleChannelCreated}}"
+                             on-channel-deleted="{{handleChannelDeleted}}"
+                             on-channel-user-left="{{handleChannelUserLeft}}" vertical layout></div>
                     </div>
 
                 </core-drawer-panel>

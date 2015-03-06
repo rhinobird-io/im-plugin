@@ -74,11 +74,6 @@
         history.pushState(null, null, '#' + '/' + self.pluginName + '/channels/' + defaultChannel);
       });
 
-      this.addEventListener("channel-add-or-remove", function (event) {
-        _initXSelect.call(self, function () {
-        });
-      });
-
       self.imGlobals = self.$.globals.values.im = self.$.globals.values.im || {};
       self.imGlobals.serverUrl = serverUrl;
       self.imGlobals.pluginName = this.pluginName;
@@ -97,30 +92,11 @@
 
         function (callback) {
           _self.$.imChannels.init().done(function (res) {
-            _initSocket.call(_self, function () {
-            });
-            _initXSelect.call(_self, function () {
-            });
-            if (res.status !== 200) {
-              callback(res.status);
-            } else {
-              callback();
-            }
-
+            _initSocket.call(_self);
+            _initXSelect.call(_self);
+            callback();
           });
         }
-        //,
-        //function (callback) {
-        //    _self.channel = _self.$.imChannels.channel;
-        //    callback();
-        //},
-
-        //function (callback) {
-        //    _self.$.imHistory.init().done(function (res) {
-        //        callback();
-        //    });
-        //}
-
       ], function (err, result) {
         if (err) {
           console.log('Status : ' + err);
@@ -317,9 +293,15 @@
         {userId: self.currentUser.id, messageId: message.id, channelId: channel.id});
     },
 
+    /**
+     * I create channel as the owner
+     * @param event
+     */
     handleChannelCreated: function (event) {
       var self = this;
       var channel = event.detail.channel;
+      _initXSelect.call(self);
+
       self.socket.emit('channel:created', {
         channel: event.detail.channel,
         users: event.detail.users,
@@ -329,9 +311,14 @@
       });
     },
 
+    /**
+     * Remove the channel as the owner
+     * @param event
+     */
     handleChannelDeleted: function (event) {
       var self = this;
       var channel = event.detail.channel;
+      _initXSelect.call(self);
       self.socket.emit('channel:deleted', {
         channel: event.detail.channel,
         users: event.detail.users,
@@ -339,6 +326,17 @@
       }, function () {
 
       });
+    },
+
+    /**
+     * Just quit the channel
+     * @param event
+     */
+    handleChannelUserLeft : function(event) {
+      var self = this;
+      var channel = event.detail.channel;
+      var userId = event.detail.userId;
+      _initXSelect.call(self);
     },
 
     togglePanel: function () {
@@ -378,7 +376,7 @@
   function _initSocket(callback) {
     var self = this;
     self.initSocket();
-    callback(null);
+    callback && callback(null);
   }
 
   function _initXSelect(callback) {
