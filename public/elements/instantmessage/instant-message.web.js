@@ -180,6 +180,12 @@
           teamMemberChannels: self.$.imChannels.teamMemberChannels
         }, function (onlineList) {
           self.$.globals.values.im.onlineList = onlineList;
+          self.fire('core-signal', {
+            name : 'user-init',
+            data : {
+              onlineList:self.$.globals.values.im.onlineList
+            }
+          });
         });
       });
 
@@ -216,6 +222,13 @@
         if (data.channelId === 'default') {
           self.$.globals.values.im.onlineList = self.$.globals.values.im.onlineList || {};
           self.$.globals.values.im.onlineList[data.userId] = 1;
+          self.fire('core-signal', {
+            name : 'user-join',
+            data : {
+              user : data,
+              onlineList:self.$.globals.values.im.onlineList
+            }
+          });
           return;
         }
         if (data.channelId !== self.channel.id) {
@@ -228,6 +241,13 @@
       this.socket.on('user:left', function (data) {
         if (data.channelId === 'default' && self.$.globals.values.im.onlineList) {
           delete self.$.globals.values.im.onlineList[data.userId];
+          self.fire('core-signal', {
+            name : 'user-left',
+            data : {
+              user : data,
+              onlineList:self.$.globals.values.im.onlineList
+            }
+          });
           return;
         }
         if (data.channelId !== self.channel.id) {

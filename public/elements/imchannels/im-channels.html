@@ -28,7 +28,11 @@
         <app-globals id="globals"></app-globals>
         <core-style ref="theme"></core-style>
         <core-style ref="icon"></core-style>
-        <core-signals on-core-signal-channel-select="{{ handleCoreSignalChannelSelect }}"></core-signals>
+        <core-signals on-core-signal-channel-select="{{ handleCoreSignalChannelSelect }}"
+                on-core-signal-user-join="{{handleUserStatusChanged}}"
+                on-core-signal-user-left="{{handleUserStatusChanged}}"
+                on-core-signal-user-init="{{handleUserStatusChanged}}"></core-signals>
+
         <style>
             :host {
                 display: block;
@@ -91,6 +95,9 @@
     <script>
 
         (function(){
+
+            var localLatestChannelMessages;
+
             Polymer('im-channels', {
                 publish : {
                     showMemberList : false,
@@ -105,8 +112,7 @@
                 },
 
                 ready: function() {
-                    //this.imGlobals = this.$.globals.values.im;
-                    //debugger;
+
                 },
 
                 domReady: function() {
@@ -139,6 +145,11 @@
                 }
                 ,
 
+                handleUserStatusChanged : function(event) {
+                    var onlineList = event.detail.onlistList;
+                    this.sort();
+                },
+
                 /**
                  * This function is asked by the parent, he want to go to some channel, but the event should be fired from the bottom
                  * @param event
@@ -161,8 +172,11 @@
                     this.fire('channel-select', target.templateInstance.model.directMessageChannel);
                 },
 
-                sort: function (latestChannelMessages, onlineList) {
+                sort: function (latestChannelMessages) {
+                    var self = this;
+                    localLatestChannelMessages = latestChannelMessages;
                     function _sort(channels) {
+                        var onlineList = self.$.globals.values.im.onlineList;
                         // ascending order
                         return _.sortBy(channels, function (channel) {
 
@@ -181,8 +195,9 @@
                                 return latestChannelMessageChars.push('9');
                             });
 
-                            var latestChannelMessage = '' + latestChannelMessages['' + channel.id];
-                            if (latestChannelMessage) {
+
+                            if (localLatestChannelMessages && localLatestChannelMessages['' + channel.id]) {
+                                var latestChannelMessage = '' + localLatestChannelMessages['' + channel.id];
                                 for (var i = 0 ; i < latestChannelMessage.length; i++) {
                                     latestChannelMessageChars[latestChannelMessageCharsLength - latestChannelMessage.length + i] = 9 - latestChannelMessage[i];
                                 }
@@ -192,7 +207,7 @@
                             latestChannelMessageChars.forEach(function(c){
                                 latestChannelMessageString += c;
                             });
-                            
+
                             return onlineChar + latestChannelMessageString + channel.name;
                         });
                     }
