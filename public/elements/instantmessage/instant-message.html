@@ -45,10 +45,9 @@
 
             <div class="search" horizontal end-justified center layout>
                 <paper-icon-button icon="search" on-click="{{ toggleSearch }}"></paper-icon-button>
-                <!--<x-select id="xSelect" selected="{{ selectedChannels }}" label="Search" fields="{{fields}}" width="100%;" maxLen="1" on-element-select="{{ handleXElementSelect}}" style="z-index: 200; position: fixed;"></x-select>-->
                 <div flex hidden?="{{ state !== states.searching }}">
-                    <paper-input style="width: 100%;"/>
-
+                    <x-select id="xSelect" floatingLabel="false" direction="downward" selected="{{ selectedChannels }}" label="Search" fields="{{fields}}"
+                              width="100%;" maxLen="1" on-element-select="{{ handleXElementSelect}}"></x-select>
                 </div>
 
             </div>
@@ -59,16 +58,20 @@
                         <p>{{connectinStatus}}</p>
                     </paper-action-dialog>
 
-                    <div id="imForbidden" is="im-forbidden" hidden?="{{  state !== states.home }}" main four flex horizontal layout center center-justified>
+                    <div id="imForbidden" is="im-forbidden" hidden?="{{  state !== states.home }}" main four flex
+                         horizontal layout center center-justified>
                     </div>
 
-                    <div id="imSearch" is="im-search" hidden?="{{ state !== states.search }}" main four flex horizontal layout >
+                    <div id="imSearch" is="im-search" hidden?="{{ state !== states.search }}" main four flex horizontal
+                         layout>
                     </div>
 
-                    <div id="historyAndInput" main four flex vertical layout class="mainBgColor" hidden?="{{ state !== states.talk }}">
+                    <div id="historyAndInput" main four flex vertical layout class="mainBgColor"
+                         hidden?="{{ state !== states.talk }}">
                         <div id="imHistory" is="im-history" flex vertical layout channel="{{$.imChannels.channel}}"
                              on-message-seen="{{ handleMessageSeen }}"></div>
-                        <smart-editor id="messageInput" value="{{message}}" maxRows="5" on-flush="{{sendMessage}}" flushKey="enter"></smart-editor>
+                        <smart-editor id="messageInput" value="{{message}}" maxRows="5" on-flush="{{sendMessage}}"
+                                      flushKey="enter"></smart-editor>
                     </div>
 
                     <div id='imPanel' drawer>

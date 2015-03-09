@@ -366,12 +366,12 @@ channelName, current channel name , it is useful
                                                 teamMemberChannels.push(channel);
                                             }
                                         });
-                                        self.imGlobals.teamMemberChannels = self.teamMemberChannels;
                                         cb();
                                     });
                         }, function (err) {
                             if (!err) {
                                 self.teamMemberChannels = _getUniqueTeamMemberChannel.call(self, teamMemberChannels);
+                                self.imGlobals.teamMemberChannels = self.teamMemberChannels;
                                 callback(null);
                             }
                         });
