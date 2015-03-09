@@ -43,6 +43,16 @@
                 </div>
             </div>
 
+            <div class="search" horizontal end-justified center layout>
+                <paper-icon-button icon="search" on-click="{{ toggleSearch }}"></paper-icon-button>
+                <!--<x-select id="xSelect" selected="{{ selectedChannels }}" label="Search" fields="{{fields}}" width="100%;" maxLen="1" on-element-select="{{ handleXElementSelect}}" style="z-index: 200; position: fixed;"></x-select>-->
+                <div flex hidden?="{{ state !== states.searching }}">
+                    <paper-input style="width: 100%;"/>
+
+                </div>
+
+            </div>
+
             <div class="mainBackground" horizontal layout fit>
                 <core-drawer-panel id="drawerPanel" narrow="{{narrow}}" rightDrawer>
                     <paper-action-dialog id="connectingDialog" backdrop autoCloseDisabled>
@@ -62,7 +72,7 @@
                     </div>
 
                     <div id='imPanel' drawer>
-                        <x-select id="xSelect" selected="{{ selectedChannels }}" label="Search" fields="{{fields}}" width="100%;" maxLen="1" on-element-select="{{ handleXElementSelect}}" ></x-select>
+
                         <div id="imChannels" is="im-channels-mixed" channelHash="{{channelName}}"
                              on-channel-created="{{handleChannelCreated}}"
                              on-channel-deleted="{{handleChannelDeleted}}"

@@ -12,7 +12,8 @@
     states: {
       talk: 'talk',
       home: 'home',
-      search: 'search'
+      search: 'search',
+      searching: 'searching'
     },
 
     connectinStatus: "connecting",
@@ -341,7 +342,13 @@
 
     togglePanel: function () {
       this.$.drawerPanel.togglePanel();
+    },
+
+    toggleSearch : function() {
+      this.state = this.states.searching;
     }
+
+
   });
 
   function _guid() {
