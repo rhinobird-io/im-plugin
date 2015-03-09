@@ -76,7 +76,7 @@
                         <avatar-image userid="{{g.user.id}}" username="{{g.user.username}}" size="24px"
                                       borderRadius="100%" hidden?="{{ !g.isPrivate }}" style="margin: 8px"></avatar-image>
                         <paper-item on-click="{{ handleChannelSelect }}" hash="{{g.name}}" flex
-                                    class="{{ {highlight : g.id === ''+currentChannel.id, offline: g.isPrivate && $.globals.values.onlineList[g.user.id] !== 1 } | tokenList }}"> {{ g.name }}
+                                    class="{{ {highlight : g.id === ''+currentChannel.id, offline: g.isPrivate && $.globals.values.im.onlineList[g.user.id] !== 1 } | tokenList }}"> {{ g.name }}
                         </paper-item>
                         <paper-icon-button class="unread" icon="markunread" hidden?="{{ !(unread[g.id] && unread[g.id].length > 0)}}" on-click="{{ handleChannelSelect }}"></paper-icon-button>
                     </div>
@@ -105,7 +105,8 @@
                 },
 
                 ready: function() {
-
+                    //this.imGlobals = this.$.globals.values.im;
+                    //debugger;
                 },
 
                 domReady: function() {
@@ -160,15 +161,39 @@
                     this.fire('channel-select', target.templateInstance.model.directMessageChannel);
                 },
 
-                sort: function (latestChannelMessages) {
+                sort: function (latestChannelMessages, onlineList) {
                     function _sort(channels) {
+                        // ascending order
                         return _.sortBy(channels, function (channel) {
-                            var latestChannelMessage = latestChannelMessages['' + channel.id];
-                            if (latestChannelMessage) {
-                                return ''+((1<<30) - latestChannelMessages['' + channel.id]);
-                            } else {
-                                return channel.name;
+
+                            // return onlinechar[1 digit] + lastChannelMessageChar[30 digits] + channelname[var]
+
+                            // last char in ascii
+                            var onlineChar = '~';
+                            if (channel.isPrivate && onlineList && onlineList[channel.user.id]) {
+                                // first visible char in ascii
+                                onlineChar = '!';
                             }
+
+                            var latestChannelMessageChars = [];
+                            var latestChannelMessageCharsLength = 30;
+                            _.times(latestChannelMessageCharsLength, function(n) {
+                                return latestChannelMessageChars.push('9');
+                            });
+
+                            var latestChannelMessage = '' + latestChannelMessages['' + channel.id];
+                            if (latestChannelMessage) {
+                                for (var i = 0 ; i < latestChannelMessage.length; i++) {
+                                    latestChannelMessageChars[latestChannelMessageCharsLength - latestChannelMessage.length + i] = 9 - latestChannelMessage[i];
+                                }
+                            }
+
+                            var latestChannelMessageString = '';
+                            latestChannelMessageChars.forEach(function(c){
+                                latestChannelMessageString += c;
+                            });
+                            
+                            return onlineChar + latestChannelMessageString + channel.name;
                         });
                     }
                     this.channels = _sort(this.channels);

@@ -179,7 +179,7 @@
           privateChannels: self.$.imChannels.privateChannels,
           teamMemberChannels: self.$.imChannels.teamMemberChannels
         }, function (onlineList) {
-          self.$.globals.values.onlineList = onlineList;
+          self.$.globals.values.im.onlineList = onlineList;
         });
       });
 
@@ -214,8 +214,8 @@
 
       this.socket.on('user:join', function (data) {
         if (data.channelId === 'default') {
-          self.$.globals.values.onlineList = self.$.globals.values.onlineList || {};
-          self.$.globals.values.onlineList[data.userId] = 1;
+          self.$.globals.values.im.onlineList = self.$.globals.values.im.onlineList || {};
+          self.$.globals.values.im.onlineList[data.userId] = 1;
           return;
         }
         if (data.channelId !== self.channel.id) {
@@ -226,8 +226,8 @@
       });
 
       this.socket.on('user:left', function (data) {
-        if (data.channelId === 'default' && self.$.globals.values.onlineList) {
-          delete self.$.globals.values.onlineList[data.userId];
+        if (data.channelId === 'default' && self.$.globals.values.im.onlineList) {
+          delete self.$.globals.values.im.onlineList[data.userId];
           return;
         }
         if (data.channelId !== self.channel.id) {
