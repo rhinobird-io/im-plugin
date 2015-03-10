@@ -38,6 +38,19 @@ module.exports = function (sequelize, DataTypes) {
           .query('SELECT * FROM "' + Message.tableName + '" WHERE "' + Message.getSearchVector() + '" @@ plainto_tsquery(\'english\', ' + query + ')', Message);
       },
 
+      searchMultiChannels: function (query, channelIds) {
+        if (sequelize.options.dialect !== 'postgres') {
+          console.log('Search is only implemented on POSTGRES database');
+          return;
+        }
+        var Message = this;
+        query = sequelize.getQueryInterface().escape(query);
+        return sequelize
+          .query('SELECT * FROM "' + Message.tableName + '" WHERE "Messages"."channelId" in (\'' +
+            channelIds.join('\',\'') +
+          '\') and "' + Message.getSearchVector() + '" @@ plainto_tsquery(\'english\', ' + query + ')', Message);
+      },
+
       searchSingleChannel: function (query, channelId) {
         if (sequelize.options.dialect !== 'postgres') {
           console.log('Search is only implemented on POSTGRES database');

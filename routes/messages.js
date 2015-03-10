@@ -28,13 +28,37 @@ exports.getLastSeenMessage = function (req, res){
 
 exports.queryMessage = function(req, res) {
   if (req.query.channelId) {
-    Message.searchSingleChannel(req.query.q, req.query.channelId).then(function(messages){
-      res.json(messages[0]);
+    // should valid the user has the authorization to access this channel
+    PrivateChannelsUsers.findOne({ where : {
+      userId : req.userId,
+      privateChannelId : req.query.channelId
+    }}).then(function(privateChannelUser){
+      if (privateChannelUser) {
+        Message.searchSingleChannel(req.query.q, privateChannelUser.privateChannelId).then(function(messages){
+          res.json(messages[0]);
+        });
+      } else {
+        res.sendStatus(403);
+      }
+
     });
+
   } else {
-    Message.searchAllChannel(req.query.q).then(function(messages){
-      res.json(messages[0]);
+    var userId = req.userId;
+    PrivateChannelsUsers.findAll({
+      where : {
+        userId : userId
+      }
+    }).then(function(privateChannelUsers) {
+      var channelIds = [];
+      privateChannelUsers.forEach(function(users) {
+        channelIds.push(users.privateChannelId);
+      });
+      Message.searchMultiChannels(req.query.q, channelIds).then(function(messages){
+        res.json(messages[0]);
+      });
     });
+
   }
 
 };
