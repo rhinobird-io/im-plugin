@@ -20,3 +20,4 @@ do
 done
 
 NODE_ENV=docker_development93 ./node_modules/sequelize-cli/bin/sequelize db:migrate
+NODE_ENV=docker_development93 node init/initFakeData.js
