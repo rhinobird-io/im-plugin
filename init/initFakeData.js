@@ -33,7 +33,7 @@ channels.forEach(function(channel) {
   });
 });
 
-_.times(100000, function(){
+_.times(5000, function(){
   messages.push({
     text: faker.lorem.sentence(),
     userId: _.random(0,30),

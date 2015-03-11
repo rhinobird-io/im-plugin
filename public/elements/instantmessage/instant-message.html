@@ -46,7 +46,7 @@
             <div class="search" horizontal end-justified center layout>
                 <paper-icon-button icon="search" on-click="{{ toggleSearch }}"></paper-icon-button>
                 <div flex hidden?="{{ state !== states.searching }}">
-                    <x-select id="xSelect" floatingLabel="false" direction="downward" selected="{{ selectedChannels }}" label="Search" fields="{{fields}}"
+                    <x-select id="xSelect" floatingLabel="false" selected="{{ selectedChannels }}" label="Search" fields="{{fields}}"
                               width="100%;" maxLen="1" on-element-select="{{ handleXElementSelect}}"></x-select>
                 </div>
 
