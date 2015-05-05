@@ -17,6 +17,15 @@ exports.getLatestMessages = function (req, res) {
 };
 
 
+exports.getLastSeenMessages = function (req, res){
+  var userId = req.body.userId;
+  UsersChannelsMessages.findAll({where: {userId : userId}})
+      .then(function (usersChannelsMessages){
+        res.json(usersChannelsMessages);
+      });
+};
+
+
 exports.getLastSeenMessage = function (req, res){
   var channelId = req.params.channelId;
   var userId = req.userId;
@@ -58,7 +67,5 @@ exports.queryMessage = function(req, res) {
         res.json(messages[0]);
       });
     });
-
   }
-
 };

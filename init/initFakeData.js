@@ -33,11 +33,11 @@ channels.forEach(function(channel) {
   });
 });
 
-_.times(5000, function(){
+_.times(300, function(){
   messages.push({
     text: faker.lorem.sentence(),
-    userId: _.random(0,30),
-    channelId: channels[_.random(channels.length - 1)].id,
+    userId: _.random(1,3),
+    channelId: 'team_' + _.random(1,4),
     guid: uuid.v4()
   });
 });
