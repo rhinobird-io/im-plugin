@@ -41,7 +41,6 @@ if ('production' == env) {
 server.listen(port, function () {
   console.log("Express server listening on port %d in %s mode", server.address().port, app.settings.env);
 });
-
 // Socket.io Communication
 io.on('connection', socket);
 

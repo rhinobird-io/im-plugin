@@ -20,19 +20,24 @@ module.exports = function (socket) {
     var currentChannel = data.currentChannel;
 
     socketsMap[userId] = socket;
+    socket.userId = userId;
+    socket.channels = [];
     if (myPublicChannels){
       myPublicChannels.forEach(function (channel) {
         socket.join(channel.id);
+        socket.channels.push(channel.id);
       });
     }
     if (myTeamMemberChannels){
       myTeamMemberChannels.forEach(function (channel) {
         socket.join(channel.id);
+        socket.channels.push(channel.id);
       });
     }
     if (myPrivateChannels){
       myPrivateChannels.forEach(function (channel) {
         socket.join(channel.id);
+        socket.channels.push(channel.id);
       });
     }
 
@@ -60,6 +65,15 @@ module.exports = function (socket) {
         }
         instance.update({messageId:data.messageId});
       });
+  });
+
+  socket.on('message:sync', function(data, cb){
+    var latestReceiveMessageId = data.latestReceiveMessageId;
+    // get messages after this id which can be seen by this user
+    Message.findAndCountAll({
+      where: { channelId: this.channels, id: {gt: latestReceiveMessageId}}, order: 'id DESC' }).then(function (messages) {
+        cb(messages.rows.reverse());
+    });
   });
 
   // broadcast a user's message to other users
@@ -126,39 +140,15 @@ module.exports = function (socket) {
     callback();
   });
 
-  // due to sometimes it will discconect randomly (heartbeat problem) 
-  //  socket.io:client client close with reason ping timeout
-  //  socket.io:socket closing socket - reason ping timeout +0ms
-  //  socket.io:client ignoring remove for xxxxxxx
-  socket.on('user:alive', function(){
-    socketsMap[userId] = socket;
-    socket.broadcast.to(defaultChannel).emit('user:join', {
-      // notify other clients that a new user has joined
-      userId: userId,
-      channelId: defaultChannel
-    });
-  });
-
   // clean up when a user leaves, and broadcast it to other users
   socket.on('disconnect', function (data) {
+    // only the positive disconnect know the userId
+    userId = this.userId;
     delete socketsMap[userId];
     socket.broadcast.to(defaultChannel).emit('user:left', {
       // notify other clients that a new user has joined
       userId: userId,
       channelId: defaultChannel
     });
-    try{
-      socket.broadcast.to(socketsMap[user.id].id).emit('user:dead', {});
-    }catch(err){
-
-    }
-    // need to leave rooms
-    // ans: don't need, but if you want to have something on leave, 
-    // you can do like this
-    // var rooms = io.sockets.manager.roomClients[socket.id];
-    //    for(var room in rooms) {
-    //        socket.leave(room);
-    //    }
-
   });
 };
