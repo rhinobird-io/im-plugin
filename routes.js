@@ -6,6 +6,7 @@ var memCache = require('memory-cache');
 module.exports = function (app) {
 
   app.get('/api/channels/:channelId/messages', channels.getPrivateChannelMessage);
+  app.get('/api/channels/:channelId/messagescount', channels.getPrivateChannelMessageCount);
   app.get('/api/channels', channels.getPrivateChannels);
   app.get('/api/channels/:channelId/users', channels.getPrivateChannelUsers);
   app.post('/api/channels', channels.addPrivateChannel);

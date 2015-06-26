@@ -4,6 +4,7 @@
     "password": "123456",
     "database": "im",
     "host": "127.0.0.1",
+    "port": "35432",
     "dialect": "postgres"
   },
   "docker_development93": {

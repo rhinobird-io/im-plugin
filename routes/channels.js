@@ -63,6 +63,16 @@ exports.getPrivateChannelMessage = function(req, res) {
   });
 };
 
+exports.getPrivateChannelMessageCount = function(req, res) {
+  var sinceId = req.query.sinceId || 0;
+
+  Message.findAndCountAll({
+    where: {channelId: req.params.channelId, id: {gt: sinceId}}
+  }).then(function (messages) {
+    res.json(messages.rows.length);
+  });
+};
+
 /**
  * get a user's private channels
  * @param req
