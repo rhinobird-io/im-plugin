@@ -66,10 +66,10 @@ exports.getPrivateChannelMessage = function(req, res) {
 exports.getPrivateChannelMessageCount = function(req, res) {
   var sinceId = req.query.sinceId || 0;
 
-  Message.findAndCountAll({
+  Message.count({
     where: {channelId: req.params.channelId, id: {gt: sinceId}}
-  }).then(function (messages) {
-    res.json(messages.rows.length);
+  }).then(function (c) {
+    res.json(c);
   });
 };
 
