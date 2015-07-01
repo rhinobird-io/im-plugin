@@ -16,6 +16,30 @@ exports.getLatestMessages = function (req, res) {
   });
 };
 
+exports.getUnreadCount = function (req, res) {
+  var userId = req.userId;
+  var channelIds = req.body.channelIds;
+  
+  var queryStr = 'SELECT m."channelId" as "channelId", count(m."id") as "unreadCount" FROM "Messages" as "m", "UsersChannelsMessages" as "u" WHERE m."channelId" = u."channelId" and u."userId" = :userId and m."id" > u."messageId" and u."channelId" in (';
+  channelIds.forEach(function (channelId){
+  	queryStr += "'" + channelId + "',";
+  });
+  queryStr = queryStr.substring(0, queryStr.length - 1);
+  queryStr += ') group by m."channelId"';
+  Sequelize.query(queryStr,
+    { replacements: { userId: userId}, type: Sequelize.QueryTypes.SELECT }
+  ).then(function(c) {
+    res.json(c);
+  });
+};
+
+exports.getTotalCount = function (req, res) {
+  var userId = req.userId;
+  var channelIds = req.body.channelIds;
+  Message.findAll({ attributes: ['channelId', [Sequelize.fn('count', Sequelize.col('id')), 'amount']] ,group : '"channelId"', where : { 'channelId' : channelIds }}).then(function (messages) {
+    res.json(messages);
+  });
+};
 
 exports.getLastSeenMessages = function (req, res){
   var userId = req.body.userId;
