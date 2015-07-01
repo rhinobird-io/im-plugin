@@ -56,7 +56,7 @@ module.exports = function (socket) {
   });
 
   socket.on('message:seen', function(data){
-    UsersChannelsMessages
+	UsersChannelsMessages
       .findOne({where: {userId: data.userId, channelId: ''+ data.channelId }})
       .then(function (instance){
         if (!instance){
@@ -65,8 +65,8 @@ module.exports = function (socket) {
         }
         instance.update({messageId:data.messageId});
       });
+  	
   });
-
   socket.on('message:sync', function(data, cb){
     var latestReceiveMessageId = data.latestReceiveMessageId;
     // get messages after this id which can be seen by this user
